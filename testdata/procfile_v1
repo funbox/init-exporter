@@ -1,0 +1,2 @@
+my_tail_cmd: /usr/bin/tail -F /var/log/messages
+my_another_tail_cmd: /usr/bin/tailf /var/log/messages
