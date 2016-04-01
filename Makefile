@@ -30,7 +30,7 @@ install:
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/sbin/init-exporter
-	rm -rf $(DESTDIR)/etc/init-exporter
+	rm -rf $(DESTDIR)/etc/init-exporter.conf
 
 clean:
 	rm -f init-exporter
