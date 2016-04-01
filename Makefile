@@ -9,7 +9,7 @@ PREFIX?=/usr
 
 ########################################################################################
 
-all: bin
+all: deps bin
 
 deps:
 	go get -v pkg.re/check.v1
@@ -25,10 +25,12 @@ test:
 
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp init-exporter $(DESTDIR)$(PREFIX)/bin/
+	cp init-exporter $(DESTDIR)$(PREFIX)/sbin/
+	cp common/init-exporter.conf $(DESTDIR)/etc/
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/init-exporter
+	rm -f $(DESTDIR)$(PREFIX)/sbin/init-exporter
+	rm -rf $(DESTDIR)/etc/init-exporter
 
 clean:
 	rm -f init-exporter

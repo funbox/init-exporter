@@ -2,6 +2,15 @@
 
 Utility for exporting services described by Procfile to init system.
 
+#### Installation
+
+To build the init-exporter from scratch, make sure you have a working Go 1.5+ workspace ([instructions](https://golang.org/doc/install)), then:
+
+```bash
+make all
+make install
+```
+
 #### Build Status
 
 | Repository | Status |
@@ -11,4 +20,4 @@ Utility for exporting services described by Procfile to init system.
 
 #### License
 
-MIT
+init-exporter is released under the MIT license (see [LICENSE](LICENSE))
