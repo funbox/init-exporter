@@ -12,4 +12,4 @@ before_install:
 
 script:
   - make test
-  - make all
+  - make bin
