@@ -10,7 +10,7 @@ To build the init-exporter from scratch, make sure you have a working Go 1.5+ wo
 git clone https://github.com/funbox/init-exporter.git --depth=1
 cd init-exporter
 make all
-make install
+sudo make install
 ```
 
 OR
