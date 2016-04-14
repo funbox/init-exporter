@@ -154,7 +154,7 @@ func checkArguments() {
 
 		switch {
 		case fsutil.IsExist(proc) == false:
-			printErrorAndExit("Procfile %s is not exist", proc)
+			printErrorAndExit("Procfile %s does not exist", proc)
 
 		case fsutil.IsReadable(proc) == false:
 			printErrorAndExit("Procfile %s is not readable", proc)
@@ -411,7 +411,7 @@ func showAbout() {
 		App:     APP,
 		Version: VER,
 		Desc:    DESC,
-		Year:    2006,
+		Year:    2016,
 		Owner:   "FB Group",
 		License: "MIT License",
 	}
