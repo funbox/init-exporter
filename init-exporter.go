@@ -34,7 +34,7 @@ const (
 
 // Supported arguments list
 const (
-	ARG_CONFIG    = "c:config"
+	ARG_CONFIG    = "config"
 	ARG_PROCFILE  = "p:procfile"
 	ARG_APP_NAME  = "n:appname"
 	ARG_DRY_START = "d:dry-start"
@@ -67,13 +67,14 @@ const (
 	FORMAT_SYSTEMD = "systemd"
 )
 
-// CONFIG_FILE contains path to config file
-const CONFIG_FILE = "/etc/init-exporter.conf"
+// DEFAULT_CONFIG_FILE contains path to config file
+const DEFAULT_CONFIG_FILE = "/etc/init-exporter.conf"
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var argMap = arg.Map{
 	ARG_APP_NAME:  &arg.V{},
+	ARG_CONFIG:    &arg.V{},
 	ARG_PROCFILE:  &arg.V{},
 	ARG_DRY_START: &arg.V{Type: arg.BOOL},
 	ARG_UNINSTALL: &arg.V{Type: arg.BOOL, Alias: "c:clear"},
@@ -118,7 +119,7 @@ func main() {
 
 	checkForRoot()
 	checkArguments()
-	loadConfig()
+	loadConfig(configPath())
 	validateConfig()
 	setupLogger()
 
@@ -165,22 +166,31 @@ func checkArguments() {
 	}
 }
 
+// configPath returns path to config
+func configPath() string {
+	if config_file := arg.GetS(ARG_CONFIG); config_file != "" {
+		return config_file
+	} else {
+		return DEFAULT_CONFIG_FILE
+	}
+}
+
 // loadConfig check config path and load config
-func loadConfig() {
+func loadConfig(path string) {
 	var err error
 
 	switch {
-	case !fsutil.IsExist(CONFIG_FILE):
-		printErrorAndExit("Config %s is not exist", CONFIG_FILE)
+	case !fsutil.IsExist(path):
+		printErrorAndExit("Config %s is not exist", path)
 
-	case !fsutil.IsReadable(CONFIG_FILE):
-		printErrorAndExit("Config %s is not readable", CONFIG_FILE)
+	case !fsutil.IsReadable(path):
+		printErrorAndExit("Config %s is not readable", path)
 
-	case !fsutil.IsNonEmpty(CONFIG_FILE):
-		printErrorAndExit("Config %s is empty", CONFIG_FILE)
+	case !fsutil.IsNonEmpty(path):
+		printErrorAndExit("Config %s is empty", path)
 	}
 
-	err = knf.Global(CONFIG_FILE)
+	err = knf.Global(path)
 
 	if err != nil {
 		printErrorAndExit(err.Error())
