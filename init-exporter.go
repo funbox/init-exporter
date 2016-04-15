@@ -402,6 +402,12 @@ func showUsage() {
 	info.AddOption(ARG_HELP, "Show this help message")
 	info.AddOption(ARG_VERSION, "Show version")
 
+	info.AddExample("-p ./myprocfile -f systemd myapp", "Export given procfile to systemd as myapp")
+	info.AddExample("-u -f systemd myapp", "Uninstall myapp from systemd")
+
+	info.AddExample("-p ./myprocfile -f upstart myapp", "Export given procfile to upstart as myapp")
+	info.AddExample("-u -f upstart myapp", "Uninstall myapp from upstart")
+
 	info.Render()
 }
 
@@ -411,7 +417,7 @@ func showAbout() {
 		App:     APP,
 		Version: VER,
 		Desc:    DESC,
-		Year:    2016,
+		Year:    2006,
 		Owner:   "FB Group",
 		License: "MIT License",
 	}

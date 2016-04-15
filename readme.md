@@ -168,7 +168,7 @@ defined both as global and as per-command options.
 
 To export a Procfile you should run
 
-    sudo upstart-export -p ./myprocfile -n myapp -f format
+    sudo upstart-export -p ./myprocfile -f format myapp
 
 where `myapp` is the application name.
 This name only affects the names of generated files.
@@ -207,7 +207,7 @@ To start/stop all application commands at once, you can run:
 
 To remove upstart scripts and helpers for a particular application you can run
 
-    sudo init-export -c -n myapp -f upstart
+    sudo init-export -u -f upstart myapp
 
 The logs are not cleared in this case. Also, all old application scripts are cleared before each export.
 
