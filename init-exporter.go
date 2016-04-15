@@ -154,7 +154,7 @@ func checkArguments() {
 
 		switch {
 		case fsutil.IsExist(proc) == false:
-			printErrorAndExit("Procfile %s is not exist", proc)
+			printErrorAndExit("Procfile %s does not exist", proc)
 
 		case fsutil.IsReadable(proc) == false:
 			printErrorAndExit("Procfile %s is not readable", proc)
@@ -401,6 +401,12 @@ func showUsage() {
 	info.AddOption(ARG_FORMAT, "Format of generated configs", "upstart|systemd")
 	info.AddOption(ARG_HELP, "Show this help message")
 	info.AddOption(ARG_VERSION, "Show version")
+
+	info.AddExample("-p ./myprocfile -f systemd myapp", "Export given procfile to systemd as myapp")
+	info.AddExample("-u -f systemd myapp", "Uninstall myapp from systemd")
+
+	info.AddExample("-p ./myprocfile -f upstart myapp", "Export given procfile to upstart as myapp")
+	info.AddExample("-u -f upstart myapp", "Uninstall myapp from upstart")
 
 	info.Render()
 }

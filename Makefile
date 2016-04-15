@@ -34,3 +34,9 @@ uninstall:
 
 clean:
 	rm -f init-exporter
+
+upstart-playground:
+	docker build -f ./Dockerfile.upstart -t upstart-playground . && docker run -ti --rm=true upstart-playground /bin/bash
+
+systemd-playground:
+	docker build -f ./Dockerfile.systemd -t systemd-playground . && docker run -ti --rm=true systemd-playground /bin/bash
