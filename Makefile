@@ -13,12 +13,15 @@ all: deps bin
 
 deps:
 	go get -v pkg.re/check.v1
-	go get -v pkg.re/essentialkaos/ek.v1
+	go get -v pkg.re/essentialkaos/ek.v5
 	go get -v github.com/smallfish/simpleyaml
 	go get -v gopkg.in/yaml.v2
 
 bin:
 	go build init-exporter.go
+
+fmt:
+	find . -name "*.go" -exec gofmt -s -w {} \;
 
 test:
 	go test ./...

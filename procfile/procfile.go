@@ -17,10 +17,10 @@ import (
 
 	"github.com/smallfish/simpleyaml"
 
-	"pkg.re/essentialkaos/ek.v1/errutil"
-	"pkg.re/essentialkaos/ek.v1/fsutil"
-	"pkg.re/essentialkaos/ek.v1/log"
-	"pkg.re/essentialkaos/ek.v1/path"
+	"pkg.re/essentialkaos/ek.v5/errutil"
+	"pkg.re/essentialkaos/ek.v5/fsutil"
+	"pkg.re/essentialkaos/ek.v5/log"
+	"pkg.re/essentialkaos/ek.v5/path"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

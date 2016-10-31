@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v1/system"
-	"pkg.re/essentialkaos/ek.v1/timeutil"
+	"pkg.re/essentialkaos/ek.v5/system"
+	"pkg.re/essentialkaos/ek.v5/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )
