@@ -1,0 +1,19 @@
+package: github.com/funbox/init-exporter
+import:
+- package: github.com/smallfish/simpleyaml
+- package: pkg.re/essentialkaos/ek.v5
+  version: ^5.5.0
+  subpackages:
+  - arg
+  - env
+  - errutil
+  - fmtc
+  - fsutil
+  - knf
+  - log
+  - path
+  - system
+  - timeutil
+  - usage
+testImport:
+- package: pkg.re/check.v1
