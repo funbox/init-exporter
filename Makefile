@@ -5,7 +5,7 @@ PREFIX?=/usr
 
 ########################################################################################
 
-.PHONY = all clean install uninstall deps test
+.PHONY = all clean install uninstall deps deps-glide test
 
 ########################################################################################
 
@@ -16,6 +16,9 @@ deps:
 	go get -v pkg.re/essentialkaos/ek.v5
 	go get -v github.com/smallfish/simpleyaml
 	go get -v gopkg.in/yaml.v2
+
+deps-glide:
+	glide install
 
 bin:
 	go build init-exporter.go
