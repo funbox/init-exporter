@@ -303,8 +303,6 @@ func installApplication(appName string) {
 		printErrorAndExit(err.Error())
 	}
 
-	checkProviderCompatibility(app)
-
 	if arg.GetB(ARG_DRY_START) {
 		os.Exit(0)
 	}
@@ -329,15 +327,6 @@ func uninstallApplication(appName string) {
 		log.Aux("User %s (%d) uninstalled service %s", user.RealName, user.RealUID, app.Name)
 	} else {
 		printErrorAndExit(err.Error())
-	}
-}
-
-// checkProviderCompatibility check provider and procfile compatibility
-func checkProviderCompatibility(app *procfile.Application) {
-	providerName, _ := detectProvider(arg.GetS(ARG_FORMAT))
-
-	if providerName == FORMAT_SYSTEMD && app.ProcVersion == 1 {
-		printErrorAndExit("Systemd export doesn't support v1 procfiles")
 	}
 }
 
