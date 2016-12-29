@@ -11,14 +11,14 @@ import (
 	"os"
 	"runtime"
 
-	"pkg.re/essentialkaos/ek.v5/arg"
-	"pkg.re/essentialkaos/ek.v5/env"
-	"pkg.re/essentialkaos/ek.v5/fmtc"
-	"pkg.re/essentialkaos/ek.v5/fsutil"
-	"pkg.re/essentialkaos/ek.v5/knf"
-	"pkg.re/essentialkaos/ek.v5/log"
-	"pkg.re/essentialkaos/ek.v5/system"
-	"pkg.re/essentialkaos/ek.v5/usage"
+	"pkg.re/essentialkaos/ek.v6/arg"
+	"pkg.re/essentialkaos/ek.v6/env"
+	"pkg.re/essentialkaos/ek.v6/fmtc"
+	"pkg.re/essentialkaos/ek.v6/fsutil"
+	"pkg.re/essentialkaos/ek.v6/knf"
+	"pkg.re/essentialkaos/ek.v6/log"
+	"pkg.re/essentialkaos/ek.v6/system"
+	"pkg.re/essentialkaos/ek.v6/usage"
 
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
@@ -29,7 +29,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.3.0"
+	VER  = "0.4.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -288,6 +288,7 @@ func startProcessing(appName string) {
 // installApplication install application to init system
 func installApplication(appName string) {
 	fullAppName := knf.GetS(MAIN_PREFIX) + appName
+
 	app, err := procfile.Read(
 		arg.GetS(ARG_PROCFILE),
 		&procfile.Config{
@@ -301,6 +302,8 @@ func installApplication(appName string) {
 	if err != nil {
 		printErrorAndExit(err.Error())
 	}
+
+	checkProviderCompatibility(app)
 
 	if arg.GetB(ARG_DRY_START) {
 		os.Exit(0)
@@ -326,6 +329,15 @@ func uninstallApplication(appName string) {
 		log.Aux("User %s (%d) uninstalled service %s", user.RealName, user.RealUID, app.Name)
 	} else {
 		printErrorAndExit(err.Error())
+	}
+}
+
+// checkProviderCompatibility check provider and procfile compatibility
+func checkProviderCompatibility(app *procfile.Application) {
+	providerName, _ := detectProvider(arg.GetS(ARG_FORMAT))
+
+	if providerName == FORMAT_SYSTEMD && app.ProcVersion == 1 {
+		printErrorAndExit("Systemd export doesn't support v1 procfiles")
 	}
 }
 

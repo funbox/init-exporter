@@ -9,11 +9,11 @@ PREFIX?=/usr
 
 ########################################################################################
 
-all: deps bin
+all: bin
 
 deps:
 	go get -v pkg.re/check.v1
-	go get -v pkg.re/essentialkaos/ek.v5
+	go get -v pkg.re/essentialkaos/ek.v6
 	go get -v github.com/smallfish/simpleyaml
 	go get -v gopkg.in/yaml.v2
 

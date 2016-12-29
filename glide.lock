@@ -1,12 +1,12 @@
-hash: ef8374368ab40975d7203df88155c34ddbd94be207e6bfb90b20e2b497b038c8
-updated: 2016-12-09T08:29:17.649595279-05:00
+hash: 550842432f54d716dce1563e1f350df3c9e95dbbc940dee29d7b3f3bdbee05b2
+updated: 2016-12-28T16:30:15.622859378-05:00
 imports:
 - name: github.com/smallfish/simpleyaml
-  version: e0865b8fe0bb302895f2862494f1d5b2f471face
+  version: f8280fef35a3fd1d4cf13c5a9fa638398eebb6ad
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
-- name: pkg.re/essentialkaos/ek.v5
-  version: 1c71efbd9d6a5dad9aa2e30a279c5bcfa7769970
+- name: pkg.re/essentialkaos/ek.v6
+  version: c292a0da0a81e93c1161a291370c87369db8fc2c
   subpackages:
   - arg
   - env

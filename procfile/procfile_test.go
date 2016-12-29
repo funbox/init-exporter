@@ -31,12 +31,21 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 	c.Assert(app, NotNil)
 
 	c.Assert(app.ProcVersion, Equals, 1)
-	c.Assert(app.Services, HasLen, 2)
+	c.Assert(app.Services, HasLen, 3)
 
 	c.Assert(app.Services[0].Name, Equals, "my_tail_cmd")
 	c.Assert(app.Services[0].Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
+
 	c.Assert(app.Services[1].Name, Equals, "my_another_tail_cmd")
 	c.Assert(app.Services[1].Cmd, Equals, "/usr/bin/tailf /var/log/messages")
+
+	c.Assert(app.Services[2].Name, Equals, "cmd_with_cd")
+	c.Assert(app.Services[2].Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
+	c.Assert(app.Services[2].Options, NotNil)
+	c.Assert(app.Services[2].Options.Env, HasLen, 2)
+	c.Assert(app.Services[2].Options.Env["ENV_TEST"], Equals, "100")
+	c.Assert(app.Services[2].Options.Env["SOME_ENV"], Equals, "test")
+	c.Assert(app.Services[2].Options.WorkingDir, Equals, "/srv/service")
 
 	c.Assert(app.Validate(), IsNil)
 }

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v5/system"
-	"pkg.re/essentialkaos/ek.v5/timeutil"
+	"pkg.re/essentialkaos/ek.v6/system"
+	"pkg.re/essentialkaos/ek.v6/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -26,14 +26,15 @@ type SystemdProvider struct{}
 // TEMPLATE_SYSTEMD_HELPER contains default helper template
 const TEMPLATE_SYSTEMD_HELPER = `#!/bin/bash
 
-# This helper generated {{.ExportDate}} by init-exporter for {{.Application.Name}} application
+# This helper generated {{.ExportDate}} by init-exporter/systemd for {{.Application.Name}} application
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
+
 exec {{.Service.Cmd}}
 `
 
 // TEMPLATE_SYSTEMD_APP contains default application template
-const TEMPLATE_SYSTEMD_APP = `# This unit generated {{.ExportDate}} by init-exporter for {{.Application.Name}} application
+const TEMPLATE_SYSTEMD_APP = `# This unit generated {{.ExportDate}} by init-exporter/systemd for {{.Application.Name}} application
 
 [Unit]
 
@@ -57,7 +58,7 @@ WantedBy={{.StartLevel}}
 `
 
 // TEMPLATE_SYSTEMD_SERVICE contains default service template
-const TEMPLATE_SYSTEMD_SERVICE = `# This unit generated {{.ExportDate}} by init-exporter for {{.Application.Name}} application
+const TEMPLATE_SYSTEMD_SERVICE = `# This unit generated {{.ExportDate}} by init-exporter/systemd for {{.Application.Name}} application
 
 [Unit]
 

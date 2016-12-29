@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v5/timeutil"
+	"pkg.re/essentialkaos/ek.v6/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -25,14 +25,15 @@ type UpstartProvider struct{}
 // TEMPLATE_UPSTART_HELPER contains default helper template
 const TEMPLATE_UPSTART_HELPER = `#!/bin/bash
 
-# This helper generated {{.ExportDate}} by init-exporter for {{.Application.Name}} application
+# This helper generated {{.ExportDate}} by init-exporter/upstart for {{.Application.Name}} application
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
+
 cd {{.Service.Options.WorkingDir}} && exec {{ if .Service.Options.EnvSet }}{{.Service.Options.EnvString}} {{ end }}{{.Service.Cmd}}
 `
 
 // TEMPLATE_UPSTART_APP contains default application template
-const TEMPLATE_UPSTART_APP = `# This unit generated {{.ExportDate}} by init-exporter for {{.Application.Name}} application
+const TEMPLATE_UPSTART_APP = `# This unit generated {{.ExportDate}} by init-exporter/upstart for {{.Application.Name}} application
 
 start on {{.StartLevel}}
 stop on {{.StopLevel}}
@@ -50,7 +51,7 @@ end script
 `
 
 // TEMPLATE_UPSTART_SERVICE contains default service template
-const TEMPLATE_UPSTART_SERVICE = `# This unit generated {{.ExportDate}} by init-exporter for {{.Application.Name}} application
+const TEMPLATE_UPSTART_SERVICE = `# This unit generated {{.ExportDate}} by init-exporter/upstart for {{.Application.Name}} application
 
 start on {{.StartLevel}}
 stop on {{.StopLevel}}

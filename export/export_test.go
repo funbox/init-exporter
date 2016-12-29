@@ -15,8 +15,8 @@ import (
 
 	"github.com/funbox/init-exporter/procfile"
 
-	"pkg.re/essentialkaos/ek.v5/fsutil"
-	"pkg.re/essentialkaos/ek.v5/log"
+	"pkg.re/essentialkaos/ek.v6/fsutil"
+	"pkg.re/essentialkaos/ek.v6/log"
 
 	. "pkg.re/check.v1"
 )
@@ -115,8 +115,8 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(appUnit, HasLen, 16)
 	c.Assert(service1Unit, HasLen, 18)
 	c.Assert(service2Unit, HasLen, 18)
-	c.Assert(service1Helper, HasLen, 7)
-	c.Assert(service2Helper, HasLen, 7)
+	c.Assert(service1Helper, HasLen, 8)
+	c.Assert(service2Helper, HasLen, 8)
 
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
@@ -175,14 +175,14 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
 			"cd /srv/service/service1-dir && exec STAGING=true /bin/echo service1",
 			""},
 	)
 
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
 			"cd /srv/service/working-dir && exec /bin/echo service2",
 			""},
 	)
@@ -272,8 +272,8 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(appUnit, HasLen, 22)
 	c.Assert(service1Unit, HasLen, 26)
 	c.Assert(service2Unit, HasLen, 26)
-	c.Assert(service1Helper, HasLen, 7)
-	c.Assert(service2Helper, HasLen, 7)
+	c.Assert(service1Helper, HasLen, 8)
+	c.Assert(service2Helper, HasLen, 8)
 
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
@@ -356,14 +356,14 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
 			"exec /bin/echo service1",
 			""},
 	)
 
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
 			"exec /bin/echo service2",
 			""},
 	)

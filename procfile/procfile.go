@@ -17,10 +17,10 @@ import (
 
 	"github.com/smallfish/simpleyaml"
 
-	"pkg.re/essentialkaos/ek.v5/errutil"
-	"pkg.re/essentialkaos/ek.v5/fsutil"
-	"pkg.re/essentialkaos/ek.v5/log"
-	"pkg.re/essentialkaos/ek.v5/path"
+	"pkg.re/essentialkaos/ek.v6/errutil"
+	"pkg.re/essentialkaos/ek.v6/fsutil"
+	"pkg.re/essentialkaos/ek.v6/log"
+	"pkg.re/essentialkaos/ek.v6/path"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -254,7 +254,48 @@ func parseV1Line(line string) (*Service, error) {
 		return nil, fmt.Errorf("Procfile v1 should have format: 'some_label: command'")
 	}
 
-	return &Service{Name: matches[1], Cmd: matches[2], Options: &ServiceOptions{}}, nil
+	cmd, options := parseV1Command(matches[2])
+
+	return &Service{Name: matches[1], Cmd: cmd, Options: options}, nil
+}
+
+// parseV1Command parse command and extract command and working dir
+func parseV1Command(cmd string) (string, *ServiceOptions) {
+	var options = &ServiceOptions{}
+
+	if !strings.HasPrefix(cmd, "cd ") && !strings.Contains(cmd, "&&") {
+		return cmd, options
+	}
+
+	cmdSlice := strings.Split(cmd, "&&")
+	command := strings.TrimSpace(cmdSlice[1])
+	workingDir := strings.Replace(cmdSlice[0], "cd", "", -1)
+
+	options.WorkingDir = strings.TrimSpace(workingDir)
+
+	if strings.HasPrefix(command, "env ") {
+		evMap := make(map[string]string)
+
+		subCommandSlice := strings.Fields(command)
+
+		for i, commandPart := range subCommandSlice {
+			if commandPart == "env" {
+				continue
+			}
+
+			if !strings.Contains(commandPart, "=") {
+				command = strings.Join(subCommandSlice[i:], " ")
+				break
+			}
+
+			envSlice := strings.Split(commandPart, "=")
+			evMap[envSlice[0]] = envSlice[1]
+		}
+
+		options.Env = evMap
+	}
+
+	return command, options
 }
 
 // parseV2Procfile parse v2 procfile data

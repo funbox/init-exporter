@@ -1,8 +1,8 @@
 package: github.com/funbox/init-exporter
 import:
 - package: github.com/smallfish/simpleyaml
-- package: pkg.re/essentialkaos/ek.v5
-  version: ^5.5.0
+- package: pkg.re/essentialkaos/ek.v6
+  version: ^6.0.0
   subpackages:
   - arg
   - env

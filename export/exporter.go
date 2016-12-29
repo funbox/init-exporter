@@ -11,9 +11,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"pkg.re/essentialkaos/ek.v5/fsutil"
-	"pkg.re/essentialkaos/ek.v5/log"
-	"pkg.re/essentialkaos/ek.v5/path"
+	"pkg.re/essentialkaos/ek.v6/fsutil"
+	"pkg.re/essentialkaos/ek.v6/log"
+	"pkg.re/essentialkaos/ek.v6/path"
 
 	"github.com/funbox/init-exporter/procfile"
 )
