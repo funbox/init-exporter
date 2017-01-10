@@ -103,7 +103,7 @@ func (e *Exporter) Uninstall(app *procfile.Application) error {
 
 	log.Debug("Application unit %s deleted", unitPath)
 
-	err = deleteByMask(e.Config.TargetDir, app.Name+"_*")
+	err = deleteByMask(e.Config.TargetDir, app.Name+"-*")
 
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (e *Exporter) Uninstall(app *procfile.Application) error {
 
 	log.Debug("Service units deleted")
 
-	err = deleteByMask(e.Config.HelperDir, app.Name+"_*.sh")
+	err = deleteByMask(e.Config.HelperDir, app.Name+"-*.sh")
 
 	if err != nil {
 		return err
@@ -154,7 +154,7 @@ func (e *Exporter) writeServicesUnits(app *procfile.Application) error {
 	}
 
 	for _, service := range app.Services {
-		fullServiceName := app.Name + "_" + service.Name
+		fullServiceName := app.Name + "-" + service.Name
 
 		service.HelperPath = e.helperPath(fullServiceName)
 

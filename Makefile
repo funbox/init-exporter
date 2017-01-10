@@ -27,7 +27,7 @@ fmt:
 	find . -name "*.go" -exec gofmt -s -w {} \;
 
 test:
-	go test ./...
+	go test ./... -covermode=count
 
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin

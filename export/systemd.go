@@ -190,7 +190,7 @@ func (sp *SystemdProvider) renderWantsClause(app *procfile.Application) string {
 	var wants []string
 
 	for _, service := range app.Services {
-		wants = append(wants, sp.UnitName(app.Name+"_"+service.Name))
+		wants = append(wants, sp.UnitName(app.Name+"-"+service.Name))
 	}
 
 	return strings.Join(wants, " ")
