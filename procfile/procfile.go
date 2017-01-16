@@ -44,6 +44,8 @@ type Config struct {
 	User       string // Working user
 	Group      string // Working group
 	WorkingDir string // Working directory
+	LimitProc  int    // Global processes limit
+	LimitFile  int    // Global descriptors limit
 }
 
 type Service struct {
@@ -55,14 +57,16 @@ type Service struct {
 }
 
 type ServiceOptions struct {
-	Env             map[string]string // Environment variables
-	WorkingDir      string            // Working directory
-	LogPath         string            // Path to log file
-	KillTimeout     int               // Kill timeout in seconds
-	Count           int               // Exec count
-	RespawnInterval int               // Respawn interval in seconds
-	RespawnCount    int               // Respawn count
-	RespawnEnabled  bool              // Respawn enabled flag
+	Env              map[string]string // Environment variables
+	WorkingDir       string            // Working directory
+	LogPath          string            // Path to log file
+	KillTimeout      int               // Kill timeout in seconds
+	Count            int               // Exec count
+	RespawnInterval  int               // Respawn interval in seconds
+	RespawnCount     int               // Respawn count
+	IsRespawnEnabled bool              // Respawn enabled flag
+	LimitProc        int               // Processes limit
+	LimitFile        int               // Descriptors limit
 }
 
 type Application struct {
@@ -157,19 +161,29 @@ func (so *ServiceOptions) Validate() error {
 	return errs.Last()
 }
 
-// RespawnLimitSet return true if respawn options is set
-func (so *ServiceOptions) RespawnLimitSet() bool {
+// IsRespawnLimitSet return true if respawn options is set
+func (so *ServiceOptions) IsRespawnLimitSet() bool {
 	return so.RespawnCount != 0 || so.RespawnInterval != 0
 }
 
-// CustomLogEnabled return true if service have custom log
-func (so *ServiceOptions) CustomLogEnabled() bool {
+// IsCustomLogEnabled return true if service have custom log
+func (so *ServiceOptions) IsCustomLogEnabled() bool {
 	return so.LogPath != ""
 }
 
-// EnvSet return true if service have custom env vars
-func (so *ServiceOptions) EnvSet() bool {
+// IsEnvSet return true if service have custom env vars
+func (so *ServiceOptions) IsEnvSet() bool {
 	return len(so.Env) != 0
+}
+
+// IsFileLimitSet return true if descriptors limit is set
+func (so *ServiceOptions) IsFileLimitSet() bool {
+	return so.LimitFile != 0
+}
+
+// IsProcLimitSet return true if processes limit is set
+func (so *ServiceOptions) IsProcLimitSet() bool {
+	return so.LimitProc != 0
 }
 
 // EnvString return environment variables as string
@@ -217,6 +231,14 @@ func parseV1Procfile(data []byte, config *Config) (*Application, error) {
 
 			if err != nil {
 				return nil, err
+			}
+
+			if service.Options.LimitFile == 0 && config.LimitFile != 0 {
+				service.Options.LimitFile = config.LimitFile
+			}
+
+			if service.Options.LimitProc == 0 && config.LimitProc != 0 {
+				service.Options.LimitProc = config.LimitProc
 			}
 
 			services = append(services, service)
@@ -316,7 +338,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		return nil, fmt.Errorf("Commands missing in Procfile")
 	}
 
-	services, err := parseCommands(yaml, commands)
+	services, err := parseCommands(yaml, commands, config)
 
 	if err != nil {
 		return nil, err
@@ -331,12 +353,6 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		StopLevel:   3,
 		WorkingDir:  config.WorkingDir,
 		Services:    services,
-	}
-
-	app.Services, err = parseCommands(yaml, commands)
-
-	if err != nil {
-		return nil, err
 	}
 
 	if isYamlPropPresent(yaml, "working_directory") {
@@ -369,7 +385,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 }
 
 // parseCommands parse command section in yaml based procfile
-func parseCommands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}) ([]*Service, error) {
+func parseCommands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}, config *Config) ([]*Service, error) {
 	var services []*Service
 
 	commonOptions, err := parseOptions(yaml)
@@ -395,6 +411,14 @@ func parseCommands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}) 
 
 		mergeServiceOptions(serviceOptions, commonOptions)
 
+		if serviceOptions.LimitFile == 0 && config.LimitFile != 0 {
+			serviceOptions.LimitFile = config.LimitFile
+		}
+
+		if serviceOptions.LimitProc == 0 && config.LimitProc != 0 {
+			serviceOptions.LimitProc = config.LimitProc
+		}
+
 		service := &Service{
 			Name:    serviceName,
 			Cmd:     serviceCmd,
@@ -407,13 +431,13 @@ func parseCommands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}) 
 	return services, nil
 }
 
-// parseOptions parse service options im yaml based procfile
+// parseOptions parse service options in yaml based procfile
 func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 	var err error
 
 	options := &ServiceOptions{
-		Env:            make(map[string]string),
-		RespawnEnabled: true,
+		Env:              make(map[string]string),
+		IsRespawnEnabled: true,
 	}
 
 	if isYamlPropPresent(yaml, "working_directory") {
@@ -480,10 +504,28 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		}
 
 	} else if isYamlPropPresent(yaml, "respawn") {
-		options.RespawnEnabled, err = yaml.Get("respawn").Bool()
+		options.IsRespawnEnabled, err = yaml.Get("respawn").Bool()
 
 		if err != nil {
 			return nil, fmt.Errorf("Can't parse respawn value: %v", err)
+		}
+	}
+
+	if isYamlPropPresent(yaml, "limits", "nproc") || isYamlPropPresent(yaml, "limits", "nofile") {
+		if isYamlPropPresent(yaml, "limits", "nofile") {
+			options.LimitFile, err = yaml.Get("limits").Get("nofile").Int()
+
+			if err != nil {
+				return nil, fmt.Errorf("Can't parse limits.nofile value: %v", err)
+			}
+		}
+
+		if isYamlPropPresent(yaml, "limits", "nproc") {
+			options.LimitProc, err = yaml.Get("limits").Get("nproc").Int()
+
+			if err != nil {
+				return nil, fmt.Errorf("Can't parse limits.nproc value: %v", err)
+			}
 		}
 	}
 
@@ -538,6 +580,14 @@ func mergeServiceOptions(dst, src *ServiceOptions) {
 
 	if dst.RespawnCount == 0 {
 		dst.RespawnCount = src.RespawnCount
+	}
+
+	if dst.LimitFile == 0 {
+		dst.LimitFile = src.LimitFile
+	}
+
+	if dst.LimitProc == 0 {
+		dst.LimitProc = src.LimitProc
 	}
 }
 

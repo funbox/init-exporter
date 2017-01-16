@@ -11,6 +11,10 @@ respawn:
   count: 7
   interval: 22
 
+limits:
+  nofile: 4096
+  nproc: 4096
+
 working_directory: /srv/projects/my_website/current
 
 commands:
@@ -25,6 +29,9 @@ commands:
   
   my_another_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
+    limits:
+      nofile: 8192
+      nproc: 8192
     kill_timeout: 60
     respawn: false # by default respawn option is enabled
   
@@ -34,4 +41,6 @@ commands:
   
   my_multi_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
+    limits:
+      nofile: 1024
     count: 2

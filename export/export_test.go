@@ -113,8 +113,8 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	service2Helper := strings.Split(string(service2HelperData), "\n")
 
 	c.Assert(appUnit, HasLen, 16)
-	c.Assert(service1Unit, HasLen, 18)
-	c.Assert(service2Unit, HasLen, 18)
+	c.Assert(service1Unit, HasLen, 21)
+	c.Assert(service2Unit, HasLen, 21)
 	c.Assert(service1Helper, HasLen, 8)
 	c.Assert(service2Helper, HasLen, 8)
 
@@ -145,6 +145,9 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 10",
 			"",
+			"limit nofile 1024 1024",
+			"",
+			"",
 			"script",
 			"  touch /var/log/test_application/service1.log",
 			"  chown service /var/log/test_application/service1.log",
@@ -163,6 +166,9 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"",
 			"kill timeout 0",
+			"",
+			"limit nofile 4096 4096",
+			"limit nproc 4096 4096",
 			"",
 			"script",
 			"  touch /var/log/test_application/service2.log",
@@ -270,8 +276,8 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	service2Helper := strings.Split(string(service2HelperData), "\n")
 
 	c.Assert(appUnit, HasLen, 22)
-	c.Assert(service1Unit, HasLen, 26)
-	c.Assert(service2Unit, HasLen, 26)
+	c.Assert(service1Unit, HasLen, 29)
+	c.Assert(service2Unit, HasLen, 29)
 	c.Assert(service1Helper, HasLen, 8)
 	c.Assert(service2Helper, HasLen, 8)
 
@@ -313,6 +319,9 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"StartLimitInterval=25",
 			"StartLimitBurst=15",
 			"",
+			"LimitNOFILE=1024",
+			"",
+			"",
 			"ExecStartPre=/bin/touch /var/log/test_application/service1.log",
 			"ExecStartPre=/bin/chown service /var/log/test_application/service1.log",
 			"ExecStartPre=/bin/chgrp service /var/log/test_application/service1.log",
@@ -340,6 +349,9 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Restart=on-failure",
 			"",
 			"",
+			"",
+			"LimitNOFILE=4096",
+			"LimitNPROC=4096",
 			"",
 			"ExecStartPre=/bin/touch /var/log/test_application/service2.log",
 			"ExecStartPre=/bin/chown service /var/log/test_application/service2.log",
@@ -398,14 +410,15 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Cmd:         "/bin/echo service1",
 		Application: app,
 		Options: &procfile.ServiceOptions{
-			Env:             map[string]string{"STAGING": "true"},
-			WorkingDir:      "/srv/service/service1-dir",
-			LogPath:         "/srv/service/service1-dir/custom.log",
-			KillTimeout:     10,
-			Count:           2,
-			RespawnInterval: 25,
-			RespawnCount:    15,
-			RespawnEnabled:  true,
+			Env:              map[string]string{"STAGING": "true"},
+			WorkingDir:       "/srv/service/service1-dir",
+			LogPath:          "/srv/service/service1-dir/custom.log",
+			KillTimeout:      10,
+			Count:            2,
+			RespawnInterval:  25,
+			RespawnCount:     15,
+			IsRespawnEnabled: true,
+			LimitFile:        1024,
 		},
 	}
 
@@ -414,8 +427,10 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Cmd:         "/bin/echo service2",
 		Application: app,
 		Options: &procfile.ServiceOptions{
-			WorkingDir:     "/srv/service/working-dir",
-			RespawnEnabled: true,
+			WorkingDir:       "/srv/service/working-dir",
+			IsRespawnEnabled: true,
+			LimitFile:        4096,
+			LimitProc:        4096,
 		},
 	}
 

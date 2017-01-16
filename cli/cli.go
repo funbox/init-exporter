@@ -29,7 +29,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.4.1"
+	VER  = "0.5.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -55,6 +55,8 @@ const (
 	PATHS_HELPER_DIR  = "paths:helper-dir"
 	PATHS_SYSTEMD_DIR = "paths:systemd-dir"
 	PATHS_UPSTART_DIR = "paths:upstart-dir"
+	LIMITS_NPROC      = "limits:nproc"
+	LIMITS_NOFILE     = "limits:nofile"
 	LOG_ENABLED       = "log:enabled"
 	LOG_DIR           = "log:dir"
 	LOG_FILE          = "log:file"
@@ -236,6 +238,11 @@ func validateConfig() {
 		{PATHS_HELPER_DIR, knf.Empty, nil},
 		{PATHS_SYSTEMD_DIR, knf.Empty, nil},
 		{PATHS_UPSTART_DIR, knf.Empty, nil},
+		{LIMITS_NOFILE, knf.Empty, nil},
+		{LIMITS_NPROC, knf.Empty, nil},
+
+		{LIMITS_NOFILE, knf.Less, 0},
+		{LIMITS_NPROC, knf.Less, 0},
 
 		{MAIN_RUN_USER, userChecker, nil},
 		{MAIN_RUN_GROUP, groupChecker, nil},
@@ -296,6 +303,8 @@ func installApplication(appName string) {
 			User:       knf.GetS(MAIN_RUN_USER),
 			Group:      knf.GetS(MAIN_RUN_GROUP),
 			WorkingDir: knf.GetS(PATHS_WORKING_DIR),
+			LimitFile:  knf.GetI(LIMITS_NOFILE, 0),
+			LimitProc:  knf.GetI(LIMITS_NPROC, 0),
 		},
 	)
 

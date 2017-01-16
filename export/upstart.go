@@ -29,7 +29,7 @@ const TEMPLATE_UPSTART_HELPER = `#!/bin/bash
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
 
-cd {{.Service.Options.WorkingDir}} && exec {{ if .Service.Options.EnvSet }}{{.Service.Options.EnvString}} {{ end }}{{.Service.Cmd}}
+cd {{.Service.Options.WorkingDir}} && exec {{ if .Service.Options.IsEnvSet }}{{.Service.Options.EnvString}} {{ end }}{{.Service.Cmd}}
 `
 
 // TEMPLATE_UPSTART_APP contains default application template
@@ -56,17 +56,20 @@ const TEMPLATE_UPSTART_SERVICE = `# This unit generated {{.ExportDate}} by init-
 start on {{.StartLevel}}
 stop on {{.StopLevel}}
 
-{{ if .Service.Options.RespawnEnabled }}respawn{{ end }}
-{{ if .Service.Options.RespawnLimitSet }}respawn limit {{.Service.Options.RespawnCount}} {{.Service.Options.RespawnInterval}}{{ end }}
+{{ if .Service.Options.IsRespawnEnabled }}respawn{{ end }}
+{{ if .Service.Options.IsRespawnLimitSet }}respawn limit {{.Service.Options.RespawnCount}} {{.Service.Options.RespawnInterval}}{{ end }}
 
 kill timeout {{.Service.Options.KillTimeout}}
+
+{{ if .Service.Options.IsFileLimitSet }}limit nofile {{.Service.Options.LimitFile}} {{.Service.Options.LimitFile}}{{ end }}
+{{ if .Service.Options.IsProcLimitSet }}limit nproc {{.Service.Options.LimitProc}} {{.Service.Options.LimitProc}}{{ end }}
 
 script
   touch /var/log/{{.Application.Name}}/{{.Service.Name}}.log
   chown {{.Application.User}} /var/log/{{.Application.Name}}/{{.Service.Name}}.log
   chgrp {{.Application.Group}} /var/log/{{.Application.Name}}/{{.Service.Name}}.log
   chmod g+w /var/log/{{.Application.Name}}/{{.Service.Name}}.log
-  exec sudo -u {{.Application.User}} /bin/bash {{.Service.HelperPath}} {{ if .Service.Options.CustomLogEnabled }}>> {{.Service.Options.LogPath}} {{end}}>> /var/log/{{.Application.Name}}/{{.Service.Name}}.log 2>&1
+  exec sudo -u {{.Application.User}} /bin/bash {{.Service.HelperPath}} {{ if .Service.Options.IsCustomLogEnabled }}>> {{.Service.Options.LogPath}} {{end}}>> /var/log/{{.Application.Name}}/{{.Service.Name}}.log 2>&1
 end script
 `
 

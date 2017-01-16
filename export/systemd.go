@@ -69,9 +69,12 @@ PartOf={{.Application.Name}}.service
 Type=simple
 
 TimeoutStopSec={{.Service.Options.KillTimeout}}
-{{ if .Service.Options.RespawnEnabled }}Restart=on-failure{{ end }}
-{{ if .Service.Options.RespawnLimitSet }}StartLimitInterval={{.Service.Options.RespawnInterval}}{{ end }}
-{{ if .Service.Options.RespawnLimitSet }}StartLimitBurst={{.Service.Options.RespawnCount}}{{ end }}
+{{ if .Service.Options.IsRespawnEnabled }}Restart=on-failure{{ end }}
+{{ if .Service.Options.IsRespawnLimitSet }}StartLimitInterval={{.Service.Options.RespawnInterval}}{{ end }}
+{{ if .Service.Options.IsRespawnLimitSet }}StartLimitBurst={{.Service.Options.RespawnCount}}{{ end }}
+
+{{ if .Service.Options.IsFileLimitSet }}LimitNOFILE={{.Service.Options.LimitFile}}{{ end }}
+{{ if .Service.Options.IsProcLimitSet }}LimitNPROC={{.Service.Options.LimitProc}}{{ end }}
 
 ExecStartPre=/bin/touch /var/log/{{.Application.Name}}/{{.Service.Name}}.log
 ExecStartPre=/bin/chown {{.Application.User}} /var/log/{{.Application.Name}}/{{.Service.Name}}.log
@@ -81,8 +84,8 @@ ExecStartPre=/bin/chmod g+w /var/log/{{.Application.Name}}/{{.Service.Name}}.log
 User={{.Application.User}}
 Group={{.Application.Group}}
 WorkingDirectory={{.Service.Options.WorkingDir}}
-{{ if .Service.Options.EnvSet }}Environment={{.Service.Options.EnvString}}{{ end }}
-ExecStart=/bin/bash {{.Service.HelperPath}} {{ if .Service.Options.CustomLogEnabled }}>> {{.Service.Options.LogPath}} {{end}}>> /var/log/{{.Application.Name}}/{{.Service.Name}}.log 2>&1
+{{ if .Service.Options.IsEnvSet }}Environment={{.Service.Options.EnvString}}{{ end }}
+ExecStart=/bin/bash {{.Service.HelperPath}} {{ if .Service.Options.IsCustomLogEnabled }}>> {{.Service.Options.LogPath}} {{end}}>> /var/log/{{.Application.Name}}/{{.Service.Name}}.log 2>&1
 `
 
 // ////////////////////////////////////////////////////////////////////////////////// //
