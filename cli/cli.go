@@ -29,13 +29,12 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.5.0"
+	VER  = "0.5.1"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
 // Supported arguments list
 const (
-	ARG_CONFIG    = "c:config"
 	ARG_PROCFILE  = "p:procfile"
 	ARG_APP_NAME  = "n:appname"
 	ARG_DRY_START = "d:dry-start"
@@ -413,7 +412,6 @@ func showUsage() {
 
 	info := usage.NewInfo("", "app-name")
 
-	info.AddOption(ARG_CONFIG, "Path to config file", "file")
 	info.AddOption(ARG_PROCFILE, "Path to procfile", "file")
 	info.AddOption(ARG_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
 	info.AddOption(ARG_UNINSTALL, "Remove scripts and helpers for a particular application")
