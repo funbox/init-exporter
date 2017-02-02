@@ -25,8 +25,7 @@ sudo make install
 
 ### Configuration
 
-The export process can be configured through the config `/etc/init-exporter.conf`
-The config is not installed by default. If this config is absent, the default values are the following:
+The export process can be configured through the config `/etc/init-exporter.conf`:
 
 ```ini
 # Default configuration for init-exporter
@@ -79,28 +78,22 @@ To give a certain user (i.e. `deployuser`) the ability to use this script, you c
 ```bash
 # Commands required for manipulating jobs
 Cmnd_Alias UPSTART = /sbin/start, /sbin/stop, /sbin/restart
-Cmnd_Alias UPEXPORT = /usr/local/bin/init-export
-
-...
-
-# Add gem's binary path to this
-Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+Cmnd_Alias SYSTEMD = /usr/bin/systemctl
+Cmnd_Alias EXPORTER = /usr/local/bin/init-exporter
 
 ...
 
 # Allow deploy user to manipulate jobs
-deployuser        ALL=(deployuser) NOPASSWD: ALL, (root) NOPASSWD: UPSTART, UPEXPORT
+deployuser        ALL=(deployuser) NOPASSWD: ALL, (root) NOPASSWD: UPSTART, SYSTEMD, EXPORTER
 ```
 
 ### Usage
 
-Gem is able to process two versions of Procfiles, format of the Procfile is
-defined in the `version` key. If the key is not present or is not equal to `2`
-file will be parsed as Procfile v.1.
+`init-exporter` is able to process two versions of Procfiles. Utility automatically recognise used format.
 
 #### Procfile v.1
 
-After upstart-exporter is installed and configured, you may export background jobs
+After init-exporter is installed and configured, you may export background jobs
 from an arbitrary Procfile-like file of the following format:
 
 ```yaml
@@ -185,11 +178,9 @@ To export a Procfile you should run
 ```bash
 sudo upstart-export -p ./myprocfile -f format myapp
 ```
+Where `myapp` is the application name. This name only affects the names of generated files. For security purposes, app name is also allowed to contain only letters, digits and underscores.
 
-where `myapp` is the application name.
-This name only affects the names of generated files.
-For security purposes, app name is also allowed to contain only letters, digits and underscores.
-where format is `(upstart | systemd)`
+Format is name of init system `(upstart | systemd)`.
 
 Assuming that default options are used, the following files and folders will be generated (in case of upstart format):
 
@@ -217,7 +208,7 @@ sudo start fb-myapp-my_tail_cmd
 sudo stop fb-myapp-my_tail_cmd
 ```
 
-Its stdout/stderr will be redirected to `/var/log/fb-myapp/my_tail_cmd.log`.
+It's stdout/stderr will be redirected to `/var/log/fb-myapp/my_tail_cmd.log`.
 
 To start/stop all application commands at once, you can run:
 
@@ -227,7 +218,7 @@ sudo start fb-myapp
 sudo stop fb-myapp
 ```
 
-To remove upstart scripts and helpers for a particular application you can run
+To remove init scripts and helpers for a particular application you can run
 
 ```bash
 sudo init-export -u -f upstart myapp
