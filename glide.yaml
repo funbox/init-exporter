@@ -1,0 +1,18 @@
+package: github.com/funbox/init-exporter
+import:
+- package: pkg.re/essentialkaos/ek.v6
+  subpackages:
+  - arg
+  - env
+  - errutil
+  - fmtc
+  - fsutil
+  - knf
+  - log
+  - path
+  - system
+  - timeutil
+  - usage
+- package: pkg.re/essentialkaos/go-simpleyaml.v1
+testImport:
+- package: pkg.re/check.v1

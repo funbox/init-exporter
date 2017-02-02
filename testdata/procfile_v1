@@ -1,0 +1,3 @@
+my_tail_cmd: /usr/bin/tail -F /var/log/messages
+my_another_tail_cmd: /usr/bin/tailf /var/log/messages
+cmd_with_cd: cd /srv/service && env ENV_TEST=100 SOME_ENV=test /usr/bin/tail -F /var/log/messages

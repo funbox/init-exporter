@@ -1,0 +1,25 @@
+hash: 352daf3640af334921e1e295d0738306592c7c4609878e4653936e2e6c7cc749
+updated: 2017-02-02T04:29:34.527741033-05:00
+imports:
+- name: pkg.re/essentialkaos/ek.v6
+  version: c292a0da0a81e93c1161a291370c87369db8fc2c
+  subpackages:
+  - arg
+  - env
+  - errutil
+  - fmtc
+  - fsutil
+  - knf
+  - log
+  - path
+  - pluralize
+  - system
+  - timeutil
+  - usage
+- name: pkg.re/essentialkaos/go-simpleyaml.v1
+  version: 6c4951f5cc065c5724d0b2f46a5036cc1f1f57a1
+- name: pkg.re/yaml.v2
+  version: 4c78c975fe7c825c6d1466c42be594d1d6f3aba6
+testImports:
+- name: pkg.re/check.v1
+  version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec

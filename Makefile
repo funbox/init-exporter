@@ -1,0 +1,48 @@
+########################################################################################
+
+DESTDIR?=
+PREFIX?=/usr
+
+########################################################################################
+
+.PHONY = all clean install uninstall deps deps-glide test
+
+########################################################################################
+
+all: bin
+
+deps:
+	go get -v pkg.re/check.v1
+	go get -v pkg.re/essentialkaos/ek.v6
+	go get -v pkg.re/essentialkaos/go-simpleyaml.v1
+	go get -v pkg.re/yaml.v2
+
+deps-glide:
+	glide install
+
+bin:
+	go build init-exporter.go
+
+fmt:
+	find . -name "*.go" -exec gofmt -s -w {} \;
+
+test:
+	go test ./... -covermode=count
+
+install:
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp init-exporter $(DESTDIR)$(PREFIX)/sbin/
+	cp common/init-exporter.conf $(DESTDIR)/etc/
+
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/sbin/init-exporter
+	rm -rf $(DESTDIR)/etc/init-exporter.conf
+
+clean:
+	rm -f init-exporter
+
+upstart-playground:
+	docker build -f ./Dockerfile.upstart -t upstart-playground . && docker run -ti --rm=true upstart-playground /bin/bash
+
+systemd-playground:
+	docker build -f ./Dockerfile.systemd -t systemd-playground . && docker run -ti --rm=true systemd-playground /bin/bash
