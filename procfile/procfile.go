@@ -15,12 +15,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/smallfish/simpleyaml"
-
 	"pkg.re/essentialkaos/ek.v6/errutil"
 	"pkg.re/essentialkaos/ek.v6/fsutil"
 	"pkg.re/essentialkaos/ek.v6/log"
 	"pkg.re/essentialkaos/ek.v6/path"
+
+	"pkg.re/essentialkaos/go-simpleyaml.v1"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -355,7 +355,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		Services:    services,
 	}
 
-	if isYamlPropPresent(yaml, "working_directory") {
+	if yaml.IsExist("working_directory") {
 		app.WorkingDir, err = yaml.Get("working_directory").String()
 
 		if err != nil {
@@ -363,7 +363,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		}
 	}
 
-	if isYamlPropPresent(yaml, "start_on_runlevel") {
+	if yaml.IsExist("start_on_runlevel") {
 		app.StartLevel, err = yaml.Get("start_on_runlevel").Int()
 
 		if err != nil {
@@ -371,7 +371,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		}
 	}
 
-	if isYamlPropPresent(yaml, "stop_on_runlevel") {
+	if yaml.IsExist("stop_on_runlevel") {
 		app.StopLevel, err = yaml.Get("stop_on_runlevel").Int()
 
 		if err != nil {
@@ -440,7 +440,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		IsRespawnEnabled: true,
 	}
 
-	if isYamlPropPresent(yaml, "working_directory") {
+	if yaml.IsExist("working_directory") {
 		options.WorkingDir, err = yaml.Get("working_directory").String()
 
 		if err != nil {
@@ -448,7 +448,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		}
 	}
 
-	if isYamlPropPresent(yaml, "log") {
+	if yaml.IsExist("log") {
 		options.LogPath, err = yaml.Get("log").String()
 
 		if err != nil {
@@ -456,7 +456,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		}
 	}
 
-	if isYamlPropPresent(yaml, "kill_timeout") {
+	if yaml.IsExist("kill_timeout") {
 		options.KillTimeout, err = yaml.Get("kill_timeout").Int()
 
 		if err != nil {
@@ -464,7 +464,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		}
 	}
 
-	if isYamlPropPresent(yaml, "count") {
+	if yaml.IsExist("count") {
 		options.Count, err = yaml.Get("count").Int()
 
 		if err != nil {
@@ -472,7 +472,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		}
 	}
 
-	if isYamlPropPresent(yaml, "env") {
+	if yaml.IsExist("env") {
 		env, err := yaml.Get("env").Map()
 
 		if err != nil {
@@ -482,8 +482,8 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		options.Env = convertMapType(env)
 	}
 
-	if isYamlPropPresent(yaml, "respawn", "count") || isYamlPropPresent(yaml, "respawn", "interval") {
-		if isYamlPropPresent(yaml, "respawn", "count") {
+	if yaml.IsPathExist("respawn", "count") || yaml.IsPathExist("respawn", "interval") {
+		if yaml.IsPathExist("respawn", "count") {
 			options.RespawnCount, err = yaml.Get("respawn").Get("count").Int()
 
 			if err != nil {
@@ -493,7 +493,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			options.RespawnCount = DEFAULT_RESPAWN_COUNT
 		}
 
-		if isYamlPropPresent(yaml, "respawn", "interval") {
+		if yaml.IsPathExist("respawn", "interval") {
 			options.RespawnInterval, err = yaml.Get("respawn").Get("interval").Int()
 
 			if err != nil {
@@ -503,7 +503,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			options.RespawnInterval = DEFAULT_RESPAWN_INTERVAL
 		}
 
-	} else if isYamlPropPresent(yaml, "respawn") {
+	} else if yaml.IsExist("respawn") {
 		options.IsRespawnEnabled, err = yaml.Get("respawn").Bool()
 
 		if err != nil {
@@ -511,8 +511,8 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		}
 	}
 
-	if isYamlPropPresent(yaml, "limits", "nproc") || isYamlPropPresent(yaml, "limits", "nofile") {
-		if isYamlPropPresent(yaml, "limits", "nofile") {
+	if yaml.IsPathExist("limits", "nproc") || yaml.IsPathExist("limits", "nofile") {
+		if yaml.IsPathExist("limits", "nofile") {
 			options.LimitFile, err = yaml.Get("limits").Get("nofile").Int()
 
 			if err != nil {
@@ -520,7 +520,7 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			}
 		}
 
-		if isYamlPropPresent(yaml, "limits", "nproc") {
+		if yaml.IsPathExist("limits", "nproc") {
 			options.LimitProc, err = yaml.Get("limits").Get("nproc").Int()
 
 			if err != nil {
@@ -530,11 +530,6 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 	}
 
 	return options, nil
-}
-
-// isYamlPropPresent return true if property with defined named present in yaml file
-func isYamlPropPresent(yaml *simpleyaml.Yaml, path ...string) bool {
-	return *yaml.GetPath(path...) != simpleyaml.Yaml{}
 }
 
 // determineProcVersion process procfile data and return procfile version

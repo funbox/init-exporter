@@ -1,8 +1,6 @@
 package: github.com/funbox/init-exporter
 import:
-- package: github.com/smallfish/simpleyaml
 - package: pkg.re/essentialkaos/ek.v6
-  version: ^6.0.0
   subpackages:
   - arg
   - env
@@ -15,5 +13,6 @@ import:
   - system
   - timeutil
   - usage
+- package: pkg.re/essentialkaos/go-simpleyaml.v1
 testImport:
 - package: pkg.re/check.v1

@@ -14,8 +14,8 @@ all: bin
 deps:
 	go get -v pkg.re/check.v1
 	go get -v pkg.re/essentialkaos/ek.v6
-	go get -v github.com/smallfish/simpleyaml
-	go get -v gopkg.in/yaml.v2
+	go get -v pkg.re/essentialkaos/go-simpleyaml
+	go get -v pkg.re/yaml.v2
 
 deps-glide:
 	glide install
