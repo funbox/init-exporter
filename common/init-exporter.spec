@@ -42,17 +42,17 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.5.1
+Version:         0.6.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
-URL:             http://github.com/andyone/init-exporter
+URL:             https://github.com/funbox/init-exporter
 
 Source0:         %{name}-%{version}.tar.gz
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.7
+BuildRequires:   golang >= 1.5
 
 Provides:        upstart-exporter = %{version}-%{release}
 Provides:        systemd-exporter = %{version}-%{release}
@@ -105,5 +105,5 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
-* Fri Dec 09 2016 Anton Novojilov <andyone@fun-box.ru> - 0.5.1-0
+* Thu Feb  2 2017 Anton Novojilov <andyone@fun-box.ru> - 0.6.0-0
 - Initial build
