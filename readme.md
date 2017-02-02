@@ -3,6 +3,15 @@
 Utility for exporting services described by Procfile to init system.
 Supported init systems: upstart and systemd
 
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Usage](#usage)
+  * [Procfile v.1](#procfile-v1)
+  * [Procfile v.2](#procfile-v2)
+* [Exporting](#exporting)
+* [Build Status](#build-status)
+* [License](#license)
+
 ### Installation
 
 To build the init-exporter from scratch, make sure you have a working Go 1.5+ workspace ([instructions](https://golang.org/doc/install)), then:
