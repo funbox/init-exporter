@@ -3,7 +3,7 @@
 Utility for exporting services described by Procfile to init system.
 Supported init systems: upstart and systemd
 
-#### Installation
+### Installation
 
 To build the init-exporter from scratch, make sure you have a working Go 1.5+ workspace ([instructions](https://golang.org/doc/install)), then:
 
@@ -14,7 +14,7 @@ make all
 sudo make install
 ```
 
-#### Configuration
+### Configuration
 
 The export process can be configured through the config `/etc/init-exporter.conf`
 The config is not installed by default. If this config is absent, the default values are the following:
@@ -83,13 +83,13 @@ Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 deployuser        ALL=(deployuser) NOPASSWD: ALL, (root) NOPASSWD: UPSTART, UPEXPORT
 ```
 
-#### Usage
+### Usage
 
 Gem is able to process two versions of Procfiles, format of the Procfile is
 defined in the `version` key. If the key is not present or is not equal to `2`
 file will be parsed as Procfile v.1.
 
-##### Procfile v.1
+#### Procfile v.1
 
 After upstart-exporter is installed and configured, you may export background jobs
 from an arbitrary Procfile-like file of the following format:
@@ -108,7 +108,7 @@ my_another_tail_cmd: /usr/bin/tail -F /var/log/messages
 
 For security purposes, command labels are allowed to contain only letters, digits, and underscores.
 
-##### Procfile v.2
+#### Procfile v.2
 
 Another format of Procfile scripts is YAML config. A configuration script may
 look like this:
@@ -169,7 +169,7 @@ often than `count` times in `interval`, it won't be restarted anymore.
 Options `working_directory`, `env`, `log`, `respawn` can be
 defined both as global and as per-command options.
 
-#### Exporting
+### Exporting
 
 To export a Procfile you should run
 
@@ -226,13 +226,13 @@ sudo init-export -u -f upstart myapp
 
 The logs are not cleared in this case. Also, all old application scripts are cleared before each export.
 
-#### Build Status
+### Build Status
 
 | Repository | Status |
 |------------|--------|
 | Stable | [![Build Status](https://travis-ci.org/funbox/init-exporter.svg?branch=master)](https://travis-ci.org/funbox/init-exporter) |
 | Unstable | [![Build Status](https://travis-ci.org/funbox/init-exporter.svg?branch=develop)](https://travis-ci.org/funbox/init-exporter) |
 
-#### License
+### License
 
 init-exporter is released under the MIT license (see [LICENSE](LICENSE))
