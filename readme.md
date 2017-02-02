@@ -176,7 +176,7 @@ defined both as global and as per-command options.
 To export a Procfile you should run
 
 ```bash
-sudo upstart-export -p ./myprocfile -f format myapp
+sudo init-exporter -p ./myprocfile -f format myapp
 ```
 Where `myapp` is the application name. This name only affects the names of generated files. For security purposes, app name is also allowed to contain only letters, digits and underscores.
 
@@ -221,7 +221,7 @@ sudo stop fb-myapp
 To remove init scripts and helpers for a particular application you can run
 
 ```bash
-sudo init-export -u -f upstart myapp
+sudo init-exporter -u -f upstart myapp
 ```
 
 The logs are not cleared in this case. Also, all old application scripts are cleared before each export.
