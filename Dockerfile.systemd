@@ -3,10 +3,10 @@ FROM centos:centos7
 ENV GOPATH /root
 ENV TARGET /root/src/github.com/funbox/init-exporter
 
-RUN yum install -y http://release.yum.kaos.io/i386/kaos-repo-1.2.0-0.el6.noarch.rpm
+RUN yum install -y https://yum.kaos.io/7/release/x86_64/kaos-repo-7.2-0.el7.noarch.rpm
 RUN yum clean all && yum -y update
 
-RUN yum -y install make go
+RUN yum -y install make golang
 
 COPY . $TARGET
 RUN ls $TARGET -al
