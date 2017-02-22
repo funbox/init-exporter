@@ -105,5 +105,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Wed Feb 22 2017 Anton Novojilov <andyone@fun-box.ru> - 0.7.0-0
+- Fixed bug with export to upstart
+- Improved working with default values
+
 * Thu Feb  2 2017 Anton Novojilov <andyone@fun-box.ru> - 0.6.0-0
 - Initial build
