@@ -32,20 +32,19 @@ const (
 	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-]+\z`
 )
 
-const (
-	DEFAULT_RESPAWN_INTERVAL = 5
-	DEFAULT_RESPAWN_COUNT    = 10
-)
-
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 type Config struct {
-	Name       string // Application name
-	User       string // Working user
-	Group      string // Working group
-	WorkingDir string // Working directory
-	LimitProc  int    // Global processes limit
-	LimitFile  int    // Global descriptors limit
+	Name             string // Application name
+	User             string // Working user
+	Group            string // Working group
+	WorkingDir       string // Working directory
+	IsRespawnEnabled bool   // Global respawn enabled flag
+	RespawnInterval  int    // Global respawn interval in seconds
+	RespawnCount     int    // Global respawn count
+	KillTimeout      int    // Global kill timeout in seconds
+	LimitProc        int    // Global processes limit
+	LimitFile        int    // Global descriptors limit
 }
 
 type Service struct {
@@ -410,14 +409,7 @@ func parseCommands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}, 
 		}
 
 		mergeServiceOptions(serviceOptions, commonOptions)
-
-		if serviceOptions.LimitFile == 0 && config.LimitFile != 0 {
-			serviceOptions.LimitFile = config.LimitFile
-		}
-
-		if serviceOptions.LimitProc == 0 && config.LimitProc != 0 {
-			serviceOptions.LimitProc = config.LimitProc
-		}
+		configureDefaults(serviceOptions, config)
 
 		service := &Service{
 			Name:    serviceName,
@@ -489,8 +481,6 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			if err != nil {
 				return nil, fmt.Errorf("Can't parse respawn.count value: %v", err)
 			}
-		} else {
-			options.RespawnCount = DEFAULT_RESPAWN_COUNT
 		}
 
 		if yaml.IsPathExist("respawn", "interval") {
@@ -499,8 +489,6 @@ func parseOptions(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			if err != nil {
 				return nil, fmt.Errorf("Can't parse respawn.interval value: %v", err)
 			}
-		} else {
-			options.RespawnInterval = DEFAULT_RESPAWN_INTERVAL
 		}
 
 	} else if yaml.IsExist("respawn") {
@@ -583,6 +571,35 @@ func mergeServiceOptions(dst, src *ServiceOptions) {
 
 	if dst.LimitProc == 0 {
 		dst.LimitProc = src.LimitProc
+	}
+}
+
+// configureDefaults set options default values
+func configureDefaults(serviceOptions *ServiceOptions, config *Config) {
+	if serviceOptions.LimitFile == 0 && config.LimitFile != 0 {
+		serviceOptions.LimitFile = config.LimitFile
+	}
+
+	if serviceOptions.LimitProc == 0 && config.LimitProc != 0 {
+		serviceOptions.LimitProc = config.LimitProc
+	}
+
+	if serviceOptions.KillTimeout == 0 && config.KillTimeout != 0 {
+		serviceOptions.KillTimeout = config.KillTimeout
+	}
+
+	if config.IsRespawnEnabled {
+		serviceOptions.IsRespawnEnabled = true
+	}
+
+	if serviceOptions.IsRespawnEnabled {
+		if serviceOptions.RespawnCount == 0 {
+			serviceOptions.RespawnCount = config.RespawnCount
+		}
+
+		if serviceOptions.RespawnInterval == 0 {
+			serviceOptions.RespawnInterval = config.RespawnInterval
+		}
 	}
 }
 
