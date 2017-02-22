@@ -1,4 +1,4 @@
-## `init-exporter` [![Build Status](https://travis-ci.org/funbox/init-exporter.svg?branch=master)](https://travis-ci.org/funbox/init-exporter)
+## `init-exporter` [![Build Status](https://travis-ci.org/funbox/init-exporter.svg?branch=master)](https://travis-ci.org/funbox/init-exporter) [![Go Report Card](https://goreportcard.com/badge/github.com/funbox/init-exporter)](https://goreportcard.com/report/github.com/funbox/init-exporter) [![License](https://gh.kaos.io/mit.svg)](LICENSE)
 
 Utility for exporting services described by Procfile to init system.
 Supported init systems: upstart and systemd
