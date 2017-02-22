@@ -119,8 +119,8 @@ func (up *UpstartProvider) DisableService(appName string) error {
 func (up *UpstartProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
 	data := &upstartAppData{
 		Application: app,
-		StartLevel:  fmt.Sprintf("[%d]", app.StartLevel),
-		StopLevel:   fmt.Sprintf("[%d]", app.StopLevel),
+		StartLevel:  fmt.Sprintf("runlevel [%d]", app.StartLevel),
+		StopLevel:   fmt.Sprintf("runlevel [%d]", app.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -133,8 +133,8 @@ func (up *UpstartProvider) RenderServiceTemplate(service *procfile.Service) (str
 	data := &upstartServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  fmt.Sprintf("[%d]", service.Application.StartLevel),
-		StopLevel:   fmt.Sprintf("[%d]", service.Application.StopLevel),
+		StartLevel:  fmt.Sprintf("starting %s", service.Application.Name),
+		StopLevel:   fmt.Sprintf("stopping %s", service.Application.Name),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 

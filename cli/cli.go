@@ -29,7 +29,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.6.0"
+	VER  = "0.7.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -47,20 +47,24 @@ const (
 
 // Config properies list
 const (
-	MAIN_RUN_USER     = "main:run-user"
-	MAIN_RUN_GROUP    = "main:run-group"
-	MAIN_PREFIX       = "main:prefix"
-	PATHS_WORKING_DIR = "paths:working-dir"
-	PATHS_HELPER_DIR  = "paths:helper-dir"
-	PATHS_SYSTEMD_DIR = "paths:systemd-dir"
-	PATHS_UPSTART_DIR = "paths:upstart-dir"
-	LIMITS_NPROC      = "limits:nproc"
-	LIMITS_NOFILE     = "limits:nofile"
-	LOG_ENABLED       = "log:enabled"
-	LOG_DIR           = "log:dir"
-	LOG_FILE          = "log:file"
-	LOG_PERMS         = "log:perms"
-	LOG_LEVEL         = "log:level"
+	MAIN_RUN_USER             = "main:run-user"
+	MAIN_RUN_GROUP            = "main:run-group"
+	MAIN_PREFIX               = "main:prefix"
+	PATHS_WORKING_DIR         = "paths:working-dir"
+	PATHS_HELPER_DIR          = "paths:helper-dir"
+	PATHS_SYSTEMD_DIR         = "paths:systemd-dir"
+	PATHS_UPSTART_DIR         = "paths:upstart-dir"
+	DEFAULTS_NPROC            = "defaults:nproc"
+	DEFAULTS_NOFILE           = "defaults:nofile"
+	DEFAULTS_RESPAWN          = "defaults:respawn"
+	DEFAULTS_RESPAWN_COUNT    = "defaults:respawn-count"
+	DEFAULTS_RESPAWN_INTERVAL = "defaults:respawn-interval"
+	DEFAULTS_KILL_TIMEOUT     = "defaults:kill-timeout"
+	LOG_ENABLED               = "log:enabled"
+	LOG_DIR                   = "log:dir"
+	LOG_FILE                  = "log:file"
+	LOG_PERMS                 = "log:perms"
+	LOG_LEVEL                 = "log:level"
 )
 
 const (
@@ -237,11 +241,17 @@ func validateConfig() {
 		{PATHS_HELPER_DIR, knf.Empty, nil},
 		{PATHS_SYSTEMD_DIR, knf.Empty, nil},
 		{PATHS_UPSTART_DIR, knf.Empty, nil},
-		{LIMITS_NOFILE, knf.Empty, nil},
-		{LIMITS_NPROC, knf.Empty, nil},
+		{DEFAULTS_NPROC, knf.Empty, nil},
+		{DEFAULTS_NOFILE, knf.Empty, nil},
+		{DEFAULTS_RESPAWN_COUNT, knf.Empty, nil},
+		{DEFAULTS_RESPAWN_INTERVAL, knf.Empty, nil},
+		{DEFAULTS_KILL_TIMEOUT, knf.Empty, nil},
 
-		{LIMITS_NOFILE, knf.Less, 0},
-		{LIMITS_NPROC, knf.Less, 0},
+		{DEFAULTS_NPROC, knf.Less, 0},
+		{DEFAULTS_NOFILE, knf.Less, 0},
+		{DEFAULTS_RESPAWN_COUNT, knf.Less, 0},
+		{DEFAULTS_RESPAWN_INTERVAL, knf.Less, 0},
+		{DEFAULTS_KILL_TIMEOUT, knf.Less, 0},
 
 		{MAIN_RUN_USER, userChecker, nil},
 		{MAIN_RUN_GROUP, groupChecker, nil},
@@ -298,12 +308,16 @@ func installApplication(appName string) {
 	app, err := procfile.Read(
 		arg.GetS(ARG_PROCFILE),
 		&procfile.Config{
-			Name:       fullAppName,
-			User:       knf.GetS(MAIN_RUN_USER),
-			Group:      knf.GetS(MAIN_RUN_GROUP),
-			WorkingDir: knf.GetS(PATHS_WORKING_DIR),
-			LimitFile:  knf.GetI(LIMITS_NOFILE, 0),
-			LimitProc:  knf.GetI(LIMITS_NPROC, 0),
+			Name:             fullAppName,
+			User:             knf.GetS(MAIN_RUN_USER),
+			Group:            knf.GetS(MAIN_RUN_GROUP),
+			WorkingDir:       knf.GetS(PATHS_WORKING_DIR),
+			IsRespawnEnabled: knf.GetB(DEFAULTS_RESPAWN, false),
+			RespawnInterval:  knf.GetI(DEFAULTS_RESPAWN_INTERVAL),
+			RespawnCount:     knf.GetI(DEFAULTS_RESPAWN_COUNT),
+			KillTimeout:      knf.GetI(DEFAULTS_KILL_TIMEOUT, 0),
+			LimitFile:        knf.GetI(DEFAULTS_NOFILE, 0),
+			LimitProc:        knf.GetI(DEFAULTS_NPROC, 0),
 		},
 	)
 
@@ -432,12 +446,13 @@ func showUsage() {
 // showAbout print version info to console
 func showAbout() {
 	about := &usage.About{
-		App:     APP,
-		Version: VER,
-		Desc:    DESC,
-		Year:    2006,
-		Owner:   "FB Group",
-		License: "MIT License",
+		App:        APP,
+		Version:    VER,
+		Desc:       DESC,
+		Year:       2006,
+		Owner:      "FB Group",
+		License:    "MIT License",
+		Repository: "funbox/init-exporter",
 	}
 
 	about.Render()

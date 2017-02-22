@@ -55,6 +55,26 @@ The export process can be configured through the config `/etc/init-exporter.conf
   # Path to directory with upstart configs
   upstart-dir: /etc/init
 
+[defaults]
+
+  # Number of Processes (0 - disabled)
+  nproc: 10240
+
+  # Number of File Descriptors (0 - disabled)
+  nofile: 10240
+
+  # Enable or disable respawn by default here
+  respawn: true
+
+  # Respawn count
+  respawn-count: 10
+
+  # Respawn interval
+  respawn-interval: 15
+
+  # Kill timeout (0 - disabled)
+  kill-timeout: 60
+
 [log]
 
   # Enable or disable logging here

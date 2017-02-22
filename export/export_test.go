@@ -120,8 +120,8 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
-			"start on [3]",
-			"stop on [3]",
+			"start on runlevel [3]",
+			"stop on runlevel [3]",
 			"",
 			"pre-start script",
 			"",
@@ -137,8 +137,8 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 
 	c.Assert(service1Unit[2:], DeepEquals,
 		[]string{
-			"start on [3]",
-			"stop on [3]",
+			"start on starting test_application",
+			"stop on stopping test_application",
 			"",
 			"respawn",
 			"respawn limit 15 25",
@@ -159,8 +159,8 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 
 	c.Assert(service2Unit[2:], DeepEquals,
 		[]string{
-			"start on [3]",
-			"stop on [3]",
+			"start on starting test_application",
+			"stop on stopping test_application",
 			"",
 			"respawn",
 			"",
