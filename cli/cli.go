@@ -247,8 +247,11 @@ func validateConfig() {
 		{DEFAULTS_RESPAWN_INTERVAL, knf.Empty, nil},
 		{DEFAULTS_KILL_TIMEOUT, knf.Empty, nil},
 
+		{DEFAULTS_NPROC, knf.Less, 0},
+		{DEFAULTS_NOFILE, knf.Less, 0},
 		{DEFAULTS_RESPAWN_COUNT, knf.Less, 0},
 		{DEFAULTS_RESPAWN_INTERVAL, knf.Less, 0},
+		{DEFAULTS_KILL_TIMEOUT, knf.Less, 0},
 
 		{MAIN_RUN_USER, userChecker, nil},
 		{MAIN_RUN_GROUP, groupChecker, nil},
