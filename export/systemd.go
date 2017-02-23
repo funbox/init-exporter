@@ -30,7 +30,7 @@ const TEMPLATE_SYSTEMD_HELPER = `#!/bin/bash
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
 
-exec {{.Service.Cmd}}
+exec {{.Service.Cmd}}{{ if .Service.Options.IsCustomLogEnabled }} >>{{.Service.Options.FullLogPath}}{{ end }}
 `
 
 // TEMPLATE_SYSTEMD_APP contains default application template
@@ -85,7 +85,7 @@ User={{.Application.User}}
 Group={{.Application.Group}}
 WorkingDirectory={{.Service.Options.WorkingDir}}
 {{ if .Service.Options.IsEnvSet }}Environment={{.Service.Options.EnvString}}{{ end }}
-ExecStart=/bin/bash {{.Service.HelperPath}} {{ if .Service.Options.IsCustomLogEnabled }}>> {{.Service.Options.LogPath}} {{end}}>> /var/log/{{.Application.Name}}/{{.Service.Name}}.log 2>&1
+ExecStart=/bin/bash {{.Service.HelperPath}} &>>/var/log/{{.Application.Name}}/{{.Service.Name}}.log
 `
 
 // ////////////////////////////////////////////////////////////////////////////////// //
