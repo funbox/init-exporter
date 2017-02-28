@@ -29,7 +29,7 @@ const TEMPLATE_UPSTART_HELPER = `#!/bin/bash
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
 
-cd {{.Service.Options.WorkingDir}} && exec {{ if .Service.Options.IsEnvSet }}{{.Service.Options.EnvString}} {{ end }}{{.Service.Cmd}}
+cd {{.Service.Options.WorkingDir}} && exec {{ if .Service.Options.IsEnvSet }}{{.Service.Options.EnvString}} {{ end }}{{.Service.Cmd}}{{ if .Service.Options.IsCustomLogEnabled }} >>{{.Service.Options.FullLogPath}}{{ end }}
 `
 
 // TEMPLATE_UPSTART_APP contains default application template
@@ -69,7 +69,7 @@ script
   chown {{.Application.User}} /var/log/{{.Application.Name}}/{{.Service.Name}}.log
   chgrp {{.Application.Group}} /var/log/{{.Application.Name}}/{{.Service.Name}}.log
   chmod g+w /var/log/{{.Application.Name}}/{{.Service.Name}}.log
-  exec sudo -u {{.Application.User}} /bin/bash {{.Service.HelperPath}} {{ if .Service.Options.IsCustomLogEnabled }}>> {{.Service.Options.LogPath}} {{end}}>> /var/log/{{.Application.Name}}/{{.Service.Name}}.log 2>&1
+  exec sudo -u {{.Application.User}} /bin/bash {{.Service.HelperPath}} &>>/var/log/{{.Application.Name}}/{{.Service.Name}}.log
 end script
 `
 

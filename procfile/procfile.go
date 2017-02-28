@@ -202,6 +202,15 @@ func (so *ServiceOptions) EnvString() string {
 	return strings.Join(clauses, " ")
 }
 
+// FullLogPath return absolute path to service log
+func (so *ServiceOptions) FullLogPath() string {
+	if strings.HasPrefix(so.LogPath, "/") {
+		return so.LogPath
+	}
+
+	return so.WorkingDir + "/" + so.LogPath
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // parseV1Procfile parse v1 procfile data

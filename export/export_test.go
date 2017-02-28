@@ -153,7 +153,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"  chown service /var/log/test_application/service1.log",
 			"  chgrp service /var/log/test_application/service1.log",
 			"  chmod g+w /var/log/test_application/service1.log",
-			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-service1.sh >> /srv/service/service1-dir/custom.log >> /var/log/test_application/service1.log 2>&1", helperDir),
+			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
 			"end script", ""},
 	)
 
@@ -175,14 +175,14 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"  chown service /var/log/test_application/service2.log",
 			"  chgrp service /var/log/test_application/service2.log",
 			"  chmod g+w /var/log/test_application/service2.log",
-			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-service2.sh >> /var/log/test_application/service2.log 2>&1", helperDir),
+			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
 			"end script", ""},
 	)
 
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec STAGING=true /bin/echo service1",
+			"cd /srv/service/service1-dir && exec STAGING=true /bin/echo service1 >>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
@@ -331,7 +331,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/service1-dir",
 			"Environment=STAGING=true",
-			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service1.sh >> /srv/service/service1-dir/custom.log >> /var/log/test_application/service1.log 2>&1", helperDir),
+			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
 			""},
 	)
 
@@ -362,14 +362,14 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
 			"",
-			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service2.sh >> /var/log/test_application/service2.log 2>&1", helperDir),
+			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
 			""},
 	)
 
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec /bin/echo service1",
+			"exec /bin/echo service1 >>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
@@ -412,7 +412,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Options: &procfile.ServiceOptions{
 			Env:              map[string]string{"STAGING": "true"},
 			WorkingDir:       "/srv/service/service1-dir",
-			LogPath:          "/srv/service/service1-dir/custom.log",
+			LogPath:          "log/service1.log",
 			KillTimeout:      10,
 			Count:            2,
 			RespawnInterval:  25,
