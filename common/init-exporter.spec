@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.7.1
+Version:         0.7.2
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
