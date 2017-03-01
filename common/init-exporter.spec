@@ -105,8 +105,11 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Thu Mar 02 2017 Anton Novojilov <andyone@fun-box.ru> - 0.7.2-0
+- [upstart] Fixed bug with setting environment variables
+
 * Thu Feb 23 2017 Anton Novojilov <andyone@fun-box.ru> - 0.7.1-0
-- More secure helper output redirection
+- [upstart|systemd] More secure helper output redirection
 
 * Wed Feb 22 2017 Anton Novojilov <andyone@fun-box.ru> - 0.7.0-0
 - Fixed bug with export to upstart

@@ -182,7 +182,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec STAGING=true /bin/echo service1 >>/srv/service/service1-dir/log/service1.log",
+			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo service1 >>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 

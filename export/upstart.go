@@ -29,7 +29,7 @@ const TEMPLATE_UPSTART_HELPER = `#!/bin/bash
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
 
-cd {{.Service.Options.WorkingDir}} && exec {{ if .Service.Options.IsEnvSet }}{{.Service.Options.EnvString}} {{ end }}{{.Service.Cmd}}{{ if .Service.Options.IsCustomLogEnabled }} >>{{.Service.Options.FullLogPath}}{{ end }}
+cd {{.Service.Options.WorkingDir}} && exec {{ if .Service.Options.IsEnvSet }}env {{.Service.Options.EnvString}} {{ end }}{{.Service.Cmd}}{{ if .Service.Options.IsCustomLogEnabled }} >>{{.Service.Options.FullLogPath}}{{ end }}
 `
 
 // TEMPLATE_UPSTART_APP contains default application template
