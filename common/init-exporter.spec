@@ -100,7 +100,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/%{name}.conf
 %dir %{_logdir}/%{name}
 %dir %{_localstatedir}/local/%{name}/helpers
-%{_bindir}/*-exporter
+%{_bindir}/init-exporter
+%{_bindir}/upstart-export
+%{_bindir}/systemd-export
 
 ###############################################################################
 
