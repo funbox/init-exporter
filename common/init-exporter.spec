@@ -43,7 +43,7 @@
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
 Version:         0.7.2
-Release:         0%{?dist}
+Release:         1%{?dist}
 Group:           Development/Tools
 License:         MIT
 URL:             https://github.com/funbox/init-exporter
@@ -84,8 +84,8 @@ install -dm 755 %{buildroot}%{_localstatedir}/local/%{name}/helpers
 
 install -pm 755 %{name} %{buildroot}%{_bindir}/
 
-ln -sf %{_bindir}/%{name} %{buildroot}%{_bindir}/upstart-exporter
-ln -sf %{_bindir}/%{name} %{buildroot}%{_bindir}/systemd-exporter
+ln -sf %{_bindir}/%{name} %{buildroot}%{_bindir}/upstart-export
+ln -sf %{_bindir}/%{name} %{buildroot}%{_bindir}/systemd-export
 
 install -pm 755 src/github.com/funbox/%{name}/common/%{name}.conf \
                 %{buildroot}%{_sysconfdir}/
@@ -105,6 +105,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Fri Mar 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.7.2-1
+- Fixed wrong path to upsrtart-exporter binary
+
 * Thu Mar 02 2017 Anton Novojilov <andyone@fun-box.ru> - 0.7.2-0
 - [upstart] Fixed bug with setting environment variables
 
