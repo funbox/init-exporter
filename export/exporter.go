@@ -11,9 +11,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"pkg.re/essentialkaos/ek.v6/fsutil"
-	"pkg.re/essentialkaos/ek.v6/log"
-	"pkg.re/essentialkaos/ek.v6/path"
+	"pkg.re/essentialkaos/ek.v7/fsutil"
+	"pkg.re/essentialkaos/ek.v7/log"
+	"pkg.re/essentialkaos/ek.v7/path"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -208,7 +208,7 @@ func (e *Exporter) helperPath(name string) string {
 func deleteByMask(dir, mask string) error {
 	files := fsutil.List(
 		dir, true,
-		&fsutil.ListingFilter{
+		fsutil.ListingFilter{
 			MatchPatterns: []string{mask},
 		},
 	)

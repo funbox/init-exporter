@@ -15,10 +15,10 @@ import (
 	"sort"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v6/errutil"
-	"pkg.re/essentialkaos/ek.v6/fsutil"
-	"pkg.re/essentialkaos/ek.v6/log"
-	"pkg.re/essentialkaos/ek.v6/path"
+	"pkg.re/essentialkaos/ek.v7/errutil"
+	"pkg.re/essentialkaos/ek.v7/fsutil"
+	"pkg.re/essentialkaos/ek.v7/log"
+	"pkg.re/essentialkaos/ek.v7/path"
 
 	"pkg.re/essentialkaos/go-simpleyaml.v1"
 )

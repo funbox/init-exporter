@@ -13,7 +13,7 @@ all: bin
 
 deps:
 	go get -v pkg.re/check.v1
-	go get -v pkg.re/essentialkaos/ek.v6
+	go get -v pkg.re/essentialkaos/ek.v7
 	go get -v pkg.re/essentialkaos/go-simpleyaml.v1
 	go get -v pkg.re/yaml.v2
 

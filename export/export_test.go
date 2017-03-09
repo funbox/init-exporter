@@ -15,8 +15,8 @@ import (
 
 	"github.com/funbox/init-exporter/procfile"
 
-	"pkg.re/essentialkaos/ek.v6/fsutil"
-	"pkg.re/essentialkaos/ek.v6/log"
+	"pkg.re/essentialkaos/ek.v7/fsutil"
+	"pkg.re/essentialkaos/ek.v7/log"
 
 	. "pkg.re/check.v1"
 )
