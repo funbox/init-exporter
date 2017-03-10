@@ -42,8 +42,8 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.7.2
-Release:         1%{?dist}
+Version:         0.8.0
+Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
 URL:             https://github.com/funbox/init-exporter
@@ -107,6 +107,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Thu Mar 09 2017 Anton Novojilov <andyone@fun-box.ru> - 0.8.0-0
+- ek package updated to v7
+
 * Fri Mar 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.7.2-1
 - Fixed wrong path to upsrtart-exporter binary
 

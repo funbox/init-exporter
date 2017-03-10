@@ -1,6 +1,6 @@
 package: github.com/funbox/init-exporter
 import:
-- package: pkg.re/essentialkaos/ek.v6
+- package: pkg.re/essentialkaos/ek.v7
   subpackages:
   - arg
   - env

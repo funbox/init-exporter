@@ -11,14 +11,15 @@ import (
 	"os"
 	"runtime"
 
-	"pkg.re/essentialkaos/ek.v6/arg"
-	"pkg.re/essentialkaos/ek.v6/env"
-	"pkg.re/essentialkaos/ek.v6/fmtc"
-	"pkg.re/essentialkaos/ek.v6/fsutil"
-	"pkg.re/essentialkaos/ek.v6/knf"
-	"pkg.re/essentialkaos/ek.v6/log"
-	"pkg.re/essentialkaos/ek.v6/system"
-	"pkg.re/essentialkaos/ek.v6/usage"
+	"pkg.re/essentialkaos/ek.v7/arg"
+	"pkg.re/essentialkaos/ek.v7/env"
+	"pkg.re/essentialkaos/ek.v7/fmtc"
+	"pkg.re/essentialkaos/ek.v7/fsutil"
+	"pkg.re/essentialkaos/ek.v7/knf"
+	"pkg.re/essentialkaos/ek.v7/log"
+	"pkg.re/essentialkaos/ek.v7/system"
+	"pkg.re/essentialkaos/ek.v7/usage"
+	"pkg.re/essentialkaos/ek.v7/usage/update"
 
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
@@ -29,7 +30,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.7.2"
+	VER  = "0.8.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -422,8 +423,6 @@ func printErrorAndExit(message string, a ...interface{}) {
 
 // showUsage print usage info to console
 func showUsage() {
-	usage.Breadcrumbs = true
-
 	info := usage.NewInfo("", "app-name")
 
 	info.AddOption(ARG_PROCFILE, "Path to procfile", "file")
@@ -446,13 +445,13 @@ func showUsage() {
 // showAbout print version info to console
 func showAbout() {
 	about := &usage.About{
-		App:        APP,
-		Version:    VER,
-		Desc:       DESC,
-		Year:       2006,
-		Owner:      "FB Group",
-		License:    "MIT License",
-		Repository: "funbox/init-exporter",
+		App:           APP,
+		Version:       VER,
+		Desc:          DESC,
+		Year:          2006,
+		Owner:         "FB Group",
+		License:       "MIT License",
+		UpdateChecker: usage.UpdateChecker{"funbox/init-exporter", update.GitHubChecker},
 	}
 
 	about.Render()
