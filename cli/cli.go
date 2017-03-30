@@ -51,8 +51,8 @@ const (
 	MAIN_RUN_USER             = "main:run-user"
 	MAIN_RUN_GROUP            = "main:run-group"
 	MAIN_PREFIX               = "main:prefix"
-	PROC_VERSION1             = "proc:version1"
-	PROC_VERSION2             = "proc:version2"
+	PROCFILE_VERSION1         = "procfile:version1"
+	PROCFILE_VERSION2         = "procfile:version2"
 	PATHS_WORKING_DIR         = "paths:working-dir"
 	PATHS_HELPER_DIR          = "paths:helper-dir"
 	PATHS_SYSTEMD_DIR         = "paths:systemd-dir"
@@ -328,12 +328,12 @@ func installApplication(appName string) {
 		printErrorAndExit(err.Error())
 	}
 
-	if app.ProcVersion == 1 && !knf.GetB(PROC_VERSION1, true) {
+	if app.ProcVersion == 1 && !knf.GetB(PROCFILE_VERSION1, true) {
 		printError("Proc format version 1 support is disabled")
 		os.Exit(1)
 	}
 
-	if app.ProcVersion == 2 && !knf.GetB(PROC_VERSION2, true) {
+	if app.ProcVersion == 2 && !knf.GetB(PROCFILE_VERSION2, true) {
 		printError("Proc format version 2 support is disabled")
 		os.Exit(1)
 	}
