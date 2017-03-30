@@ -30,7 +30,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.8.0"
+	VER  = "0.9.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -51,6 +51,8 @@ const (
 	MAIN_RUN_USER             = "main:run-user"
 	MAIN_RUN_GROUP            = "main:run-group"
 	MAIN_PREFIX               = "main:prefix"
+	PROC_VERSION1             = "proc:version1"
+	PROC_VERSION2             = "proc:version2"
 	PATHS_WORKING_DIR         = "paths:working-dir"
 	PATHS_HELPER_DIR          = "paths:helper-dir"
 	PATHS_SYSTEMD_DIR         = "paths:systemd-dir"
@@ -150,12 +152,12 @@ func checkForRoot() {
 	user, err = system.CurrentUser()
 
 	if err != nil {
-		fmt.Println(err.Error())
+		printError(err.Error())
 		os.Exit(1)
 	}
 
 	if !user.IsRoot() {
-		fmt.Println("This utility must have superuser privileges (root)")
+		printError("This utility must have superuser privileges (root)")
 		os.Exit(1)
 	}
 }
@@ -272,10 +274,10 @@ func validateConfig() {
 	errs := knf.Validate(validators)
 
 	if len(errs) != 0 {
-		fmt.Println("Errors while config validation:")
+		printError("Errors while config validation:")
 
 		for _, err := range errs {
-			fmt.Printf("  %v\n", err)
+			printError("  %v\n", err)
 		}
 
 		os.Exit(1)
@@ -324,6 +326,16 @@ func installApplication(appName string) {
 
 	if err != nil {
 		printErrorAndExit(err.Error())
+	}
+
+	if app.ProcVersion == 1 && !knf.GetB(PROC_VERSION1, true) {
+		printError("Proc format version 1 support is disabled")
+		os.Exit(1)
+	}
+
+	if app.ProcVersion == 2 && !knf.GetB(PROC_VERSION2, true) {
+		printError("Proc format version 2 support is disabled")
+		os.Exit(1)
 	}
 
 	if arg.GetB(ARG_DRY_START) {
@@ -412,10 +424,20 @@ func detectProvider(format string) (string, error) {
 	}
 }
 
+// printError prints error message to console
+func printError(f string, a ...interface{}) {
+	fmtc.Printf("{r}"+f+"{!}\n", a...)
+}
+
+// printError prints warning message to console
+func printWarn(f string, a ...interface{}) {
+	fmtc.Printf("{y}"+f+"{!}\n", a...)
+}
+
 // printErrorAndExit print error mesage and exit with exit code 1
 func printErrorAndExit(message string, a ...interface{}) {
-	log.Crit(message)
-	fmt.Printf(message+"\n", a...)
+	log.Crit(message, a...)
+	printError(message, a...)
 	os.Exit(1)
 }
 
