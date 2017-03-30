@@ -50,6 +50,8 @@ type Config struct {
 type Service struct {
 	Name        string          // Service name
 	Cmd         string          // Command
+	PreCmd      string          // Pre command
+	PostCmd     string          // Post command
 	Options     *ServiceOptions // Service options
 	Application *Application    // Pointer to parent application
 	HelperPath  string          // Path to helper (will be set by exporter)
@@ -158,6 +160,60 @@ func (so *ServiceOptions) Validate() error {
 	}
 
 	return errs.Last()
+}
+
+// HasPreCmd return true if pre command is defined
+func (s *Service) HasPreCmd() bool {
+	return s.PreCmd != ""
+}
+
+// HasPostCmd return true if post command is defined
+func (s *Service) HasPostCmd() bool {
+	return s.PostCmd != ""
+}
+
+// GetCommandExecWithEnv return full command exec with env vars setting
+func (s *Service) GetCommandExecWithEnv(command string) string {
+	var result = "exec "
+
+	if s.Options.IsEnvSet() {
+		result += "env " + s.Options.EnvString() + " "
+	}
+
+	switch command {
+	case "pre":
+		result += s.PreCmd
+	case "post":
+		result += s.PostCmd
+	default:
+		result += s.Cmd
+	}
+
+	if s.Options.IsCustomLogEnabled() {
+		result += " >>" + s.Options.FullLogPath()
+	}
+
+	return result
+}
+
+// GetCommandExec return full command exec
+func (s *Service) GetCommandExec(command string) string {
+	var result = "exec "
+
+	switch command {
+	case "pre":
+		result += s.PreCmd
+	case "post":
+		result += s.PostCmd
+	default:
+		result += s.Cmd
+	}
+
+	if s.Options.IsCustomLogEnabled() {
+		result += " >>" + s.Options.FullLogPath()
+	}
+
+	return result
 }
 
 // IsRespawnLimitSet return true if respawn options is set
@@ -411,6 +467,9 @@ func parseCommands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}, 
 			return nil, err
 		}
 
+		servicePreCmd := commandYaml.Get("pre").MustString()
+		servicePostCmd := commandYaml.Get("post").MustString()
+
 		serviceOptions, err := parseOptions(commandYaml)
 
 		if err != nil {
@@ -423,6 +482,8 @@ func parseCommands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}, 
 		service := &Service{
 			Name:    serviceName,
 			Cmd:     serviceCmd,
+			PreCmd:  servicePreCmd,
+			PostCmd: servicePostCmd,
 			Options: serviceOptions,
 		}
 

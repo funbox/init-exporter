@@ -182,14 +182,14 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo service1 >>/srv/service/service1-dir/log/service1.log",
+			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' >>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' >>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' >>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/working-dir && exec /bin/echo service2",
+			"cd /srv/service/working-dir && exec /bin/echo 'service2'",
 			""},
 	)
 
@@ -369,14 +369,14 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec /bin/echo service1 >>/srv/service/service1-dir/log/service1.log",
+			"exec /bin/echo 'service1:pre' >>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1' >>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1:post' >>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec /bin/echo service2",
+			"exec /bin/echo 'service2'",
 			""},
 	)
 
@@ -407,7 +407,9 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 
 	service1 := &procfile.Service{
 		Name:        "service1",
-		Cmd:         "/bin/echo service1",
+		Cmd:         "/bin/echo 'service1'",
+		PreCmd:      "/bin/echo 'service1:pre'",
+		PostCmd:     "/bin/echo 'service1:post'",
 		Application: app,
 		Options: &procfile.ServiceOptions{
 			Env:              map[string]string{"STAGING": "true"},
@@ -424,7 +426,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 
 	service2 := &procfile.Service{
 		Name:        "service2",
-		Cmd:         "/bin/echo service2",
+		Cmd:         "/bin/echo 'service2'",
 		Application: app,
 		Options: &procfile.ServiceOptions{
 			WorkingDir:       "/srv/service/working-dir",

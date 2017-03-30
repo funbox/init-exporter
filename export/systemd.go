@@ -30,7 +30,7 @@ const TEMPLATE_SYSTEMD_HELPER = `#!/bin/bash
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
 
-exec {{.Service.Cmd}}{{ if .Service.Options.IsCustomLogEnabled }} >>{{.Service.Options.FullLogPath}}{{ end }}
+{{ if .Service.HasPreCmd }}{{.Service.GetCommandExec "pre"}} && {{ end }}{{.Service.GetCommandExec ""}}{{ if .Service.HasPostCmd }} && {{.Service.GetCommandExec "post"}}{{ end }}
 `
 
 // TEMPLATE_SYSTEMD_APP contains default application template
