@@ -34,7 +34,7 @@ const (
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
-// Supported arguments list
+// Supported arguments
 const (
 	ARG_PROCFILE  = "p:procfile"
 	ARG_APP_NAME  = "n:appname"
@@ -46,7 +46,7 @@ const (
 	ARG_VERSION   = "v:version"
 )
 
-// Config properies list
+// Config properies
 const (
 	MAIN_RUN_USER             = "main:run-user"
 	MAIN_RUN_GROUP            = "main:run-group"
@@ -426,18 +426,18 @@ func detectProvider(format string) (string, error) {
 
 // printError prints error message to console
 func printError(f string, a ...interface{}) {
-	fmtc.Printf("{r}"+f+"{!}\n", a...)
+	fmtc.Fprintf(os.Stderr, "{r}"+f+"{!}\n", a...)
 }
 
 // printError prints warning message to console
 func printWarn(f string, a ...interface{}) {
-	fmtc.Printf("{y}"+f+"{!}\n", a...)
+	fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
 }
 
 // printErrorAndExit print error mesage and exit with exit code 1
-func printErrorAndExit(message string, a ...interface{}) {
-	log.Crit(message, a...)
-	printError(message, a...)
+func printErrorAndExit(f string, a ...interface{}) {
+	log.Crit(f, a...)
+	printError(f, a...)
 	os.Exit(1)
 }
 
