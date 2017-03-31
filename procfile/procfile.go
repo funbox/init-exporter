@@ -340,48 +340,108 @@ func parseV1Line(line string) (*Service, error) {
 		return nil, fmt.Errorf("Procfile v1 should have format: 'some_label: command'")
 	}
 
-	cmd, options := parseV1Command(matches[2])
-
-	return &Service{Name: matches[1], Cmd: cmd, Options: options}, nil
+	return parseV1Command(matches[1], matches[2]), nil
 }
 
 // parseV1Command parse command and extract command and working dir
-func parseV1Command(cmd string) (string, *ServiceOptions) {
-	var options = &ServiceOptions{}
+func parseV1Command(name, command string) *Service {
+	var service = &Service{Name: name, Options: &ServiceOptions{}}
 
-	if !strings.HasPrefix(cmd, "cd ") && !strings.Contains(cmd, "&&") {
-		return cmd, options
+	cmdSlice := splitV1Command(command)
+
+	if strings.HasPrefix(cmdSlice[0], "cd") {
+		service.Options.WorkingDir = strings.Replace(cmdSlice[0], "cd ", "", -1)
+		cmdSlice = cmdSlice[1:]
 	}
 
-	cmdSlice := strings.Split(cmd, "&&")
-	command := strings.TrimSpace(cmdSlice[1])
-	workingDir := strings.Replace(cmdSlice[0], "cd", "", -1)
+	var (
+		env  map[string]string
+		cmd  string
+		pre  string
+		post string
+		log  string
+	)
 
-	options.WorkingDir = strings.TrimSpace(workingDir)
+	switch len(cmdSlice) {
+	case 3:
+		pre, _, _ = extractV1Data(cmdSlice[0])
+		cmd, log, env = extractV1Data(cmdSlice[1])
+		post, _, _ = extractV1Data(cmdSlice[2])
+	case 2:
+		pre, _, _ = extractV1Data(cmdSlice[0])
+		cmd, log, env = extractV1Data(cmdSlice[1])
+	default:
+		cmd, log, env = extractV1Data(cmdSlice[0])
+	}
 
-	if strings.HasPrefix(command, "env ") {
-		evMap := make(map[string]string)
+	service.Cmd = cmd
+	service.PreCmd = pre
+	service.PostCmd = post
+	service.Options.Env = env
+	service.Options.LogPath = log
 
-		subCommandSlice := strings.Fields(command)
+	return service
+}
 
-		for i, commandPart := range subCommandSlice {
-			if commandPart == "env" {
-				continue
-			}
+// extractV1Data extract data from command
+func extractV1Data(command string) (string, string, map[string]string) {
+	var (
+		env map[string]string
+		cmd []string
+		log string
 
-			if !strings.Contains(commandPart, "=") {
-				command = strings.Join(subCommandSlice[i:], " ")
-				break
-			}
+		isEnv bool
+		isLog bool
+	)
 
-			envSlice := strings.Split(commandPart, "=")
-			evMap[envSlice[0]] = envSlice[1]
+	cmdSlice := strings.Fields(command)
+
+	for _, cmdPart := range cmdSlice {
+		if strings.TrimSpace(cmdPart) == "" {
+			continue
 		}
 
-		options.Env = evMap
+		if strings.HasPrefix(cmdPart, "env") {
+			env = make(map[string]string)
+			isEnv = true
+			continue
+		}
+
+		if isEnv {
+			if strings.Contains(cmdPart, "=") {
+				envSlice := strings.Split(cmdPart, "=")
+				env[envSlice[0]] = envSlice[1]
+				continue
+			} else {
+				isEnv = false
+			}
+		}
+
+		if strings.Contains(cmdPart, ">>") {
+			isLog = true
+			continue
+		}
+
+		if isLog {
+			log = cmdPart
+			break
+		}
+
+		cmd = append(cmd, cmdPart)
 	}
 
-	return command, options
+	return strings.Join(cmd, " "), log, env
+}
+
+// splitV1Cmd split command and format command
+func splitV1Command(cmd string) []string {
+	var result []string
+
+	for _, cmdPart := range strings.Split(cmd, "&&") {
+		result = append(result, strings.TrimSpace(cmdPart))
+	}
+
+	return result
 }
 
 // parseV2Procfile parse v2 procfile data
