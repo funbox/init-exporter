@@ -30,7 +30,7 @@ fmt:
 	find . -name "*.go" -exec gofmt -s -w {} \;
 
 test:
-	go test ./... -covermode=count
+	go test ./procfile ./export -covermode=count
 
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin

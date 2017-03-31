@@ -26,5 +26,6 @@ before_install:
 
 script:
   - make test
-  - make bin
+  - make all
   - ./init-exporter --version
+  - ./init-exporter-converter --version
