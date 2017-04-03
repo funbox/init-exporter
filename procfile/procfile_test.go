@@ -35,12 +35,19 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 
 	c.Assert(app.Services[0].Name, Equals, "my_tail_cmd")
 	c.Assert(app.Services[0].Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
+	c.Assert(app.Services[0].Options, NotNil)
+	c.Assert(app.Services[0].Options.LogPath, Equals, "log/my_tail_cmd.log")
 
 	c.Assert(app.Services[1].Name, Equals, "my_another_tail_cmd")
 	c.Assert(app.Services[1].Cmd, Equals, "/usr/bin/tailf /var/log/messages")
+	c.Assert(app.Services[1].PreCmd, Equals, "echo my_another_tail_cmd")
+	c.Assert(app.Services[1].Options, NotNil)
+	c.Assert(app.Services[1].Options.LogPath, Equals, "log/my_another_tail_cmd.log")
 
 	c.Assert(app.Services[2].Name, Equals, "cmd_with_cd")
 	c.Assert(app.Services[2].Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
+	c.Assert(app.Services[2].PreCmd, Equals, "echo cmd_with_cd_pre")
+	c.Assert(app.Services[2].PostCmd, Equals, "echo cmd_with_cd_post")
 	c.Assert(app.Services[2].Options, NotNil)
 	c.Assert(app.Services[2].Options.Env, HasLen, 2)
 	c.Assert(app.Services[2].Options.Env["ENV_TEST"], Equals, "100")
@@ -83,6 +90,8 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 
 		case "my_another_tail_cmd":
 			c.Assert(service.Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
+			c.Assert(service.PreCmd, Equals, "/usr/bin/echo pre_command")
+			c.Assert(service.PostCmd, Equals, "/usr/bin/echo post_command")
 			c.Assert(service.Options, NotNil)
 			c.Assert(service.Options.WorkingDir, Equals, "/srv/projects/my_website/current")
 			c.Assert(service.Options.IsCustomLogEnabled(), Equals, false)

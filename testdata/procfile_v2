@@ -28,7 +28,9 @@ commands:
     working_directory: '/var/...' # if needs to be redefined
   
   my_another_tail_cmd:
+    pre: /usr/bin/echo pre_command
     command: /usr/bin/tail -F /var/log/messages
+    post: /usr/bin/echo post_command
     limits:
       nofile: 8192
       nproc: 8192

@@ -3,7 +3,7 @@ FROM centos:centos6
 ENV GOPATH /root
 ENV TARGET /root/src/github.com/funbox/init-exporter
 
-RUN yum install -y https://yum.kaos.io/6/release/i386/kaos-repo-7.2-0.el6.noarch.rpm
+RUN yum install -y https://yum.kaos.io/6/release/x86_64/kaos-repo-8.0-0.el6.noarch.rpm
 RUN yum clean all && yum -y update
 
 RUN yum -y install make golang

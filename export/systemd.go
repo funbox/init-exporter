@@ -30,7 +30,7 @@ const TEMPLATE_SYSTEMD_HELPER = `#!/bin/bash
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
 
-exec {{.Service.Cmd}}{{ if .Service.Options.IsCustomLogEnabled }} >>{{.Service.Options.FullLogPath}}{{ end }}
+{{ if .Service.HasPreCmd }}{{.Service.GetCommandExec "pre"}} && {{ end }}{{.Service.GetCommandExec ""}}{{ if .Service.HasPostCmd }} && {{.Service.GetCommandExec "post"}}{{ end }}
 `
 
 // TEMPLATE_SYSTEMD_APP contains default application template
@@ -136,8 +136,8 @@ func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string,
 	data := &systemdAppData{
 		Application: app,
 		Wants:       sp.renderWantsClause(app),
-		StartLevel:  sp.randerLevel(app.StartLevel),
-		StopLevel:   sp.randerLevel(app.StopLevel),
+		StartLevel:  sp.renderLevel(app.StartLevel),
+		StopLevel:   sp.renderLevel(app.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -150,8 +150,8 @@ func (sp *SystemdProvider) RenderServiceTemplate(service *procfile.Service) (str
 	data := systemdServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  sp.randerLevel(service.Application.StartLevel),
-		StopLevel:   sp.randerLevel(service.Application.StopLevel),
+		StartLevel:  sp.renderLevel(service.Application.StartLevel),
+		StopLevel:   sp.renderLevel(service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -164,8 +164,8 @@ func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (stri
 	data := systemdServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  sp.randerLevel(service.Application.StartLevel),
-		StopLevel:   sp.randerLevel(service.Application.StopLevel),
+		StartLevel:  sp.renderLevel(service.Application.StartLevel),
+		StopLevel:   sp.renderLevel(service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -174,8 +174,8 @@ func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (stri
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// randerLevel convert level number to upstart level name
-func (sp *SystemdProvider) randerLevel(level int) string {
+// renderLevel convert level number to upstart level name
+func (sp *SystemdProvider) renderLevel(level int) string {
 	switch level {
 	case 1:
 		return "rescue.target"

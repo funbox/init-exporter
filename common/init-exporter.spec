@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.8.0
+Version:         0.9.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -70,8 +70,14 @@ Utility for exporting services described by Procfile to init system.
 %setup -q
 
 %build
-export GOPATH=$(pwd) 
+export GOPATH=$(pwd)
+
+pushd src/github.com/funbox/%{name}
+  %{__make} %{?_smp_mflags}
+popd
+
 go build -o %{name} src/github.com/funbox/%{name}/%{name}.go
+go build -o %{name}-converter src/github.com/funbox/%{name}/%{name}-converter.go
 
 %install
 rm -rf %{buildroot}
@@ -82,7 +88,11 @@ install -dm 755 %{buildroot}%{_logdir}/%{name}
 install -dm 755 %{buildroot}%{_loc_prefix}/%{name}
 install -dm 755 %{buildroot}%{_localstatedir}/local/%{name}/helpers
 
-install -pm 755 %{name} %{buildroot}%{_bindir}/
+install -pm 755 src/github.com/funbox/%{name}/%{name} \
+                %{buildroot}%{_bindir}/
+
+install -pm 755 src/github.com/funbox/%{name}/%{name}-converter \
+                %{buildroot}%{_bindir}/
 
 ln -sf %{_bindir}/%{name} %{buildroot}%{_bindir}/upstart-export
 ln -sf %{_bindir}/%{name} %{buildroot}%{_bindir}/systemd-export
@@ -101,12 +111,18 @@ rm -rf %{buildroot}
 %dir %{_logdir}/%{name}
 %dir %{_localstatedir}/local/%{name}/helpers
 %{_bindir}/init-exporter
+%{_bindir}/init-exporter-converter
 %{_bindir}/upstart-export
 %{_bindir}/systemd-export
 
 ###############################################################################
 
 %changelog
+* Fri Mar 31 2017 Anton Novojilov <andyone@fun-box.ru> - 0.9.0-0
+- Format support configuration feature
+- Pre and post commands support
+- Added format converter
+
 * Thu Mar 09 2017 Anton Novojilov <andyone@fun-box.ru> - 0.8.0-0
 - ek package updated to v7
 

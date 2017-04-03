@@ -5,41 +5,47 @@ PREFIX?=/usr
 
 ########################################################################################
 
-.PHONY = all clean install uninstall deps deps-glide test
+.PHONY = all clean install uninstall deps deps-glide test upstart-playground systemd-playground
 
 ########################################################################################
 
-all: bin
+all: init-exporter init-exporter-converter
+
+init-exporter:
+	go build init-exporter.go
+
+init-exporter-converter:
+	go build init-exporter-converter.go
 
 deps:
-	go get -v pkg.re/check.v1
-	go get -v pkg.re/essentialkaos/ek.v7
-	go get -v pkg.re/essentialkaos/go-simpleyaml.v1
-	go get -v pkg.re/yaml.v2
+	go get -d -v pkg.re/check.v1
+	go get -d -v pkg.re/essentialkaos/ek.v7
+	go get -d -v pkg.re/essentialkaos/go-simpleyaml.v1
+	go get -d -v pkg.re/yaml.v2
 
 deps-glide:
 	glide install
-
-bin:
-	go build init-exporter.go
 
 fmt:
 	find . -name "*.go" -exec gofmt -s -w {} \;
 
 test:
-	go test ./... -covermode=count
+	go test ./procfile ./export -covermode=count
 
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp init-exporter $(DESTDIR)$(PREFIX)/sbin/
+	cp init-exporter $(DESTDIR)$(PREFIX)/bin/
+	cp init-exporter-converter $(DESTDIR)$(PREFIX)/bin/
 	cp common/init-exporter.conf $(DESTDIR)/etc/
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/sbin/init-exporter
+	rm -f $(DESTDIR)$(PREFIX)/bin/init-exporter
+	rm -f $(DESTDIR)$(PREFIX)/bin/init-exporter-converter
 	rm -rf $(DESTDIR)/etc/init-exporter.conf
 
 clean:
 	rm -f init-exporter
+	rm -f init-exporter-converter
 
 upstart-playground:
 	docker build -f ./Dockerfile.upstart -t upstart-playground . && docker run -ti --rm=true upstart-playground /bin/bash
