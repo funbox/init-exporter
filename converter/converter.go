@@ -26,7 +26,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter-converter"
-	VER  = "0.1.0"
+	VER  = "0.2.0"
 	DESC = "Utility for converting procfiles from v1 to v2 format"
 )
 
@@ -35,7 +35,6 @@ const (
 // Supported arguments
 const (
 	ARG_CONFIG    = "c:config"
-	ARG_APP_NAME  = "n:appname"
 	ARG_IN_PLACE  = "i:in-place"
 	ARG_NO_COLORS = "nc:no-colors"
 	ARG_HELP      = "h:help"
@@ -102,7 +101,6 @@ type templateData struct {
 
 var argMap = arg.Map{
 	ARG_CONFIG:    {},
-	ARG_APP_NAME:  {},
 	ARG_IN_PLACE:  {Type: arg.BOOL},
 	ARG_NO_COLORS: {Type: arg.BOOL},
 	ARG_HELP:      {Type: arg.BOOL},
@@ -147,10 +145,6 @@ func Init() {
 func process(file string) {
 	var err error
 
-	if !arg.Has(ARG_APP_NAME) {
-		printErrorAndExit("Application name must be defined through -n/--appname argument")
-	}
-
 	if arg.Has(ARG_CONFIG) {
 		err = knf.Global(arg.GetS(ARG_CONFIG))
 
@@ -168,10 +162,8 @@ func process(file string) {
 
 // convert read procfile in v1 format and print v2 data or save it to file
 func convert(file string) error {
-	fullAppName := knf.GetS(MAIN_PREFIX, "") + arg.GetS(ARG_APP_NAME)
-
 	config := &procfile.Config{
-		Name:             fullAppName,
+		Name:             "",
 		WorkingDir:       knf.GetS(PATHS_WORKING_DIR, "/tmp"),
 		IsRespawnEnabled: knf.GetB(DEFAULTS_RESPAWN, true),
 		RespawnInterval:  knf.GetI(DEFAULTS_RESPAWN_INTERVAL, 15),
@@ -251,10 +243,21 @@ func printErrorAndExit(f string, a ...interface{}) {
 func showUsage() {
 	info := usage.NewInfo("", "procfile")
 
+	info.AddOption(ARG_CONFIG, "Path to init-exporter config", "file")
 	info.AddOption(ARG_IN_PLACE, "Edit procfile in place")
 	info.AddOption(ARG_NO_COLORS, "Disable colors in output")
 	info.AddOption(ARG_HELP, "Show this help message")
 	info.AddOption(ARG_VERSION, "Show version")
+
+	info.AddExample(
+		"-i config/Procfile.production",
+		"Convert Procfile.production to version 2 in-place",
+	)
+
+	info.AddExample(
+		"config/Procfile.production -c /etc/init-exporter.conf Procfile.production",
+		"Convert Procfile.production to version 2 with defaults from init-exporter config and print result to console",
+	)
 
 	info.Render()
 }
