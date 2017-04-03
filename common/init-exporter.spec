@@ -43,7 +43,7 @@
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
 Version:         0.9.0
-Release:         0%{?dist}
+Release:         1%{?dist}
 Group:           Development/Tools
 License:         MIT
 URL:             https://github.com/funbox/init-exporter
@@ -52,7 +52,7 @@ Source0:         %{name}-%{version}.tar.gz
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.7
+BuildRequires:   golang >= 1.8
 
 Provides:        upstart-exporter = %{version}-%{release}
 Provides:        systemd-exporter = %{version}-%{release}
@@ -63,6 +63,17 @@ Provides:        %{name} = %{version}-%{release}
 
 %description
 Utility for exporting services described by Procfile to init system.
+
+###############################################################################
+
+%package converter
+
+Summary:         Utility for converting procfiles from v1 to v2 format
+Version:         0.1.1
+Release:         0%{?dist}
+
+%description converter
+Utility for converting procfiles from v1 to v2 format.
 
 ###############################################################################
 
@@ -111,13 +122,20 @@ rm -rf %{buildroot}
 %dir %{_logdir}/%{name}
 %dir %{_localstatedir}/local/%{name}/helpers
 %{_bindir}/init-exporter
-%{_bindir}/init-exporter-converter
 %{_bindir}/upstart-export
 %{_bindir}/systemd-export
+
+%files converter
+%defattr(-,root,root,-)
+%{_bindir}/init-exporter-converter
 
 ###############################################################################
 
 %changelog
+* Mon Apr 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.9.0-1
+- Format converter moved to separate package
+- Minor fixes in format converter
+
 * Fri Mar 31 2017 Anton Novojilov <andyone@fun-box.ru> - 0.9.0-0
 - Format support configuration feature
 - Pre and post commands support
