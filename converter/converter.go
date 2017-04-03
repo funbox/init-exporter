@@ -26,7 +26,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter-converter"
-	VER  = "0.2.0"
+	VER  = "0.3.0"
 	DESC = "Utility for converting procfiles from v1 to v2 format"
 )
 
@@ -72,29 +72,44 @@ limits:
   nofile: {{ .Config.LimitFile }}
   nproc: {{ .Config.LimitProc }}
 
+{{ if not .HasCustomWorkingDirs -}}
 working_directory: {{ .Config.WorkingDir }}
+
+{{ end -}}
+
+{{- $hasCustomWorkingDirs := .HasCustomWorkingDirs -}}
 
 commands:
 {{- range .Application.Services }}
   {{ .Name }}:
-    {{- if .HasPreCmd }}pre: {{ .PreCmd }}{{ end }}
+    {{ if .HasPreCmd -}}
+    pre: {{ .PreCmd }}
+    {{ end -}}
     command: {{ .Cmd }}
-    {{- if .HasPostCmd }}pre: {{ .PostCmd }}{{ end }}
-    {{- if .Options.IsCustomLogEnabled }}log: {{ .Options.LogPath }}{{ end }}
-    {{- if .Options.IsEnvSet}}
+    {{ if .HasPostCmd -}}
+    post: {{ .PostCmd }}
+    {{ end -}}
+    {{ if $hasCustomWorkingDirs -}}
+    working_directory: {{ .Options.WorkingDir }}
+    {{ end -}}
+    {{ if .Options.IsCustomLogEnabled -}}
+    log: {{ .Options.LogPath }}
+    {{ end -}}
+    {{ if .Options.IsEnvSet -}}
     env:
     {{- range $k, $v := .Options.Env }}
       {{ $k }}: {{ $v -}}
-    {{ end -}}
     {{ end }}
+    {{ end -}}
 {{ end -}}
 `
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 type templateData struct {
-	Config      *procfile.Config
-	Application *procfile.Application
+	Config               *procfile.Config
+	Application          *procfile.Application
+	HasCustomWorkingDirs bool
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -162,6 +177,8 @@ func process(file string) {
 
 // convert read procfile in v1 format and print v2 data or save it to file
 func convert(file string) error {
+	var hasCustomWorkingDirs bool
+
 	config := &procfile.Config{
 		Name:             "",
 		WorkingDir:       knf.GetS(PATHS_WORKING_DIR, "/tmp"),
@@ -180,10 +197,15 @@ func convert(file string) error {
 	}
 
 	if app.ProcVersion != 1 {
-		printErrorAndExit("Given procfile already converted to v2 format.")
+		printErrorAndExit("Given procfile already converted to v2 format")
 	}
 
-	v2data, err := renderTemplate("proc_v2", PROCFILE_TEMPLATE, &templateData{config, app})
+	config.WorkingDir, hasCustomWorkingDirs = getWorkingDir(app)
+
+	v2data, err := renderTemplate(
+		"proc_v2", PROCFILE_TEMPLATE,
+		&templateData{config, app, hasCustomWorkingDirs},
+	)
 
 	if err != nil {
 		return err
@@ -217,6 +239,26 @@ func renderTemplate(name, templateData string, data interface{}) (string, error)
 	return buffer.String(), nil
 }
 
+// getWorkingDir return path to default working dir and flag
+// if custom working dirs is used
+func getWorkingDir(app *procfile.Application) (string, bool) {
+	var dir = ""
+
+	for _, service := range app.Services {
+		if dir == "" {
+			dir = service.Options.WorkingDir
+			continue
+		}
+
+		if dir != service.Options.WorkingDir {
+			return "/tmp", true
+		}
+	}
+
+	return dir, false
+}
+
+// writeData write procfile data to file
 func writeData(file, data string) error {
 	return ioutil.WriteFile(file, []byte(data), 0644)
 }

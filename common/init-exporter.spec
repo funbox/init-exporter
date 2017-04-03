@@ -43,7 +43,7 @@
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
 Version:         0.9.0
-Release:         1%{?dist}
+Release:         2%{?dist}
 Group:           Development/Tools
 License:         MIT
 URL:             https://github.com/funbox/init-exporter
@@ -69,7 +69,7 @@ Utility for exporting services described by Procfile to init system.
 %package converter
 
 Summary:         Utility for converting procfiles from v1 to v2 format
-Version:         0.1.1
+Version:         0.3.0
 Release:         0%{?dist}
 
 %description converter
@@ -132,6 +132,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Mon Apr 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.9.0-2
+- [converter] Fixed bug with wrong path to working dir
+
 * Mon Apr 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.9.0-1
 - Format converter moved to separate package
 - Minor fixes in format converter
