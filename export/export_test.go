@@ -178,7 +178,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' >>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' >>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' >>/srv/service/service1-dir/log/service1.log",
+			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
@@ -361,7 +361,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec /bin/echo 'service1:pre' >>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1' >>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1:post' >>/srv/service/service1-dir/log/service1.log",
+			"exec /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 

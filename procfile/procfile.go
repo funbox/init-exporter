@@ -187,7 +187,7 @@ func (s *Service) GetCommandExecWithEnv(command string) string {
 	}
 
 	if s.Options.IsCustomLogEnabled() {
-		result += " >>" + s.Options.FullLogPath()
+		result += " &>>" + s.Options.FullLogPath()
 	}
 
 	return result
@@ -207,7 +207,7 @@ func (s *Service) GetCommandExec(command string) string {
 	}
 
 	if s.Options.IsCustomLogEnabled() {
-		result += " >>" + s.Options.FullLogPath()
+		result += " &>>" + s.Options.FullLogPath()
 	}
 
 	return result
