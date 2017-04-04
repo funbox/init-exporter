@@ -59,6 +59,7 @@ type ServiceOptions struct {
 	LogPath          string            // Path to log file
 	KillTimeout      int               // Kill timeout in seconds
 	KillSignal       string            // Kill signal name
+	ReloadSignal     string            // Reload signal name
 	Count            int               // Exec count
 	RespawnInterval  int               // Respawn interval in seconds
 	RespawnCount     int               // Respawn count
@@ -241,6 +242,11 @@ func (so *ServiceOptions) IsProcLimitSet() bool {
 // IsKillSignalSet return true if custom kill signal set
 func (so *ServiceOptions) IsKillSignalSet() bool {
 	return so.KillSignal != ""
+}
+
+// IsReloadSignalSet return true if custom reload signal set
+func (so *ServiceOptions) IsReloadSignalSet() bool {
+	return so.ReloadSignal != ""
 }
 
 // EnvString return environment variables as string

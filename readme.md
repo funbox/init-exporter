@@ -161,6 +161,7 @@ commands:
     command: /usr/bin/tail -F /var/log/messages
     kill_timeout: 60
     kill_signal: SIGQUIT
+    reload_signal: SIGUSR2
     respawn: false # by default respawn option is enabled
   
   my_one_another_tail_cmd:
@@ -194,6 +195,8 @@ env RAILS_ENV=staging TEST=true your_command
 `kill_timeout` option lets you override the default process kill timeout of 30 seconds.
 
 `kill_signal` specifies which signal to use when killing a service.
+
+`reload_signal` specifies which signal to use when reloading a service.
 
 `respawn` option controls how often the job can fail. If the job restarts more
 often than `count` times in `interval`, it won't be restarted anymore.

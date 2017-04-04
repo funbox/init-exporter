@@ -35,7 +35,8 @@ commands:
       nofile: 8192
       nproc: 8192
     kill_timeout: 60
-    kill_signal: QUIT
+    kill_signal: SIGQUIT
+    reload_signal: SIGUSR2
     respawn: false # by default respawn option is enabled
   
   my_one_another_tail_cmd:

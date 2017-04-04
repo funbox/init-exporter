@@ -140,6 +140,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"kill timeout 10",
 			"kill signal SIGQUIT",
 			"",
+			"",
 			"limit nofile 1024 1024",
 			"",
 			"",
@@ -162,6 +163,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 0",
 			"",
+			"reload signal SIGUSR2",
 			"",
 			"limit nofile 4096 4096",
 			"limit nproc 4096 4096",
@@ -323,6 +325,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"WorkingDirectory=/srv/service/service1-dir",
 			"Environment=STAGING=true",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
+			"",
 			""},
 	)
 
@@ -355,6 +358,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"WorkingDirectory=/srv/service/working-dir",
 			"",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
+			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
 			""},
 	)
 
@@ -423,6 +427,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Application: app,
 		Options: &procfile.ServiceOptions{
 			WorkingDir:       "/srv/service/working-dir",
+			ReloadSignal:     "SIGUSR2",
 			IsRespawnEnabled: true,
 			LimitFile:        4096,
 			LimitProc:        4096,
