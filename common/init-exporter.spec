@@ -42,8 +42,8 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.9.0
-Release:         2%{?dist}
+Version:         0.10.0
+Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
 URL:             https://github.com/funbox/init-exporter
@@ -132,6 +132,11 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Tue Apr 04 2017 Anton Novojilov <andyone@fun-box.ru> - 0.10.0-0
+- Added kill signal definition feature for v2 and all exporters
+- Added reload signal definition feature for v2 and all exporters
+- Improved parsing commands in v2 Procfile format
+
 * Mon Apr 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.9.0-2
 - [converter] Fixed bug with wrong path to working dir
 
