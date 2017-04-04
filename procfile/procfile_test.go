@@ -96,6 +96,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.WorkingDir, Equals, "/srv/projects/my_website/current")
 			c.Assert(service.Options.IsCustomLogEnabled(), Equals, false)
 			c.Assert(service.Options.KillTimeout, Equals, 60)
+			c.Assert(service.Options.KillSignal, Equals, "QUIT")
 			c.Assert(service.Options.RespawnCount, Equals, 7)
 			c.Assert(service.Options.RespawnInterval, Equals, 22)
 			c.Assert(service.Options.IsRespawnEnabled, Equals, false)
@@ -109,7 +110,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Application.Name, Equals, "test-app")
 
 		case "my_one_another_tail_cmd":
-			c.Assert(service.Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
+			c.Assert(service.Cmd, Equals, "/usr/bin/tail -F /var/log/messages >> log/my_one_another_tail_cmd.log 2>&1")
 			c.Assert(service.Options, NotNil)
 			c.Assert(service.Options.WorkingDir, Equals, "/srv/projects/my_website/current")
 			c.Assert(service.Options.LogPath, Equals, "log/my_one_another_tail_cmd.log")

@@ -112,12 +112,6 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	service1Helper := strings.Split(string(service1HelperData), "\n")
 	service2Helper := strings.Split(string(service2HelperData), "\n")
 
-	c.Assert(appUnit, HasLen, 16)
-	c.Assert(service1Unit, HasLen, 21)
-	c.Assert(service2Unit, HasLen, 21)
-	c.Assert(service1Helper, HasLen, 8)
-	c.Assert(service2Helper, HasLen, 8)
-
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
 			"start on runlevel [3]",
@@ -144,6 +138,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"respawn limit 15 25",
 			"",
 			"kill timeout 10",
+			"kill signal SIGQUIT",
 			"",
 			"limit nofile 1024 1024",
 			"",
@@ -166,6 +161,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"",
 			"kill timeout 0",
+			"",
 			"",
 			"limit nofile 4096 4096",
 			"limit nproc 4096 4096",
@@ -275,12 +271,6 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	service1Helper := strings.Split(string(service1HelperData), "\n")
 	service2Helper := strings.Split(string(service2HelperData), "\n")
 
-	c.Assert(appUnit, HasLen, 22)
-	c.Assert(service1Unit, HasLen, 29)
-	c.Assert(service2Unit, HasLen, 29)
-	c.Assert(service1Helper, HasLen, 8)
-	c.Assert(service2Helper, HasLen, 8)
-
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
 			"[Unit]",
@@ -314,6 +304,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"[Service]",
 			"Type=simple",
 			"",
+			"KillSignal=SIGQUIT",
 			"TimeoutStopSec=10",
 			"Restart=on-failure",
 			"StartLimitInterval=25",
@@ -344,6 +335,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"",
 			"[Service]",
 			"Type=simple",
+			"",
 			"",
 			"TimeoutStopSec=0",
 			"Restart=on-failure",
@@ -416,6 +408,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			WorkingDir:       "/srv/service/service1-dir",
 			LogPath:          "log/service1.log",
 			KillTimeout:      10,
+			KillSignal:       "SIGQUIT",
 			Count:            2,
 			RespawnInterval:  25,
 			RespawnCount:     15,

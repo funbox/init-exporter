@@ -68,6 +68,7 @@ PartOf={{.Application.Name}}.service
 [Service]
 Type=simple
 
+{{ if .Service.Options.IsKillSignalSet }}KillSignal={{.Service.Options.KillSignal}}{{ end }}
 TimeoutStopSec={{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsRespawnEnabled }}Restart=on-failure{{ end }}
 {{ if .Service.Options.IsRespawnLimitSet }}StartLimitInterval={{.Service.Options.RespawnInterval}}{{ end }}

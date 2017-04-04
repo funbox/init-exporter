@@ -35,10 +35,11 @@ commands:
       nofile: 8192
       nproc: 8192
     kill_timeout: 60
+    kill_signal: QUIT
     respawn: false # by default respawn option is enabled
   
   my_one_another_tail_cmd:
-    command: /usr/bin/tail -F /var/log/messages
+    command: /usr/bin/tail -F /var/log/messages >> log/my_one_another_tail_cmd.log 2>&1
     log: log/my_one_another_tail_cmd.log
   
   my_multi_tail_cmd:

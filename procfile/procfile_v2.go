@@ -158,6 +158,14 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		}
 	}
 
+	if yaml.IsExist("kill_signal") {
+		options.KillSignal, err = yaml.Get("kill_signal").String()
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't parse kill_signal value: %v", err)
+		}
+	}
+
 	if yaml.IsExist("count") {
 		options.Count, err = yaml.Get("count").Int()
 
