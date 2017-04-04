@@ -68,6 +68,7 @@ PartOf={{.Application.Name}}.service
 [Service]
 Type=simple
 
+{{ if .Service.Options.IsKillSignalSet }}KillSignal={{.Service.Options.KillSignal}}{{ end }}
 TimeoutStopSec={{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsRespawnEnabled }}Restart=on-failure{{ end }}
 {{ if .Service.Options.IsRespawnLimitSet }}StartLimitInterval={{.Service.Options.RespawnInterval}}{{ end }}
@@ -86,6 +87,7 @@ Group={{.Application.Group}}
 WorkingDirectory={{.Service.Options.WorkingDir}}
 {{ if .Service.Options.IsEnvSet }}Environment={{.Service.Options.EnvString}}{{ end }}
 ExecStart=/bin/bash {{.Service.HelperPath}} &>>/var/log/{{.Application.Name}}/{{.Service.Name}}.log
+{{ if .Service.Options.IsReloadSignalSet }}ExecReload=/bin/kill -{{.Service.Options.ReloadSignal}} $MAINPID{{ end }}
 `
 
 // ////////////////////////////////////////////////////////////////////////////////// //

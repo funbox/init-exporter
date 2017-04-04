@@ -113,14 +113,14 @@ func parseV1Command(name, command string) *Service {
 
 	switch len(cmdSlice) {
 	case 3:
-		pre, _, _ = extractV1Data(cmdSlice[0])
-		cmd, log, env = extractV1Data(cmdSlice[1])
-		post, _, _ = extractV1Data(cmdSlice[2])
+		pre, _, _ = parseCommand(cmdSlice[0])
+		cmd, log, env = parseCommand(cmdSlice[1])
+		post, _, _ = parseCommand(cmdSlice[2])
 	case 2:
-		pre, _, _ = extractV1Data(cmdSlice[0])
-		cmd, log, env = extractV1Data(cmdSlice[1])
+		pre, _, _ = parseCommand(cmdSlice[0])
+		cmd, log, env = parseCommand(cmdSlice[1])
 	default:
-		cmd, log, env = extractV1Data(cmdSlice[0])
+		cmd, log, env = parseCommand(cmdSlice[0])
 	}
 
 	service.Cmd = cmd
@@ -130,56 +130,6 @@ func parseV1Command(name, command string) *Service {
 	service.Options.LogPath = log
 
 	return service
-}
-
-// extractV1Data extract data from command
-func extractV1Data(command string) (string, string, map[string]string) {
-	var (
-		env map[string]string
-		cmd []string
-		log string
-
-		isEnv bool
-		isLog bool
-	)
-
-	cmdSlice := strings.Fields(command)
-
-	for _, cmdPart := range cmdSlice {
-		if strings.TrimSpace(cmdPart) == "" {
-			continue
-		}
-
-		if strings.HasPrefix(cmdPart, "env") {
-			env = make(map[string]string)
-			isEnv = true
-			continue
-		}
-
-		if isEnv {
-			if strings.Contains(cmdPart, "=") {
-				envSlice := strings.Split(cmdPart, "=")
-				env[envSlice[0]] = envSlice[1]
-				continue
-			} else {
-				isEnv = false
-			}
-		}
-
-		if strings.Contains(cmdPart, ">>") {
-			isLog = true
-			continue
-		}
-
-		if isLog {
-			log = cmdPart
-			break
-		}
-
-		cmd = append(cmd, cmdPart)
-	}
-
-	return strings.Join(cmd, " "), log, env
 }
 
 // splitV1Cmd split command and format command

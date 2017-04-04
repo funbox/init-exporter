@@ -58,6 +58,8 @@ type ServiceOptions struct {
 	WorkingDir       string            // Working directory
 	LogPath          string            // Path to log file
 	KillTimeout      int               // Kill timeout in seconds
+	KillSignal       string            // Kill signal name
+	ReloadSignal     string            // Reload signal name
 	Count            int               // Exec count
 	RespawnInterval  int               // Respawn interval in seconds
 	RespawnCount     int               // Respawn count
@@ -186,7 +188,7 @@ func (s *Service) GetCommandExecWithEnv(command string) string {
 	}
 
 	if s.Options.IsCustomLogEnabled() {
-		result += " >>" + s.Options.FullLogPath()
+		result += " &>>" + s.Options.FullLogPath()
 	}
 
 	return result
@@ -206,7 +208,7 @@ func (s *Service) GetCommandExec(command string) string {
 	}
 
 	if s.Options.IsCustomLogEnabled() {
-		result += " >>" + s.Options.FullLogPath()
+		result += " &>>" + s.Options.FullLogPath()
 	}
 
 	return result
@@ -237,6 +239,16 @@ func (so *ServiceOptions) IsProcLimitSet() bool {
 	return so.LimitProc != 0
 }
 
+// IsKillSignalSet return true if custom kill signal set
+func (so *ServiceOptions) IsKillSignalSet() bool {
+	return so.KillSignal != ""
+}
+
+// IsReloadSignalSet return true if custom reload signal set
+func (so *ServiceOptions) IsReloadSignalSet() bool {
+	return so.ReloadSignal != ""
+}
+
 // EnvString return environment variables as string
 func (so *ServiceOptions) EnvString() string {
 	if len(so.Env) == 0 {
@@ -264,6 +276,57 @@ func (so *ServiceOptions) FullLogPath() string {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// parseCommand parse shell command and extract command body, output redirection
+// and environment variables
+func parseCommand(command string) (string, string, map[string]string) {
+	var (
+		env map[string]string
+		cmd []string
+		log string
+
+		isEnv bool
+		isLog bool
+	)
+
+	cmdSlice := strings.Fields(command)
+
+	for _, cmdPart := range cmdSlice {
+		if strings.TrimSpace(cmdPart) == "" {
+			continue
+		}
+
+		if strings.HasPrefix(cmdPart, "env") {
+			env = make(map[string]string)
+			isEnv = true
+			continue
+		}
+
+		if isEnv {
+			if strings.Contains(cmdPart, "=") {
+				envSlice := strings.Split(cmdPart, "=")
+				env[envSlice[0]] = envSlice[1]
+				continue
+			} else {
+				isEnv = false
+			}
+		}
+
+		if strings.Contains(cmdPart, ">>") {
+			isLog = true
+			continue
+		}
+
+		if isLog {
+			log = cmdPart
+			break
+		}
+
+		cmd = append(cmd, cmdPart)
+	}
+
+	return strings.Join(cmd, " "), log, env
+}
 
 // determineProcVersion process procfile data and return procfile version
 func determineProcVersion(data []byte) int {

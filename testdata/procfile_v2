@@ -19,7 +19,7 @@ working_directory: /srv/projects/my_website/current
 
 commands:
   my_tail_cmd:
-    command: /usr/bin/tail -F /var/log/messages
+    command: /usr/bin/tail -F /var/log/messages >> log/my_tail_cmd.log 2>&1
     respawn:
       count: 5
       interval: 10
@@ -35,6 +35,8 @@ commands:
       nofile: 8192
       nproc: 8192
     kill_timeout: 60
+    kill_signal: SIGQUIT
+    reload_signal: SIGUSR2
     respawn: false # by default respawn option is enabled
   
   my_one_another_tail_cmd:

@@ -112,12 +112,6 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	service1Helper := strings.Split(string(service1HelperData), "\n")
 	service2Helper := strings.Split(string(service2HelperData), "\n")
 
-	c.Assert(appUnit, HasLen, 16)
-	c.Assert(service1Unit, HasLen, 21)
-	c.Assert(service2Unit, HasLen, 21)
-	c.Assert(service1Helper, HasLen, 8)
-	c.Assert(service2Helper, HasLen, 8)
-
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
 			"start on runlevel [3]",
@@ -144,6 +138,8 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"respawn limit 15 25",
 			"",
 			"kill timeout 10",
+			"kill signal SIGQUIT",
+			"",
 			"",
 			"limit nofile 1024 1024",
 			"",
@@ -167,6 +163,8 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 0",
 			"",
+			"reload signal SIGUSR2",
+			"",
 			"limit nofile 4096 4096",
 			"limit nproc 4096 4096",
 			"",
@@ -182,7 +180,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' >>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' >>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' >>/srv/service/service1-dir/log/service1.log",
+			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
@@ -275,12 +273,6 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	service1Helper := strings.Split(string(service1HelperData), "\n")
 	service2Helper := strings.Split(string(service2HelperData), "\n")
 
-	c.Assert(appUnit, HasLen, 22)
-	c.Assert(service1Unit, HasLen, 29)
-	c.Assert(service2Unit, HasLen, 29)
-	c.Assert(service1Helper, HasLen, 8)
-	c.Assert(service2Helper, HasLen, 8)
-
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
 			"[Unit]",
@@ -314,6 +306,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"[Service]",
 			"Type=simple",
 			"",
+			"KillSignal=SIGQUIT",
 			"TimeoutStopSec=10",
 			"Restart=on-failure",
 			"StartLimitInterval=25",
@@ -332,6 +325,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"WorkingDirectory=/srv/service/service1-dir",
 			"Environment=STAGING=true",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
+			"",
 			""},
 	)
 
@@ -344,6 +338,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"",
 			"[Service]",
 			"Type=simple",
+			"",
 			"",
 			"TimeoutStopSec=0",
 			"Restart=on-failure",
@@ -363,13 +358,14 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"WorkingDirectory=/srv/service/working-dir",
 			"",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
+			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
 			""},
 	)
 
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec /bin/echo 'service1:pre' >>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1' >>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1:post' >>/srv/service/service1-dir/log/service1.log",
+			"exec /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
@@ -416,6 +412,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			WorkingDir:       "/srv/service/service1-dir",
 			LogPath:          "log/service1.log",
 			KillTimeout:      10,
+			KillSignal:       "SIGQUIT",
 			Count:            2,
 			RespawnInterval:  25,
 			RespawnCount:     15,
@@ -430,6 +427,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Application: app,
 		Options: &procfile.ServiceOptions{
 			WorkingDir:       "/srv/service/working-dir",
+			ReloadSignal:     "SIGUSR2",
 			IsRespawnEnabled: true,
 			LimitFile:        4096,
 			LimitProc:        4096,

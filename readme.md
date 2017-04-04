@@ -137,12 +137,16 @@ look like this:
 
 ```yaml
 version: 2
+
 start_on_runlevel: 3
 stop_on_runlevel: 3
+
 env:
   RAILS_ENV: production
   TEST: true
+
 working_directory: /srv/projects/my_website/current
+
 commands:
   my_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
@@ -152,13 +156,18 @@ commands:
     env:
       RAILS_ENV: staging # if needs to be redefined or extended
     working_directory: '/var/...' # if needs to be redefined
+  
   my_another_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
     kill_timeout: 60
+    kill_signal: SIGQUIT
+    reload_signal: SIGUSR2
     respawn: false # by default respawn option is enabled
+  
   my_one_another_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
     log: /var/log/messages_copy
+  
   my_multi_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
     count: 2
@@ -184,6 +193,10 @@ env RAILS_ENV=staging TEST=true your_command
 `log` option lets you override the default log location (`/var/log/fb-my_website/my_one_another_tail_cmd.log`).
 
 `kill_timeout` option lets you override the default process kill timeout of 30 seconds.
+
+`kill_signal` specifies which signal to use when killing a service.
+
+`reload_signal` specifies which signal to use when reloading a service.
 
 `respawn` option controls how often the job can fail. If the job restarts more
 often than `count` times in `interval`, it won't be restarted anymore.

@@ -34,7 +34,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		return nil, fmt.Errorf("Commands missing in Procfile")
 	}
 
-	services, err := parseV2Commands(yaml, commands, config)
+	services, err := parseV2Services(yaml, commands, config)
 
 	if err != nil {
 		return nil, err
@@ -80,44 +80,39 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 	return app, nil
 }
 
-// parseCommands parse command section in yaml based procfile
-func parseV2Commands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}, config *Config) ([]*Service, error) {
+// parseV2Services parse services sections in yaml based procfile
+func parseV2Services(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}, config *Config) ([]*Service, error) {
 	var services []*Service
 
-	commonOptions, err := parseV2Options(yaml)
+	commonOptions := &ServiceOptions{}
+	err := parseV2Options(commonOptions, yaml)
 
 	if err != nil {
 		return nil, err
 	}
 
 	for key := range commands {
-		serviceName := fmt.Sprint(key)
-		commandYaml := yaml.GetPath("commands", serviceName)
-		serviceCmd, err := commandYaml.Get("command").String()
-
-		if err != nil {
-			return nil, err
-		}
-
-		servicePreCmd := commandYaml.Get("pre").MustString()
-		servicePostCmd := commandYaml.Get("post").MustString()
-
-		serviceOptions, err := parseV2Options(commandYaml)
-
-		if err != nil {
-			return nil, err
-		}
-
-		mergeServiceOptions(serviceOptions, commonOptions)
-		configureDefaults(serviceOptions, config)
-
 		service := &Service{
-			Name:    serviceName,
-			Cmd:     serviceCmd,
-			PreCmd:  servicePreCmd,
-			PostCmd: servicePostCmd,
-			Options: serviceOptions,
+			Name:    fmt.Sprint(key),
+			Options: &ServiceOptions{},
 		}
+
+		serviceYaml := yaml.GetPath("commands", service.Name)
+
+		err := parseV2Commands(service, serviceYaml)
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = parseV2Options(service.Options, serviceYaml)
+
+		if err != nil {
+			return nil, err
+		}
+
+		mergeServiceOptions(service.Options, commonOptions)
+		configureDefaults(service.Options, config)
 
 		services = append(services, service)
 	}
@@ -125,20 +120,56 @@ func parseV2Commands(yaml *simpleyaml.Yaml, commands map[interface{}]interface{}
 	return services, nil
 }
 
+// parseV2Commands parse service commands
+func parseV2Commands(service *Service, yaml *simpleyaml.Yaml) error {
+	var err error
+	var cmd, log string
+
+	cmd, err = yaml.Get("command").String()
+
+	if err != nil {
+		return fmt.Errorf("Can't parse \"command\" value: %v", err)
+	}
+
+	cmd, log, _ = parseCommand(cmd)
+
+	if log != "" {
+		service.Options.LogPath = log
+	}
+
+	service.Cmd = cmd
+
+	if yaml.IsExist("pre") {
+		service.PreCmd, err = yaml.Get("pre").String()
+
+		if err != nil {
+			return fmt.Errorf("Can't parse \"pre\" value: %v", err)
+		}
+	}
+
+	if yaml.IsExist("post") {
+		service.PostCmd, err = yaml.Get("post").String()
+
+		if err != nil {
+			return fmt.Errorf("Can't parse \"post\" value: %v", err)
+		}
+	}
+
+	return nil
+}
+
 // parseV2Options parse service options in yaml based procfile
-func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
+func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 	var err error
 
-	options := &ServiceOptions{
-		Env:              make(map[string]string),
-		IsRespawnEnabled: true,
-	}
+	options.Env = make(map[string]string)
+	options.IsRespawnEnabled = true
 
 	if yaml.IsExist("working_directory") {
 		options.WorkingDir, err = yaml.Get("working_directory").String()
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't parse working_directory value: %v", err)
+			return fmt.Errorf("Can't parse \"working_directory\" value: %v", err)
 		}
 	}
 
@@ -146,7 +177,7 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		options.LogPath, err = yaml.Get("log").String()
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't parse log value: %v", err)
+			return fmt.Errorf("Can't parse \"log\" value: %v", err)
 		}
 	}
 
@@ -154,7 +185,23 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		options.KillTimeout, err = yaml.Get("kill_timeout").Int()
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't parse kill_timeout value: %v", err)
+			return fmt.Errorf("Can't parse \"kill_timeout\" value: %v", err)
+		}
+	}
+
+	if yaml.IsExist("kill_signal") {
+		options.KillSignal, err = yaml.Get("kill_signal").String()
+
+		if err != nil {
+			return fmt.Errorf("Can't parse \"kill_signal\" value: %v", err)
+		}
+	}
+
+	if yaml.IsExist("reload_signal") {
+		options.ReloadSignal, err = yaml.Get("reload_signal").String()
+
+		if err != nil {
+			return fmt.Errorf("Can't parse \"reload_signal\" value: %v", err)
 		}
 	}
 
@@ -162,7 +209,7 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		options.Count, err = yaml.Get("count").Int()
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't parse count value: %v", err)
+			return fmt.Errorf("Can't parse \"count\" value: %v", err)
 		}
 	}
 
@@ -170,7 +217,7 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		env, err := yaml.Get("env").Map()
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't parse env value: %v", err)
+			return fmt.Errorf("Can't parse \"env\" value: %v", err)
 		}
 
 		options.Env = convertMapType(env)
@@ -181,7 +228,7 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			options.RespawnCount, err = yaml.Get("respawn").Get("count").Int()
 
 			if err != nil {
-				return nil, fmt.Errorf("Can't parse respawn.count value: %v", err)
+				return fmt.Errorf("Can't parse \"respawn.count\" value: %v", err)
 			}
 		}
 
@@ -189,7 +236,7 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			options.RespawnInterval, err = yaml.Get("respawn").Get("interval").Int()
 
 			if err != nil {
-				return nil, fmt.Errorf("Can't parse respawn.interval value: %v", err)
+				return fmt.Errorf("Can't parse \"respawn.interval\" value: %v", err)
 			}
 		}
 
@@ -197,7 +244,7 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 		options.IsRespawnEnabled, err = yaml.Get("respawn").Bool()
 
 		if err != nil {
-			return nil, fmt.Errorf("Can't parse respawn value: %v", err)
+			return fmt.Errorf("Can't parse \"respawn\" value: %v", err)
 		}
 	}
 
@@ -206,7 +253,7 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			options.LimitFile, err = yaml.Get("limits").Get("nofile").Int()
 
 			if err != nil {
-				return nil, fmt.Errorf("Can't parse limits.nofile value: %v", err)
+				return fmt.Errorf("Can't parse \"limits.nofile\" value: %v", err)
 			}
 		}
 
@@ -214,10 +261,10 @@ func parseV2Options(yaml *simpleyaml.Yaml) (*ServiceOptions, error) {
 			options.LimitProc, err = yaml.Get("limits").Get("nproc").Int()
 
 			if err != nil {
-				return nil, fmt.Errorf("Can't parse limits.nproc value: %v", err)
+				return fmt.Errorf("Can't parse \"limits.nproc\" value: %v", err)
 			}
 		}
 	}
 
-	return options, nil
+	return nil
 }
