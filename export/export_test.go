@@ -180,14 +180,14 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
+			"cd /srv/service/service1-dir && exec env \"STAGING=true\" /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env \"STAGING=true\" /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env \"STAGING=true\" /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/working-dir && exec /bin/echo 'service2'",
+			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars | xargs) /bin/echo 'service2'",
 			""},
 	)
 
@@ -323,7 +323,8 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"User=service",
 			"Group=service",
 			"WorkingDirectory=/srv/service/service1-dir",
-			"Environment=STAGING=true",
+			"Environment=\"STAGING=true\"",
+			"",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
 			"",
 			""},
@@ -357,6 +358,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
 			"",
+			"EnvironmentFile=/srv/service/working-dir/shared/env.vars",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
 			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
 			""},
@@ -410,7 +412,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Options: &procfile.ServiceOptions{
 			Env:              map[string]string{"STAGING": "true"},
 			WorkingDir:       "/srv/service/service1-dir",
-			LogPath:          "log/service1.log",
+			LogFile:          "log/service1.log",
 			KillTimeout:      10,
 			KillSignal:       "SIGQUIT",
 			Count:            2,
@@ -426,6 +428,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Cmd:         "/bin/echo 'service2'",
 		Application: app,
 		Options: &procfile.ServiceOptions{
+			EnvFile:          "shared/env.vars",
 			WorkingDir:       "/srv/service/working-dir",
 			ReloadSignal:     "SIGUSR2",
 			IsRespawnEnabled: true,

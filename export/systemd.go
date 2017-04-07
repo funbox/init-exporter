@@ -86,6 +86,7 @@ User={{.Application.User}}
 Group={{.Application.Group}}
 WorkingDirectory={{.Service.Options.WorkingDir}}
 {{ if .Service.Options.IsEnvSet }}Environment={{.Service.Options.EnvString}}{{ end }}
+{{ if .Service.Options.IsEnvFileSet }}EnvironmentFile={{.Service.Options.FullEnvFilePath}}{{ end }}
 ExecStart=/bin/bash {{.Service.HelperPath}} &>>/var/log/{{.Application.Name}}/{{.Service.Name}}.log
 {{ if .Service.Options.IsReloadSignalSet }}ExecReload=/bin/kill -{{.Service.Options.ReloadSignal}} $MAINPID{{ end }}
 `

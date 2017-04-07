@@ -134,7 +134,7 @@ func parseV2Commands(service *Service, yaml *simpleyaml.Yaml) error {
 	cmd, log, _ = parseCommand(cmd)
 
 	if log != "" {
-		service.Options.LogPath = log
+		service.Options.LogFile = log
 	}
 
 	service.Cmd = cmd
@@ -174,7 +174,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 	}
 
 	if yaml.IsExist("log") {
-		options.LogPath, err = yaml.Get("log").String()
+		options.LogFile, err = yaml.Get("log").String()
 
 		if err != nil {
 			return fmt.Errorf("Can't parse \"log\" value: %v", err)
@@ -221,6 +221,14 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		}
 
 		options.Env = convertMapType(env)
+	}
+
+	if yaml.IsExist("env_file") {
+		options.EnvFile, err = yaml.Get("env_file").String()
+
+		if err != nil {
+			return fmt.Errorf("Can't parse \"env_file\" value: %v", err)
+		}
 	}
 
 	if yaml.IsPathExist("respawn", "count") || yaml.IsPathExist("respawn", "interval") {
