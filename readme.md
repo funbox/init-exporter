@@ -162,6 +162,7 @@ commands:
     kill_timeout: 60
     kill_signal: SIGQUIT
     reload_signal: SIGUSR2
+    env_file: shared/staging.env
     respawn: false # by default respawn option is enabled
   
   my_one_another_tail_cmd:
@@ -197,6 +198,8 @@ env RAILS_ENV=staging TEST=true your_command
 `kill_signal` specifies which signal to use when killing a service.
 
 `reload_signal` specifies which signal to use when reloading a service.
+
+`env_file` absolute or relative path to file with environment variables.
 
 `respawn` option controls how often the job can fail. If the job restarts more
 often than `count` times in `interval`, it won't be restarted anymore.
