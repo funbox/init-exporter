@@ -104,6 +104,9 @@ commands:
 {{ end -}}
 `
 
+// DEFAULT_WORKING_DIR is path to default working dir
+const DEFAULT_WORKING_DIR = "/tmp"
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 type templateData struct {
@@ -200,9 +203,9 @@ func convert(file string) error {
 		printErrorAndExit("Given procfile already converted to v2 format")
 	}
 
-	validateApplication(app)
-
 	config.WorkingDir, hasCustomWorkingDirs = getWorkingDir(app)
+
+	validateApplication(app)
 
 	v2data, err := renderTemplate(
 		"proc_v2", PROCFILE_TEMPLATE,
@@ -244,16 +247,19 @@ func renderTemplate(name, templateData string, data interface{}) (string, error)
 // getWorkingDir return path to default working dir and flag
 // if custom working dirs is used
 func getWorkingDir(app *procfile.Application) (string, bool) {
-	var dir = ""
+	var dir = DEFAULT_WORKING_DIR
 
 	for _, service := range app.Services {
-		if dir == "" {
-			dir = service.Options.WorkingDir
+		if dir == DEFAULT_WORKING_DIR {
+			if service.Options.WorkingDir != "" {
+				dir = service.Options.WorkingDir
+			}
+
 			continue
 		}
 
 		if dir != service.Options.WorkingDir {
-			return "/tmp", true
+			return DEFAULT_WORKING_DIR, true
 		}
 	}
 
