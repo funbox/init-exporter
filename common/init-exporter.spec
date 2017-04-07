@@ -135,6 +135,7 @@ rm -rf %{buildroot}
 * Fri Apr 07 2017 Anton Novojilov <andyone@fun-box.ru> - 0.11.0-0
 - Added application validation before installation
 - [converter] Added application validation before procfile converting
+- [converter] Improved converter for better support of procfiles for local run
 - Code refactoring
 
 * Tue Apr 04 2017 Anton Novojilov <andyone@fun-box.ru> - 0.10.0-0
