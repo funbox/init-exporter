@@ -55,8 +55,9 @@ type Service struct {
 
 type ServiceOptions struct {
 	Env              map[string]string // Environment variables
+	EnvFile          string            // Path to file with environment variables
 	WorkingDir       string            // Working directory
-	LogPath          string            // Path to log file
+	LogFile          string            // Path to log file
 	KillTimeout      int               // Kill timeout in seconds
 	KillSignal       string            // Kill signal name
 	ReloadSignal     string            // Reload signal name
@@ -123,41 +124,50 @@ func Read(path string, config *Config) (*Application, error) {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Validate validate all services in application
-func (a *Application) Validate() error {
+func (a *Application) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkRunLevel(a.StartLevel))
 	errs.Add(checkRunLevel(a.StopLevel))
 
-	for _, service := range a.Services {
-		errs.Add(service.Validate())
+	if a.WorkingDir == "" {
+		errs.Add(fmt.Errorf("Application working dir can't be empty"))
 	}
 
-	return errs.Last()
+	for _, service := range a.Services {
+		errs.Add(service.Validate()...)
+	}
+
+	return errs.All()
 }
 
 // Validate validate service props and options
-func (s *Service) Validate() error {
+func (s *Service) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkValue(s.Name))
-	errs.Add(s.Options.Validate())
+	errs.Add(s.Options.Validate()...)
 
-	return errs.Last()
+	return errs.All()
 }
 
 // Validate validate service options
-func (so *ServiceOptions) Validate() error {
+func (so *ServiceOptions) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkPath(so.WorkingDir))
-	errs.Add(checkPath(so.LogPath))
+	errs.Add(checkPath(so.LogFile))
+	errs.Add(checkPath(so.EnvFile))
+
+	if so.IsEnvSet() && so.IsEnvFileSet() {
+		errs.Add(fmt.Errorf("Environment file and environment variables cannot be defined in same time"))
+	}
 
 	for envName, envVal := range so.Env {
 		errs.Add(checkEnv(envName, envVal))
 	}
 
-	return errs.Last()
+	return errs.All()
 }
 
 // HasPreCmd return true if pre command is defined
@@ -176,6 +186,8 @@ func (s *Service) GetCommandExecWithEnv(command string) string {
 
 	if s.Options.IsEnvSet() {
 		result += "env " + s.Options.EnvString() + " "
+	} else if s.Options.IsEnvFileSet() {
+		result += "env $(cat " + s.Options.FullEnvFilePath() + " | xargs) "
 	}
 
 	switch command {
@@ -221,12 +233,17 @@ func (so *ServiceOptions) IsRespawnLimitSet() bool {
 
 // IsCustomLogEnabled return true if service have custom log
 func (so *ServiceOptions) IsCustomLogEnabled() bool {
-	return so.LogPath != ""
+	return so.LogFile != ""
 }
 
 // IsEnvSet return true if service have custom env vars
 func (so *ServiceOptions) IsEnvSet() bool {
 	return len(so.Env) != 0
+}
+
+// IsEnvFileSet return true if service have file with env vars
+func (so *ServiceOptions) IsEnvFileSet() bool {
+	return so.EnvFile != ""
 }
 
 // IsFileLimitSet return true if descriptors limit is set
@@ -258,7 +275,7 @@ func (so *ServiceOptions) EnvString() string {
 	var clauses []string
 
 	for k, v := range so.Env {
-		clauses = append(clauses, k+"="+v)
+		clauses = append(clauses, fmt.Sprintf("\"%s=%s\"", k, v))
 	}
 
 	sort.Strings(clauses)
@@ -268,11 +285,20 @@ func (so *ServiceOptions) EnvString() string {
 
 // FullLogPath return absolute path to service log
 func (so *ServiceOptions) FullLogPath() string {
-	if strings.HasPrefix(so.LogPath, "/") {
-		return so.LogPath
+	if strings.HasPrefix(so.LogFile, "/") {
+		return so.LogFile
 	}
 
-	return so.WorkingDir + "/" + so.LogPath
+	return so.WorkingDir + "/" + so.LogFile
+}
+
+// FullEnvFilePath return absolute path to file with env vars
+func (so *ServiceOptions) FullEnvFilePath() string {
+	if strings.HasPrefix(so.EnvFile, "/") {
+		return so.EnvFile
+	}
+
+	return so.WorkingDir + "/" + so.EnvFile
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -351,14 +377,16 @@ func convertMapType(m map[interface{}]interface{}) map[string]string {
 // mergeServiceOptions merge two ServiceOptions structs
 func mergeServiceOptions(dst, src *ServiceOptions) {
 
-	mergeStringMaps(dst.Env, src.Env)
+	if !dst.IsEnvFileSet() && src.IsEnvSet() {
+		mergeStringMaps(dst.Env, src.Env)
+	}
 
 	if dst.WorkingDir == "" {
 		dst.WorkingDir = src.WorkingDir
 	}
 
-	if dst.LogPath == "" {
-		dst.LogPath = src.LogPath
+	if dst.LogFile == "" {
+		dst.LogFile = src.LogFile
 	}
 
 	if dst.KillTimeout == 0 {

@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.10.0
+Version:         0.11.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -69,7 +69,7 @@ Utility for exporting services described by Procfile to init system.
 %package converter
 
 Summary:         Utility for converting procfiles from v1 to v2 format
-Version:         0.3.0
+Version:         0.4.0
 Release:         0%{?dist}
 
 %description converter
@@ -132,6 +132,12 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Fri Apr 07 2017 Anton Novojilov <andyone@fun-box.ru> - 0.11.0-0
+- Added application validation before installation
+- [converter] Added application validation before procfile converting
+- [converter] Improved converter for better support of procfiles for local run
+- Code refactoring
+
 * Tue Apr 04 2017 Anton Novojilov <andyone@fun-box.ru> - 0.10.0-0
 - Added kill signal definition feature for v2 and all exporters
 - Added reload signal definition feature for v2 and all exporters

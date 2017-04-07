@@ -16,16 +16,18 @@ import (
 
 func Test(t *testing.T) { TestingT(t) }
 
-type ProcfileSuite struct{}
+type ProcfileSuite struct {
+	Config *Config
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var _ = Suite(&ProcfileSuite{})
+var _ = Suite(&ProcfileSuite{&Config{Name: "test-app", WorkingDir: "/tmp"}})
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
-	app, err := Read("../testdata/procfile_v1", &Config{Name: "test-app"})
+	app, err := Read("../testdata/procfile_v1", s.Config)
 
 	c.Assert(err, IsNil)
 	c.Assert(app, NotNil)
@@ -36,13 +38,13 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 	c.Assert(app.Services[0].Name, Equals, "my_tail_cmd")
 	c.Assert(app.Services[0].Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
 	c.Assert(app.Services[0].Options, NotNil)
-	c.Assert(app.Services[0].Options.LogPath, Equals, "log/my_tail_cmd.log")
+	c.Assert(app.Services[0].Options.LogFile, Equals, "log/my_tail_cmd.log")
 
 	c.Assert(app.Services[1].Name, Equals, "my_another_tail_cmd")
 	c.Assert(app.Services[1].Cmd, Equals, "/usr/bin/tailf /var/log/messages")
 	c.Assert(app.Services[1].PreCmd, Equals, "echo my_another_tail_cmd")
 	c.Assert(app.Services[1].Options, NotNil)
-	c.Assert(app.Services[1].Options.LogPath, Equals, "log/my_another_tail_cmd.log")
+	c.Assert(app.Services[1].Options.LogFile, Equals, "log/my_another_tail_cmd.log")
 
 	c.Assert(app.Services[2].Name, Equals, "cmd_with_cd")
 	c.Assert(app.Services[2].Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
@@ -54,11 +56,11 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 	c.Assert(app.Services[2].Options.Env["SOME_ENV"], Equals, "test")
 	c.Assert(app.Services[2].Options.WorkingDir, Equals, "/srv/service")
 
-	c.Assert(app.Validate(), IsNil)
+	c.Assert(app.Validate(), HasLen, 0)
 }
 
 func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
-	app, err := Read("../testdata/procfile_v2", &Config{Name: "test-app"})
+	app, err := Read("../testdata/procfile_v2", s.Config)
 
 	c.Assert(err, IsNil)
 	c.Assert(app, NotNil)
@@ -75,7 +77,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
 			c.Assert(service.Options, NotNil)
 			c.Assert(service.Options.WorkingDir, Equals, "/var/...")
-			c.Assert(service.Options.LogPath, Equals, "log/my_tail_cmd.log")
+			c.Assert(service.Options.LogFile, Equals, "log/my_tail_cmd.log")
 			c.Assert(service.Options.IsCustomLogEnabled(), Equals, true)
 			c.Assert(service.Options.RespawnCount, Equals, 5)
 			c.Assert(service.Options.RespawnInterval, Equals, 10)
@@ -83,7 +85,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.Env, NotNil)
 			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "staging")
 			c.Assert(service.Options.Env["TEST"], Equals, "true")
-			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=staging TEST=true")
+			c.Assert(service.Options.EnvString(), Equals, "\"RAILS_ENV=staging\" \"TEST=true\"")
 			c.Assert(service.Options.LimitFile, Equals, 4096)
 			c.Assert(service.Options.LimitProc, Equals, 4096)
 			c.Assert(service.Application, NotNil)
@@ -102,10 +104,8 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.RespawnCount, Equals, 7)
 			c.Assert(service.Options.RespawnInterval, Equals, 22)
 			c.Assert(service.Options.IsRespawnEnabled, Equals, false)
-			c.Assert(service.Options.Env, NotNil)
-			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "production")
-			c.Assert(service.Options.Env["TEST"], Equals, "true")
-			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
+			c.Assert(service.Options.EnvFile, Equals, "shared/env.file")
+			c.Assert(service.Options.EnvString(), Equals, "")
 			c.Assert(service.Options.LimitFile, Equals, 8192)
 			c.Assert(service.Options.LimitProc, Equals, 8192)
 			c.Assert(service.Application, NotNil)
@@ -115,7 +115,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
 			c.Assert(service.Options, NotNil)
 			c.Assert(service.Options.WorkingDir, Equals, "/srv/projects/my_website/current")
-			c.Assert(service.Options.LogPath, Equals, "log/my_one_another_tail_cmd.log")
+			c.Assert(service.Options.LogFile, Equals, "log/my_one_another_tail_cmd.log")
 			c.Assert(service.Options.FullLogPath(), Equals, "/srv/projects/my_website/current/log/my_one_another_tail_cmd.log")
 			c.Assert(service.Options.IsCustomLogEnabled(), Equals, true)
 			c.Assert(service.Options.RespawnCount, Equals, 7)
@@ -124,7 +124,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.Env, NotNil)
 			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "production")
 			c.Assert(service.Options.Env["TEST"], Equals, "true")
-			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
+			c.Assert(service.Options.EnvString(), Equals, "\"RAILS_ENV=production\" \"TEST=true\"")
 			c.Assert(service.Options.LimitFile, Equals, 4096)
 			c.Assert(service.Options.LimitProc, Equals, 4096)
 			c.Assert(service.Application, NotNil)
@@ -142,7 +142,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.Env, NotNil)
 			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "production")
 			c.Assert(service.Options.Env["TEST"], Equals, "true")
-			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
+			c.Assert(service.Options.EnvString(), Equals, "\"RAILS_ENV=production\" \"TEST=true\"")
 			c.Assert(service.Options.LimitFile, Equals, 1024)
 			c.Assert(service.Options.LimitProc, Equals, 4096)
 			c.Assert(service.Application, NotNil)
@@ -153,5 +153,5 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 		}
 	}
 
-	c.Assert(app.Validate(), IsNil)
+	c.Assert(app.Validate(), HasLen, 0)
 }

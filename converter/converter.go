@@ -26,7 +26,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter-converter"
-	VER  = "0.3.0"
+	VER  = "0.4.0"
 	DESC = "Utility for converting procfiles from v1 to v2 format"
 )
 
@@ -103,6 +103,9 @@ commands:
     {{ end -}}
 {{ end -}}
 `
+
+// DEFAULT_WORKING_DIR is path to default working dir
+const DEFAULT_WORKING_DIR = "/tmp"
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -202,6 +205,8 @@ func convert(file string) error {
 
 	config.WorkingDir, hasCustomWorkingDirs = getWorkingDir(app)
 
+	validateApplication(app)
+
 	v2data, err := renderTemplate(
 		"proc_v2", PROCFILE_TEMPLATE,
 		&templateData{config, app, hasCustomWorkingDirs},
@@ -242,20 +247,40 @@ func renderTemplate(name, templateData string, data interface{}) (string, error)
 // getWorkingDir return path to default working dir and flag
 // if custom working dirs is used
 func getWorkingDir(app *procfile.Application) (string, bool) {
-	var dir = ""
+	var dir = DEFAULT_WORKING_DIR
 
 	for _, service := range app.Services {
-		if dir == "" {
-			dir = service.Options.WorkingDir
+		if dir == DEFAULT_WORKING_DIR {
+			if service.Options.WorkingDir != "" {
+				dir = service.Options.WorkingDir
+			}
+
 			continue
 		}
 
 		if dir != service.Options.WorkingDir {
-			return "/tmp", true
+			return DEFAULT_WORKING_DIR, true
 		}
 	}
 
 	return dir, false
+}
+
+// validateApplication validate application and all services
+func validateApplication(app *procfile.Application) {
+	errs := app.Validate()
+
+	if len(errs) == 0 {
+		return
+	}
+
+	printError("Errors while application validation:")
+
+	for _, err := range errs {
+		printError("  - %v", err)
+	}
+
+	os.Exit(1)
 }
 
 // writeData write procfile data to file

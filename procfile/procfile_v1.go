@@ -127,7 +127,7 @@ func parseV1Command(name, command string) *Service {
 	service.PreCmd = pre
 	service.PostCmd = post
 	service.Options.Env = env
-	service.Options.LogPath = log
+	service.Options.LogFile = log
 
 	return service
 }
