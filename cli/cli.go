@@ -30,7 +30,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.10.0"
+	VER  = "0.11.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -152,13 +152,11 @@ func checkForRoot() {
 	user, err = system.CurrentUser()
 
 	if err != nil {
-		printError(err.Error())
-		os.Exit(1)
+		printErrorAndExit(err.Error())
 	}
 
 	if !user.IsRoot() {
-		printError("This utility must have superuser privileges (root)")
-		os.Exit(1)
+		printErrorAndExit("This utility must have superuser privileges (root)")
 	}
 }
 
@@ -277,7 +275,7 @@ func validateConfig() {
 		printError("Errors while config validation:")
 
 		for _, err := range errs {
-			printError("  %v\n", err)
+			printError("  %v", err)
 		}
 
 		os.Exit(1)
@@ -328,15 +326,7 @@ func installApplication(appName string) {
 		printErrorAndExit(err.Error())
 	}
 
-	if app.ProcVersion == 1 && !knf.GetB(PROCFILE_VERSION1, true) {
-		printError("Proc format version 1 support is disabled")
-		os.Exit(1)
-	}
-
-	if app.ProcVersion == 2 && !knf.GetB(PROCFILE_VERSION2, true) {
-		printError("Proc format version 2 support is disabled")
-		os.Exit(1)
-	}
+	validateApplication(app)
 
 	if arg.GetB(ARG_DRY_START) {
 		os.Exit(0)
@@ -345,8 +335,9 @@ func installApplication(appName string) {
 	err = getExporter().Install(app)
 
 	if err == nil {
-		log.Aux("User %s (%d) installed service %s", user.RealName, user.RealUID, app.Name)
+		log.Info("User %s (%d) installed service %s", user.RealName, user.RealUID, app.Name)
 	} else {
+		log.Error(err.Error())
 		printErrorAndExit(err.Error())
 	}
 }
@@ -359,10 +350,36 @@ func uninstallApplication(appName string) {
 	err := getExporter().Uninstall(app)
 
 	if err == nil {
-		log.Aux("User %s (%d) uninstalled service %s", user.RealName, user.RealUID, app.Name)
+		log.Info("User %s (%d) uninstalled service %s", user.RealName, user.RealUID, app.Name)
 	} else {
+		log.Error(err.Error())
 		printErrorAndExit(err.Error())
 	}
+}
+
+// validateApplication validate application and all services
+func validateApplication(app *procfile.Application) {
+	if app.ProcVersion == 1 && !knf.GetB(PROCFILE_VERSION1, true) {
+		printErrorAndExit("Proc format version 1 support is disabled")
+	}
+
+	if app.ProcVersion == 2 && !knf.GetB(PROCFILE_VERSION2, true) {
+		printErrorAndExit("Proc format version 2 support is disabled")
+	}
+
+	errs := app.Validate()
+
+	if len(errs) == 0 {
+		return
+	}
+
+	printError("Errors while application validation:")
+
+	for _, err := range errs {
+		printError("  - %v", err)
+	}
+
+	os.Exit(1)
 }
 
 // checkProviderTargetDir check permissions on target dir
@@ -436,7 +453,6 @@ func printWarn(f string, a ...interface{}) {
 
 // printErrorAndExit print error mesage and exit with exit code 1
 func printErrorAndExit(f string, a ...interface{}) {
-	log.Crit(f, a...)
 	printError(f, a...)
 	os.Exit(1)
 }

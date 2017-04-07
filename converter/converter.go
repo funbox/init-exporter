@@ -26,7 +26,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter-converter"
-	VER  = "0.3.0"
+	VER  = "0.4.0"
 	DESC = "Utility for converting procfiles from v1 to v2 format"
 )
 
@@ -200,6 +200,8 @@ func convert(file string) error {
 		printErrorAndExit("Given procfile already converted to v2 format")
 	}
 
+	validateApplication(app)
+
 	config.WorkingDir, hasCustomWorkingDirs = getWorkingDir(app)
 
 	v2data, err := renderTemplate(
@@ -256,6 +258,23 @@ func getWorkingDir(app *procfile.Application) (string, bool) {
 	}
 
 	return dir, false
+}
+
+// validateApplication validate application and all services
+func validateApplication(app *procfile.Application) {
+	errs := app.Validate()
+
+	if len(errs) == 0 {
+		return
+	}
+
+	printError("Errors while application validation:")
+
+	for _, err := range errs {
+		printError("  - %v", err)
+	}
+
+	os.Exit(1)
 }
 
 // writeData write procfile data to file

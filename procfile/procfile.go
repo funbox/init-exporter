@@ -123,31 +123,35 @@ func Read(path string, config *Config) (*Application, error) {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Validate validate all services in application
-func (a *Application) Validate() error {
+func (a *Application) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkRunLevel(a.StartLevel))
 	errs.Add(checkRunLevel(a.StopLevel))
 
-	for _, service := range a.Services {
-		errs.Add(service.Validate())
+	if a.WorkingDir == "" {
+		errs.Add(fmt.Errorf("Application working dir can't be empty"))
 	}
 
-	return errs.Last()
+	for _, service := range a.Services {
+		errs.Add(service.Validate()...)
+	}
+
+	return errs.All()
 }
 
 // Validate validate service props and options
-func (s *Service) Validate() error {
+func (s *Service) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkValue(s.Name))
-	errs.Add(s.Options.Validate())
+	errs.Add(s.Options.Validate()...)
 
-	return errs.Last()
+	return errs.All()
 }
 
 // Validate validate service options
-func (so *ServiceOptions) Validate() error {
+func (so *ServiceOptions) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkPath(so.WorkingDir))
@@ -157,7 +161,7 @@ func (so *ServiceOptions) Validate() error {
 		errs.Add(checkEnv(envName, envVal))
 	}
 
-	return errs.Last()
+	return errs.All()
 }
 
 // HasPreCmd return true if pre command is defined

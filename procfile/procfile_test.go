@@ -16,16 +16,18 @@ import (
 
 func Test(t *testing.T) { TestingT(t) }
 
-type ProcfileSuite struct{}
+type ProcfileSuite struct {
+	Config *Config
+}
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var _ = Suite(&ProcfileSuite{})
+var _ = Suite(&ProcfileSuite{&Config{Name: "test-app", WorkingDir: "/tmp"}})
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
-	app, err := Read("../testdata/procfile_v1", &Config{Name: "test-app"})
+	app, err := Read("../testdata/procfile_v1", s.Config)
 
 	c.Assert(err, IsNil)
 	c.Assert(app, NotNil)
@@ -54,11 +56,11 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 	c.Assert(app.Services[2].Options.Env["SOME_ENV"], Equals, "test")
 	c.Assert(app.Services[2].Options.WorkingDir, Equals, "/srv/service")
 
-	c.Assert(app.Validate(), IsNil)
+	c.Assert(app.Validate(), HasLen, 0)
 }
 
 func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
-	app, err := Read("../testdata/procfile_v2", &Config{Name: "test-app"})
+	app, err := Read("../testdata/procfile_v2", s.Config)
 
 	c.Assert(err, IsNil)
 	c.Assert(app, NotNil)
@@ -153,5 +155,5 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 		}
 	}
 
-	c.Assert(app.Validate(), IsNil)
+	c.Assert(app.Validate(), HasLen, 0)
 }
