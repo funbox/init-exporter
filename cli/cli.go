@@ -275,7 +275,7 @@ func validateConfig() {
 		printError("Errors while config validation:")
 
 		for _, err := range errs {
-			printError("  %v", err)
+			printError("  - %v", err)
 		}
 
 		os.Exit(1)
