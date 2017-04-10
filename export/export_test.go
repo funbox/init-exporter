@@ -180,7 +180,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec env \"STAGING=true\" /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env \"STAGING=true\" /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env \"STAGING=true\" /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
+			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
@@ -323,8 +323,6 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"User=service",
 			"Group=service",
 			"WorkingDirectory=/srv/service/service1-dir",
-			"Environment=\"STAGING=true\"",
-			"",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
 			"",
 			""},
@@ -357,8 +355,6 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"User=service",
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
-			"",
-			"EnvironmentFile=/srv/service/working-dir/shared/env.vars",
 			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
 			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
 			""},
@@ -367,14 +363,14 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(service1Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
+			"exec env STAGING=true /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
 			""},
 	)
 
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec /bin/echo 'service2'",
+			"exec env $(cat /srv/service/working-dir/shared/env.vars | xargs) /bin/echo 'service2'",
 			""},
 	)
 

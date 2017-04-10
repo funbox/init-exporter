@@ -25,6 +25,9 @@ commands:
       interval: 10
     env:
       RAILS_ENV: staging # if needs to be redefined or extended
+      JAVA_OPTS: '"-Xms512m -Xmx1g -XX:+HeapDumpOnIutOfMemoryError"'
+      QUEUE: log_syncronizer,file_downloader,log_searcher
+      HEX_HOME: /srv/projects/ploy/shared/tmp
     working_directory: '/var/...' # if needs to be redefined
   
   my_another_tail_cmd:
