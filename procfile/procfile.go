@@ -25,7 +25,7 @@ const (
 	REGEXP_V1_LINE     = `^([A-z\d_]+):\s*(.+)`
 	REGEXP_V2_VERSION  = `(?m)^\s*version:\s*2\s*$`
 	REGEXP_PATH_CHECK  = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;" ]+\z`
+	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;${}" =]+\z`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
