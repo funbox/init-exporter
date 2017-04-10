@@ -9,8 +9,8 @@ Supported init systems: upstart and systemd
   * [Procfile v.1](#procfile-v1)
   * [Procfile v.2](#procfile-v2)
 * [Exporting](#exporting)
-* [Usage](#usage)
-* [Build Status](#build-status)
+* [Command options](#command-options)
+* [Build status](#build-status)
 * [License](#license)
 
 ### Installation
@@ -269,7 +269,7 @@ sudo init-exporter -u -f upstart myapp
 
 The logs are not cleared in this case. Also, all old application scripts are cleared before each export.
 
-### Usage
+### Command options
 
 ```
 Usage: init-exporter {options} app-name
@@ -301,7 +301,7 @@ Examples
 
 ```
 
-### Build Status
+### Build status
 
 | Repository | Status |
 |------------|--------|
