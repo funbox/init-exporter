@@ -9,10 +9,17 @@ Supported init systems: upstart and systemd
   * [Procfile v.1](#procfile-v1)
   * [Procfile v.2](#procfile-v2)
 * [Exporting](#exporting)
+* [Usage](#usage)
 * [Build Status](#build-status)
 * [License](#license)
 
 ### Installation
+
+Before the initial install allows git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (_reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)_):
+
+```
+git config --global http.https://pkg.re.followRedirects true
+```
 
 To build the init-exporter from scratch, make sure you have a working Go 1.5+ workspace ([instructions](https://golang.org/doc/install)), then:
 
@@ -20,7 +27,7 @@ To build the init-exporter from scratch, make sure you have a working Go 1.5+ wo
 go get -d github.com/funbox/init-exporter
 cd $GOPATH/src/github.com/funbox/init-exporter
 make all
-sudo make install
+[sudo] make install
 ```
 
 ### Configuration
@@ -261,6 +268,38 @@ sudo init-exporter -u -f upstart myapp
 ```
 
 The logs are not cleared in this case. Also, all old application scripts are cleared before each export.
+
+### Usage
+
+```
+Usage: init-exporter {options} app-name
+
+Options
+
+  --procfile, -p file             Path to procfile
+  --dry-start, -d                 Dry start (don't export anything, just parse and test procfile)
+  --disable-validation, -D        Disable application validation
+  --unistall, -u                  Remove scripts and helpers for a particular application
+  --format, -f upstart|systemd    Format of generated configs
+  --no-colors, -nc                Disable colors in output
+  --help, -h                      Show this help message
+  --version, -v                   Show version
+
+Examples
+
+  init-exporter -p ./myprocfile -f systemd myapp
+  Export given procfile to systemd as myapp
+
+  init-exporter -u -f systemd myapp
+  Uninstall myapp from systemd
+
+  init-exporter -p ./myprocfile -f upstart myapp
+  Export given procfile to upstart as myapp
+
+  init-exporter -u -f upstart myapp
+  Uninstall myapp from upstart
+
+```
 
 ### Build Status
 
