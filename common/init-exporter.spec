@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.11.0
+Version:         0.12.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -132,6 +132,10 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Mon Apr 10 2017 Anton Novojilov <andyone@fun-box.ru> - 0.12.0-0
+- Improved environment variables validation
+- Added argument for disabling application validation
+
 * Fri Apr 07 2017 Anton Novojilov <andyone@fun-box.ru> - 0.11.0-0
 - Added application validation before installation
 - [converter] Added application validation before procfile converting

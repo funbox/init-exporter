@@ -30,20 +30,21 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.11.0"
+	VER  = "0.12.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
 // Supported arguments
 const (
-	ARG_PROCFILE  = "p:procfile"
-	ARG_APP_NAME  = "n:appname"
-	ARG_DRY_START = "d:dry-start"
-	ARG_UNINSTALL = "u:unistall"
-	ARG_FORMAT    = "f:format"
-	ARG_NO_COLORS = "nc:no-colors"
-	ARG_HELP      = "h:help"
-	ARG_VERSION   = "v:version"
+	ARG_PROCFILE           = "p:procfile"
+	ARG_APP_NAME           = "n:appname"
+	ARG_DRY_START          = "d:dry-start"
+	ARG_DISABLE_VALIDATION = "D:disable-validation"
+	ARG_UNINSTALL          = "u:unistall"
+	ARG_FORMAT             = "f:format"
+	ARG_NO_COLORS          = "nc:no-colors"
+	ARG_HELP               = "h:help"
+	ARG_VERSION            = "v:version"
 )
 
 // Config properies
@@ -83,14 +84,15 @@ const CONFIG_FILE = "/etc/init-exporter.conf"
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var argMap = arg.Map{
-	ARG_APP_NAME:  {},
-	ARG_PROCFILE:  {},
-	ARG_DRY_START: {Type: arg.BOOL},
-	ARG_UNINSTALL: {Type: arg.BOOL, Alias: "c:clear"},
-	ARG_FORMAT:    {},
-	ARG_NO_COLORS: {Type: arg.BOOL},
-	ARG_HELP:      {Type: arg.BOOL},
-	ARG_VERSION:   {Type: arg.BOOL},
+	ARG_APP_NAME:           {},
+	ARG_PROCFILE:           {},
+	ARG_DRY_START:          {Type: arg.BOOL},
+	ARG_DISABLE_VALIDATION: {Type: arg.BOOL},
+	ARG_UNINSTALL:          {Type: arg.BOOL, Alias: "c:clear"},
+	ARG_FORMAT:             {},
+	ARG_NO_COLORS:          {Type: arg.BOOL},
+	ARG_HELP:               {Type: arg.BOOL},
+	ARG_VERSION:            {Type: arg.BOOL},
 }
 
 var user *system.User
@@ -367,6 +369,10 @@ func validateApplication(app *procfile.Application) {
 		printErrorAndExit("Proc format version 2 support is disabled")
 	}
 
+	if !arg.GetB(ARG_DRY_START) && arg.GetB(ARG_DISABLE_VALIDATION) {
+		return
+	}
+
 	errs := app.Validate()
 
 	if len(errs) == 0 {
@@ -465,6 +471,7 @@ func showUsage() {
 
 	info.AddOption(ARG_PROCFILE, "Path to procfile", "file")
 	info.AddOption(ARG_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
+	info.AddOption(ARG_DISABLE_VALIDATION, "Disable application validation")
 	info.AddOption(ARG_UNINSTALL, "Remove scripts and helpers for a particular application")
 	info.AddOption(ARG_FORMAT, "Format of generated configs", "upstart|systemd")
 	info.AddOption(ARG_NO_COLORS, "Disable colors in output")

@@ -35,6 +35,12 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 	c.Assert(app.ProcVersion, Equals, 1)
 	c.Assert(app.Services, HasLen, 3)
 
+	errs := app.Validate()
+
+	if len(errs) != 0 {
+		c.Fatalf("Validation errors: %v", errs)
+	}
+
 	c.Assert(app.Services[0].Name, Equals, "my_tail_cmd")
 	c.Assert(app.Services[0].Cmd, Equals, "/usr/bin/tail -F /var/log/messages")
 	c.Assert(app.Services[0].Options, NotNil)
@@ -71,6 +77,12 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 	c.Assert(app.StartLevel, Equals, 2)
 	c.Assert(app.StopLevel, Equals, 5)
 
+	errs := app.Validate()
+
+	if len(errs) != 0 {
+		c.Fatalf("Validation errors: %v", errs)
+	}
+
 	for _, service := range app.Services {
 		switch service.Name {
 		case "my_tail_cmd":
@@ -85,7 +97,10 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.Env, NotNil)
 			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "staging")
 			c.Assert(service.Options.Env["TEST"], Equals, "true")
-			c.Assert(service.Options.EnvString(), Equals, "\"RAILS_ENV=staging\" \"TEST=true\"")
+			c.Assert(service.Options.Env["JAVA_OPTS"], Equals, "\"-Xms512m -Xmx1g -XX:+HeapDumpOnIutOfMemoryError\"")
+			c.Assert(service.Options.Env["QUEUE"], Equals, "log_syncronizer,file_downloader,log_searcher")
+			c.Assert(service.Options.Env["LC_ALL"], Equals, "en_US.UTF-8")
+			c.Assert(service.Options.EnvString(), Equals, "HEX_HOME=/srv/projects/ploy/shared/tmp JAVA_OPTS=\"-Xms512m -Xmx1g -XX:+HeapDumpOnIutOfMemoryError\" LC_ALL=en_US.UTF-8 QUEUE=log_syncronizer,file_downloader,log_searcher RAILS_ENV=staging TEST=true")
 			c.Assert(service.Options.LimitFile, Equals, 4096)
 			c.Assert(service.Options.LimitProc, Equals, 4096)
 			c.Assert(service.Application, NotNil)
@@ -124,7 +139,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.Env, NotNil)
 			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "production")
 			c.Assert(service.Options.Env["TEST"], Equals, "true")
-			c.Assert(service.Options.EnvString(), Equals, "\"RAILS_ENV=production\" \"TEST=true\"")
+			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
 			c.Assert(service.Options.LimitFile, Equals, 4096)
 			c.Assert(service.Options.LimitProc, Equals, 4096)
 			c.Assert(service.Application, NotNil)
@@ -142,7 +157,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.Env, NotNil)
 			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "production")
 			c.Assert(service.Options.Env["TEST"], Equals, "true")
-			c.Assert(service.Options.EnvString(), Equals, "\"RAILS_ENV=production\" \"TEST=true\"")
+			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
 			c.Assert(service.Options.LimitFile, Equals, 1024)
 			c.Assert(service.Options.LimitProc, Equals, 4096)
 			c.Assert(service.Application, NotNil)

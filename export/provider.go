@@ -49,7 +49,7 @@ func renderTemplate(name, templateData string, data interface{}) (string, error)
 
 	if err != nil {
 		log.Error(err.Error())
-		return "", fmt.Errorf("Can't render template")
+		return "", fmt.Errorf("Can't render template: %v", err)
 	}
 
 	var buffer bytes.Buffer
@@ -59,7 +59,7 @@ func renderTemplate(name, templateData string, data interface{}) (string, error)
 
 	if err != nil {
 		log.Error(err.Error())
-		return "", fmt.Errorf("Can't render template")
+		return "", fmt.Errorf("Can't render template: %v", err)
 	}
 
 	return buffer.String(), nil

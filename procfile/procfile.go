@@ -25,7 +25,7 @@ const (
 	REGEXP_V1_LINE     = `^([A-z\d_]+):\s*(.+)`
 	REGEXP_V2_VERSION  = `(?m)^\s*version:\s*2\s*$`
 	REGEXP_PATH_CHECK  = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;" ]+\z`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -181,7 +181,7 @@ func (s *Service) HasPostCmd() bool {
 }
 
 // GetCommandExecWithEnv return full command exec with env vars setting
-func (s *Service) GetCommandExecWithEnv(command string) string {
+func (s *Service) GetCommandExec(command string) string {
 	var result = "exec "
 
 	if s.Options.IsEnvSet() {
@@ -189,26 +189,6 @@ func (s *Service) GetCommandExecWithEnv(command string) string {
 	} else if s.Options.IsEnvFileSet() {
 		result += "env $(cat " + s.Options.FullEnvFilePath() + " | xargs) "
 	}
-
-	switch command {
-	case "pre":
-		result += s.PreCmd
-	case "post":
-		result += s.PostCmd
-	default:
-		result += s.Cmd
-	}
-
-	if s.Options.IsCustomLogEnabled() {
-		result += " &>>" + s.Options.FullLogPath()
-	}
-
-	return result
-}
-
-// GetCommandExec return full command exec
-func (s *Service) GetCommandExec(command string) string {
-	var result = "exec "
 
 	switch command {
 	case "pre":
@@ -275,7 +255,7 @@ func (so *ServiceOptions) EnvString() string {
 	var clauses []string
 
 	for k, v := range so.Env {
-		clauses = append(clauses, fmt.Sprintf("\"%s=%s\"", k, v))
+		clauses = append(clauses, fmt.Sprintf("%s=%s", k, v))
 	}
 
 	sort.Strings(clauses)
@@ -465,6 +445,31 @@ func checkPath(value string) error {
 	return nil
 }
 
+// checkEnv check given env variable and return error if name or value is insecure
+func checkEnv(name, value string) error {
+	if name == "" {
+		return nil
+	}
+
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("Environment variable %s has empty value", name)
+	}
+
+	if strings.Contains(value, " ") && !strings.Contains(value, "\"") {
+		return fmt.Errorf("Environment variable %s has unquoted value with spaces", name)
+	}
+
+	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(name) {
+		return fmt.Errorf("Environment variable name %s is misformatted and can't be accepted", name)
+	}
+
+	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(value) {
+		return fmt.Errorf("Environment variable value %s is misformatted and can't be accepted", value)
+	}
+
+	return nil
+}
+
 // checkValue check any value and return error if value is insecure
 func checkValue(value string) error {
 	if value == "" {
@@ -473,23 +478,6 @@ func checkValue(value string) error {
 
 	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(value) {
 		return fmt.Errorf("Value %s is insecure and can't be accepted", value)
-	}
-
-	return nil
-}
-
-// checkEnv check given env variable and return error if name or value is insecure
-func checkEnv(name, value string) error {
-	if name == "" || value == "" {
-		return nil
-	}
-
-	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(name) {
-		return fmt.Errorf("Environment variable name %s is insecure and can't be accepted", value)
-	}
-
-	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(value) {
-		return fmt.Errorf("Environment variable value %s is insecure and can't be accepted", value)
 	}
 
 	return nil
