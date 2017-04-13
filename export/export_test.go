@@ -187,7 +187,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars | xargs) /bin/echo 'service2'",
+			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) /bin/echo 'service2'",
 			""},
 	)
 
@@ -370,7 +370,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec env $(cat /srv/service/working-dir/shared/env.vars | xargs) /bin/echo 'service2'",
+			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) /bin/echo 'service2'",
 			""},
 	)
 

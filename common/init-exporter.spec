@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.12.1
+Version:         0.12.2
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -132,6 +132,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Thu Apr 13 2017 Anton Novojilov <andyone@fun-box.ru> - 0.12.2-0
+- Added stderr redirect to /dev/null for env file reading command
+
 * Mon Apr 10 2017 Anton Novojilov <andyone@fun-box.ru> - 0.12.1-0
 - Improved environment variables validation for support appending of variables
 

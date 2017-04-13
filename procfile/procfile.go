@@ -187,7 +187,7 @@ func (s *Service) GetCommandExec(command string) string {
 	if s.Options.IsEnvSet() {
 		result += "env " + s.Options.EnvString() + " "
 	} else if s.Options.IsEnvFileSet() {
-		result += "env $(cat " + s.Options.FullEnvFilePath() + " | xargs) "
+		result += "env $(cat " + s.Options.FullEnvFilePath() + " 2>/dev/null | xargs) "
 	}
 
 	switch command {

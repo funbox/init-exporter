@@ -30,7 +30,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.12.1"
+	VER  = "0.12.2"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
