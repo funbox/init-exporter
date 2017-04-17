@@ -30,7 +30,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.12.2"
+	VER  = "0.12.3"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -40,7 +40,7 @@ const (
 	ARG_APP_NAME           = "n:appname"
 	ARG_DRY_START          = "d:dry-start"
 	ARG_DISABLE_VALIDATION = "D:disable-validation"
-	ARG_UNINSTALL          = "u:unistall"
+	ARG_UNINSTALL          = "u:uninstall"
 	ARG_FORMAT             = "f:format"
 	ARG_NO_COLORS          = "nc:no-colors"
 	ARG_HELP               = "h:help"

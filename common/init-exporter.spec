@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.12.2
+Version:         0.12.3
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -132,6 +132,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Mon Apr 17 2017 Anton Novojilov <andyone@fun-box.ru> - 0.12.3-0
+- Fixed typo in uninstall option name
+
 * Thu Apr 13 2017 Anton Novojilov <andyone@fun-box.ru> - 0.12.2-0
 - Added stderr redirect to /dev/null for env file reading command
 
