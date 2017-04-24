@@ -19,7 +19,7 @@ init-exporter-converter:
 
 deps:
 	go get -d -v pkg.re/check.v1
-	go get -d -v pkg.re/essentialkaos/ek.v7
+	go get -d -v pkg.re/essentialkaos/ek.v8
 	go get -d -v pkg.re/essentialkaos/go-simpleyaml.v1
 	go get -d -v pkg.re/yaml.v2
 
