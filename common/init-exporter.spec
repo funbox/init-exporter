@@ -69,7 +69,7 @@ Utility for exporting services described by Procfile to init system.
 %package converter
 
 Summary:         Utility for converting procfiles from v1 to v2 format
-Version:         0.4.0
+Version:         0.5.0
 Release:         0%{?dist}
 
 %description converter
