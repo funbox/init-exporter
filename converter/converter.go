@@ -13,10 +13,10 @@ import (
 	"runtime"
 	"text/template"
 
-	"pkg.re/essentialkaos/ek.v7/arg"
-	"pkg.re/essentialkaos/ek.v7/fmtc"
-	"pkg.re/essentialkaos/ek.v7/knf"
-	"pkg.re/essentialkaos/ek.v7/usage"
+	"pkg.re/essentialkaos/ek.v8/arg"
+	"pkg.re/essentialkaos/ek.v8/fmtc"
+	"pkg.re/essentialkaos/ek.v8/knf"
+	"pkg.re/essentialkaos/ek.v8/usage"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -26,7 +26,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter-converter"
-	VER  = "0.4.0"
+	VER  = "0.5.0"
 	DESC = "Utility for converting procfiles from v1 to v2 format"
 )
 

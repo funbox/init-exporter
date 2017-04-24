@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v7/timeutil"
+	"pkg.re/essentialkaos/ek.v8/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )

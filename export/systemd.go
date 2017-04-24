@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v7/system"
-	"pkg.re/essentialkaos/ek.v7/timeutil"
+	"pkg.re/essentialkaos/ek.v8/system/exec"
+	"pkg.re/essentialkaos/ek.v8/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -123,12 +123,12 @@ func (sp *SystemdProvider) UnitName(name string) string {
 
 // EnableService enable service with given name
 func (sp *SystemdProvider) EnableService(appName string) error {
-	return system.Exec("systemctl", "enable", sp.UnitName(appName))
+	return exec.Run("systemctl", "enable", sp.UnitName(appName))
 }
 
 // DisableService disable service with given name
 func (sp *SystemdProvider) DisableService(appName string) error {
-	return system.Exec("systemctl", "disable", sp.UnitName(appName))
+	return exec.Run("systemctl", "disable", sp.UnitName(appName))
 }
 
 // RenderAppTemplate render unit template data with given app data and return
