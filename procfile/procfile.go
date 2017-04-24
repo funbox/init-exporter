@@ -25,7 +25,7 @@ const (
 	REGEXP_V1_LINE     = `^([A-z\d_]+):\s*(.+)`
 	REGEXP_V2_VERSION  = `(?m)^\s*version:\s*2\s*$`
 	REGEXP_PATH_CHECK  = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;${}" =]+\z`
+	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;${}"' =]+\z`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -455,8 +455,10 @@ func checkEnv(name, value string) error {
 		return fmt.Errorf("Environment variable %s has empty value", name)
 	}
 
-	if strings.Contains(value, " ") && !strings.Contains(value, "\"") {
-		return fmt.Errorf("Environment variable %s has unquoted value with spaces", name)
+	if strings.Contains(value, " ") {
+		if !strings.Contains(value, "\"") && !strings.Contains(value, "'") {
+			return fmt.Errorf("Environment variable %s has unquoted value with spaces", name)
+		}
 	}
 
 	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(name) {
