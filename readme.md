@@ -15,6 +15,8 @@ Supported init systems: upstart and systemd
 
 ### Installation
 
+#### From source
+
 Before the initial install allows git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (_reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)_):
 
 ```
@@ -26,8 +28,23 @@ To build the init-exporter from scratch, make sure you have a working Go 1.5+ wo
 ```bash
 go get -d github.com/funbox/init-exporter
 cd $GOPATH/src/github.com/funbox/init-exporter
+make deps
 make all
 [sudo] make install
+```
+
+#### From ESSENTIAL KAOS Public repo for RHEL6/CentOS6
+
+```
+[sudo] yum install -y https://yum.kaos.io/6/release/x86_64/kaos-repo-8.0-0.el6.noarch.rpm
+[sudo] yum install init-exporter
+```
+
+#### From ESSENTIAL KAOS Public repo for RHEL7/CentOS7
+
+```
+[sudo] yum install -y https://yum.kaos.io/7/release/x86_64/kaos-repo-8.0-0.el7.noarch.rpm
+[sudo] yum install init-exporter
 ```
 
 ### Configuration
