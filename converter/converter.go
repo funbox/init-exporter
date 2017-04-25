@@ -7,11 +7,10 @@ package converter
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
-	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
-	"text/template"
 
 	"pkg.re/essentialkaos/ek.v8/arg"
 	"pkg.re/essentialkaos/ek.v8/fmtc"
@@ -26,7 +25,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter-converter"
-	VER  = "0.5.0"
+	VER  = "0.6.0"
 	DESC = "Utility for converting procfiles from v1 to v2 format"
 )
 
@@ -55,61 +54,12 @@ const (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// PROCFILE_TEMPLATE is template used for generation v2 Procfile
-const PROCFILE_TEMPLATE = `version: 2
-
-start_on_runlevel: 2
-stop_on_runlevel: 5
-
-{{ if .Config.IsRespawnEnabled -}}
-respawn:
-  count: {{ .Config.RespawnCount }}
-  interval: {{ .Config.RespawnInterval }}
-
-{{ end -}}
-
-limits:
-  nofile: {{ .Config.LimitFile }}
-  nproc: {{ .Config.LimitProc }}
-
-{{ if not .HasCustomWorkingDirs -}}
-working_directory: {{ .Config.WorkingDir }}
-
-{{ end -}}
-
-{{- $hasCustomWorkingDirs := .HasCustomWorkingDirs -}}
-
-commands:
-{{- range .Application.Services }}
-  {{ .Name }}:
-    {{ if .HasPreCmd -}}
-    pre: {{ .PreCmd }}
-    {{ end -}}
-    command: {{ .Cmd }}
-    {{ if .HasPostCmd -}}
-    post: {{ .PostCmd }}
-    {{ end -}}
-    {{ if $hasCustomWorkingDirs -}}
-    working_directory: {{ .Options.WorkingDir }}
-    {{ end -}}
-    {{ if .Options.IsCustomLogEnabled -}}
-    log: {{ .Options.LogPath }}
-    {{ end -}}
-    {{ if .Options.IsEnvSet -}}
-    env:
-    {{- range $k, $v := .Options.Env }}
-      {{ $k }}: {{ $v -}}
-    {{ end }}
-    {{ end -}}
-{{ end -}}
-`
-
 // DEFAULT_WORKING_DIR is path to default working dir
 const DEFAULT_WORKING_DIR = "/tmp"
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-type templateData struct {
+type procData struct {
 	Config               *procfile.Config
 	Application          *procfile.Application
 	HasCustomWorkingDirs bool
@@ -207,41 +157,77 @@ func convert(file string) error {
 
 	validateApplication(app)
 
-	v2data, err := renderTemplate(
-		"proc_v2", PROCFILE_TEMPLATE,
-		&templateData{config, app, hasCustomWorkingDirs},
-	)
-
-	if err != nil {
-		return err
-	}
+	data := renderProcfile(&procData{config, app, hasCustomWorkingDirs})
 
 	if !arg.GetB(ARG_IN_PLACE) {
-		fmtc.Println(v2data)
+		fmt.Printf(data)
 		return nil
 	}
 
-	return writeData(file, v2data)
+	return writeData(file, data)
 }
 
-// renderTemplate renders template data
-func renderTemplate(name, templateData string, data interface{}) (string, error) {
-	templ, err := template.New(name).Parse(templateData)
+// renderProcfile render procfile
+func renderProcfile(data *procData) string {
+	var result string
 
-	if err != nil {
-		return "", fmtc.Errorf("Can't render template: %v", err)
+	result += "version: 2\n"
+	result += "\n"
+	result += "start_on_runlevel: 2\n"
+	result += "stop_on_runlevel: 5\n"
+	result += "\n"
+
+	if data.Config.IsRespawnEnabled {
+		result += "respawn:\n"
+		result += fmt.Sprintf("  count: %d\n", data.Config.RespawnCount)
+		result += fmt.Sprintf("  interval: %d\n", data.Config.RespawnInterval)
+		result += "\n"
 	}
 
-	var buffer bytes.Buffer
+	result += "limits:\n"
+	result += fmt.Sprintf("  nofile: %d\n", data.Config.LimitFile)
+	result += fmt.Sprintf("  nproc: %d\n", data.Config.LimitProc)
+	result += "\n"
 
-	ct := template.Must(templ, nil)
-	err = ct.Execute(&buffer, data)
-
-	if err != nil {
-		return "", fmtc.Errorf("Can't render template: %v", err)
+	if !data.HasCustomWorkingDirs {
+		result += "working_directory: " + data.Config.WorkingDir + "\n"
+		result += "\n"
 	}
 
-	return buffer.String(), nil
+	result += "commands:\n"
+
+	for _, service := range data.Application.Services {
+		result += "  " + service.Name + "\n"
+
+		if service.HasPreCmd() {
+			result += "    pre: " + service.PreCmd + "\n"
+		}
+
+		result += "    command: " + service.Cmd + "\n"
+
+		if service.HasPostCmd() {
+			result += "    post: " + service.PostCmd + "\n"
+		}
+
+		if data.HasCustomWorkingDirs {
+			result += "    working_directory: " + service.Options.WorkingDir + "\n"
+		}
+
+		if service.Options.IsCustomLogEnabled() {
+			result += "    log: " + service.Options.LogFile + "\n"
+		}
+
+		if service.Options.IsEnvSet() {
+			result += "    env:\n"
+			for k, v := range service.Options.Env {
+				result += fmt.Sprintf("      %s: %s\n", k, v)
+			}
+		}
+
+		result += "\n"
+	}
+
+	return result
 }
 
 // getWorkingDir return path to default working dir and flag
