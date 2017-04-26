@@ -121,7 +121,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.RespawnInterval, Equals, 22)
 			c.Assert(service.Options.IsRespawnEnabled, Equals, false)
 			c.Assert(service.Options.EnvFile, Equals, "shared/env.file")
-			c.Assert(service.Options.EnvString(), Equals, "")
+			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
 			c.Assert(service.Options.LimitFile, Equals, 8192)
 			c.Assert(service.Options.LimitProc, Equals, 8192)
 			c.Assert(service.Application, NotNil)

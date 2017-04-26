@@ -159,10 +159,6 @@ func (so *ServiceOptions) Validate() []error {
 	errs.Add(checkPath(so.LogFile))
 	errs.Add(checkPath(so.EnvFile))
 
-	if so.IsEnvSet() && so.IsEnvFileSet() {
-		errs.Add(fmt.Errorf("Environment file and environment variables cannot be defined in same time"))
-	}
-
 	for envName, envVal := range so.Env {
 		errs.Add(checkEnv(envName, envVal))
 	}
@@ -184,10 +180,16 @@ func (s *Service) HasPostCmd() bool {
 func (s *Service) GetCommandExec(command string) string {
 	var result = "exec "
 
-	if s.Options.IsEnvSet() {
-		result += "env " + s.Options.EnvString() + " "
-	} else if s.Options.IsEnvFileSet() {
-		result += "env $(cat " + s.Options.FullEnvFilePath() + " 2>/dev/null | xargs) "
+	if s.Options.IsEnvSet() || s.Options.IsEnvFileSet() {
+		result += "env "
+
+		if s.Options.IsEnvFileSet() {
+			result += "$(cat " + s.Options.FullEnvFilePath() + " 2>/dev/null | xargs) "
+		}
+
+		if s.Options.IsEnvSet() {
+			result += s.Options.EnvString() + " "
+		}
 	}
 
 	switch command {
@@ -357,8 +359,12 @@ func convertMapType(m map[interface{}]interface{}) map[string]string {
 // mergeServiceOptions merge two ServiceOptions structs
 func mergeServiceOptions(dst, src *ServiceOptions) {
 
-	if !dst.IsEnvFileSet() && src.IsEnvSet() {
+	if src.IsEnvSet() {
 		mergeStringMaps(dst.Env, src.Env)
+	}
+
+	if dst.EnvFile == "" {
+		dst.EnvFile = src.EnvFile
 	}
 
 	if dst.WorkingDir == "" {
