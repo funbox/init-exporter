@@ -187,7 +187,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) /bin/echo 'service2'",
+			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'service2'",
 			""},
 	)
 
@@ -370,7 +370,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(service2Helper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) /bin/echo 'service2'",
+			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'service2'",
 			""},
 	)
 
@@ -425,6 +425,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Application: app,
 		Options: &procfile.ServiceOptions{
 			EnvFile:          "shared/env.vars",
+			Env:              map[string]string{"STAGING": "true"},
 			WorkingDir:       "/srv/service/working-dir",
 			ReloadSignal:     "SIGUSR2",
 			IsRespawnEnabled: true,

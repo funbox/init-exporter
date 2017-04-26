@@ -42,8 +42,8 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.13.0
-Release:         1%{?dist}
+Version:         0.14.0
+Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
 URL:             https://github.com/funbox/init-exporter
@@ -132,6 +132,10 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Wed Apr 26 2017 Anton Novojilov <andyone@fun-box.ru> - 0.14.0-0
+- Environment variables and file with environment variables now can defined
+  in same time
+
 * Mon Apr 24 2017 Anton Novojilov <andyone@fun-box.ru> - 0.13.0-1
 - [init-exporter-converter] Replaced text/template by basic procfile rendering
 
