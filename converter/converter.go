@@ -17,6 +17,8 @@ import (
 	"pkg.re/essentialkaos/ek.v8/knf"
 	"pkg.re/essentialkaos/ek.v8/usage"
 
+	"pkg.re/essentialkaos/go-simpleyaml.v1"
+
 	"github.com/funbox/init-exporter/procfile"
 )
 
@@ -25,7 +27,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter-converter"
-	VER  = "0.6.0"
+	VER  = "0.7.0"
 	DESC = "Utility for converting procfiles from v1 to v2 format"
 )
 
@@ -157,14 +159,20 @@ func convert(file string) error {
 
 	validateApplication(app)
 
-	data := renderProcfile(&procData{config, app, hasCustomWorkingDirs})
+	yamlData := renderProcfile(&procData{config, app, hasCustomWorkingDirs})
+
+	err = validateYaml(yamlData)
+
+	if err != nil {
+		printErrorAndExit("Can't convert given procfile to YAML: %v", err)
+	}
 
 	if !arg.GetB(ARG_IN_PLACE) {
-		fmt.Printf(data)
+		fmt.Printf(yamlData)
 		return nil
 	}
 
-	return writeData(file, data)
+	return writeData(file, yamlData)
 }
 
 // renderProcfile render procfile
@@ -197,7 +205,7 @@ func renderProcfile(data *procData) string {
 	result += "commands:\n"
 
 	for _, service := range data.Application.Services {
-		result += "  " + service.Name + "\n"
+		result += "  " + service.Name + ":\n"
 
 		if service.HasPreCmd() {
 			result += "    pre: " + service.PreCmd + "\n"
@@ -267,6 +275,13 @@ func validateApplication(app *procfile.Application) {
 	}
 
 	os.Exit(1)
+}
+
+// validateYaml validate rendered yaml
+func validateYaml(data string) error {
+	_, err := simpleyaml.NewYaml([]byte(data))
+
+	return err
 }
 
 // writeData write procfile data to file
