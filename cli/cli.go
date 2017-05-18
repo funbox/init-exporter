@@ -1,3 +1,4 @@
+// +build !windows
 package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -11,15 +12,15 @@ import (
 	"os"
 	"runtime"
 
-	"pkg.re/essentialkaos/ek.v8/arg"
-	"pkg.re/essentialkaos/ek.v8/env"
-	"pkg.re/essentialkaos/ek.v8/fmtc"
-	"pkg.re/essentialkaos/ek.v8/fsutil"
-	"pkg.re/essentialkaos/ek.v8/knf"
-	"pkg.re/essentialkaos/ek.v8/log"
-	"pkg.re/essentialkaos/ek.v8/system"
-	"pkg.re/essentialkaos/ek.v8/usage"
-	"pkg.re/essentialkaos/ek.v8/usage/update"
+	"pkg.re/essentialkaos/ek.v9/env"
+	"pkg.re/essentialkaos/ek.v9/fmtc"
+	"pkg.re/essentialkaos/ek.v9/fsutil"
+	"pkg.re/essentialkaos/ek.v9/knf"
+	"pkg.re/essentialkaos/ek.v9/log"
+	"pkg.re/essentialkaos/ek.v9/options"
+	"pkg.re/essentialkaos/ek.v9/system"
+	"pkg.re/essentialkaos/ek.v9/usage"
+	"pkg.re/essentialkaos/ek.v9/usage/update"
 
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
@@ -30,21 +31,21 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.14.0"
+	VER  = "0.15.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
 // Supported arguments
 const (
-	ARG_PROCFILE           = "p:procfile"
-	ARG_APP_NAME           = "n:appname"
-	ARG_DRY_START          = "d:dry-start"
-	ARG_DISABLE_VALIDATION = "D:disable-validation"
-	ARG_UNINSTALL          = "u:uninstall"
-	ARG_FORMAT             = "f:format"
-	ARG_NO_COLORS          = "nc:no-colors"
-	ARG_HELP               = "h:help"
-	ARG_VERSION            = "v:version"
+	OPT_PROCFILE           = "p:procfile"
+	OPT_APP_NAME           = "n:appname"
+	OPT_DRY_START          = "d:dry-start"
+	OPT_DISABLE_VALIDATION = "D:disable-validation"
+	OPT_UNINSTALL          = "u:uninstall"
+	OPT_FORMAT             = "f:format"
+	OPT_NO_COLORS          = "nc:no-colors"
+	OPT_HELP               = "h:help"
+	OPT_VERSION            = "v:version"
 )
 
 // Config properies
@@ -83,16 +84,16 @@ const CONFIG_FILE = "/etc/init-exporter.conf"
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var argMap = arg.Map{
-	ARG_APP_NAME:           {},
-	ARG_PROCFILE:           {},
-	ARG_DRY_START:          {Type: arg.BOOL},
-	ARG_DISABLE_VALIDATION: {Type: arg.BOOL},
-	ARG_UNINSTALL:          {Type: arg.BOOL, Alias: "c:clear"},
-	ARG_FORMAT:             {},
-	ARG_NO_COLORS:          {Type: arg.BOOL},
-	ARG_HELP:               {Type: arg.BOOL},
-	ARG_VERSION:            {Type: arg.BOOL},
+var optMap = options.Map{
+	OPT_APP_NAME:           {},
+	OPT_PROCFILE:           {},
+	OPT_DRY_START:          {Type: options.BOOL},
+	OPT_DISABLE_VALIDATION: {Type: options.BOOL},
+	OPT_UNINSTALL:          {Type: options.BOOL, Alias: "c:clear"},
+	OPT_FORMAT:             {},
+	OPT_NO_COLORS:          {Type: options.BOOL},
+	OPT_HELP:               {Type: options.BOOL},
+	OPT_VERSION:            {Type: options.BOOL},
 }
 
 var user *system.User
@@ -102,7 +103,7 @@ var user *system.User
 func Init() {
 	runtime.GOMAXPROCS(1)
 
-	args, errs := arg.Parse(argMap)
+	args, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
 		fmt.Println("Error while arguments parsing:")
@@ -114,21 +115,21 @@ func Init() {
 		os.Exit(1)
 	}
 
-	if arg.GetB(ARG_NO_COLORS) {
+	if options.GetB(OPT_NO_COLORS) {
 		fmtc.DisableColors = true
 	}
 
-	if arg.GetB(ARG_VERSION) {
+	if options.GetB(OPT_VERSION) {
 		showAbout()
 		return
 	}
 
-	if arg.GetB(ARG_HELP) {
+	if options.GetB(OPT_HELP) {
 		showUsage()
 		return
 	}
 
-	if len(args) == 0 && !arg.Has(ARG_APP_NAME) {
+	if len(args) == 0 && !options.Has(OPT_APP_NAME) {
 		showUsage()
 		return
 	}
@@ -141,7 +142,7 @@ func Init() {
 
 	switch {
 	case len(args) == 0:
-		startProcessing(arg.GetS(ARG_APP_NAME))
+		startProcessing(options.GetS(OPT_APP_NAME))
 	default:
 		startProcessing(args[0])
 	}
@@ -164,8 +165,8 @@ func checkForRoot() {
 
 // checkArguments check given arguments
 func checkArguments() {
-	if !arg.GetB(ARG_UNINSTALL) {
-		proc := arg.GetS(ARG_PROCFILE)
+	if !options.GetB(OPT_UNINSTALL) {
+		proc := options.GetS(OPT_PROCFILE)
 
 		switch {
 		case fsutil.IsExist(proc) == false:
@@ -297,7 +298,7 @@ func setupLogger() {
 
 // startProcessing start processing
 func startProcessing(appName string) {
-	if !arg.GetB(ARG_UNINSTALL) {
+	if !options.GetB(OPT_UNINSTALL) {
 		installApplication(appName)
 	} else {
 		uninstallApplication(appName)
@@ -309,7 +310,7 @@ func installApplication(appName string) {
 	fullAppName := knf.GetS(MAIN_PREFIX) + appName
 
 	app, err := procfile.Read(
-		arg.GetS(ARG_PROCFILE),
+		options.GetS(OPT_PROCFILE),
 		&procfile.Config{
 			Name:             fullAppName,
 			User:             knf.GetS(MAIN_RUN_USER),
@@ -330,7 +331,7 @@ func installApplication(appName string) {
 
 	validateApplication(app)
 
-	if arg.GetB(ARG_DRY_START) {
+	if options.GetB(OPT_DRY_START) {
 		os.Exit(0)
 	}
 
@@ -369,7 +370,7 @@ func validateApplication(app *procfile.Application) {
 		printErrorAndExit("Proc format version 2 support is disabled")
 	}
 
-	if !arg.GetB(ARG_DRY_START) && arg.GetB(ARG_DISABLE_VALIDATION) {
+	if !options.GetB(OPT_DRY_START) && options.GetB(OPT_DISABLE_VALIDATION) {
 		return
 	}
 
@@ -399,7 +400,7 @@ func checkProviderTargetDir(dir string) error {
 
 // getExporter create and configure exporter and return it
 func getExporter() *export.Exporter {
-	providerName, err := detectProvider(arg.GetS(ARG_FORMAT))
+	providerName, err := detectProvider(options.GetS(OPT_FORMAT))
 
 	if err != nil {
 		printErrorAndExit(err.Error())
@@ -469,14 +470,14 @@ func printErrorAndExit(f string, a ...interface{}) {
 func showUsage() {
 	info := usage.NewInfo("", "app-name")
 
-	info.AddOption(ARG_PROCFILE, "Path to procfile", "file")
-	info.AddOption(ARG_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
-	info.AddOption(ARG_DISABLE_VALIDATION, "Disable application validation")
-	info.AddOption(ARG_UNINSTALL, "Remove scripts and helpers for a particular application")
-	info.AddOption(ARG_FORMAT, "Format of generated configs", "upstart|systemd")
-	info.AddOption(ARG_NO_COLORS, "Disable colors in output")
-	info.AddOption(ARG_HELP, "Show this help message")
-	info.AddOption(ARG_VERSION, "Show version")
+	info.AddOption(OPT_PROCFILE, "Path to procfile", "file")
+	info.AddOption(OPT_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
+	info.AddOption(OPT_DISABLE_VALIDATION, "Disable application validation")
+	info.AddOption(OPT_UNINSTALL, "Remove scripts and helpers for a particular application")
+	info.AddOption(OPT_FORMAT, "Format of generated configs", "?upstart|systemd")
+	info.AddOption(OPT_NO_COLORS, "Disable colors in output")
+	info.AddOption(OPT_HELP, "Show this help message")
+	info.AddOption(OPT_VERSION, "Show version")
 
 	info.AddExample("-p ./myprocfile -f systemd myapp", "Export given procfile to systemd as myapp")
 	info.AddExample("-u -f systemd myapp", "Uninstall myapp from systemd")

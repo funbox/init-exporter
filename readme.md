@@ -190,7 +190,9 @@ commands:
     respawn: false # by default respawn option is enabled
   
   my_one_another_tail_cmd:
+    pre: /usr/bin/echo pre_command
     command: /usr/bin/tail -F /var/log/messages
+    post: /usr/bin/echo post_command
     log: /var/log/messages_copy
   
   my_multi_tail_cmd:

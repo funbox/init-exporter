@@ -15,8 +15,8 @@ import (
 
 	"github.com/funbox/init-exporter/procfile"
 
-	"pkg.re/essentialkaos/ek.v8/fsutil"
-	"pkg.re/essentialkaos/ek.v8/log"
+	"pkg.re/essentialkaos/ek.v9/fsutil"
+	"pkg.re/essentialkaos/ek.v9/log"
 
 	. "pkg.re/check.v1"
 )
@@ -65,52 +65,64 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application.conf"), Equals, true)
 	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application.conf"), Equals, true)
 
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service1.conf"), Equals, true)
-	c.Assert(fsutil.IsRegular(targetDir+"/test_application-service1.conf"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-service1.conf"), Equals, true)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA1.conf"), Equals, true)
+	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA1.conf"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA1.conf"), Equals, true)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA2.conf"), Equals, true)
+	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA2.conf"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA2.conf"), Equals, true)
 
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service2.conf"), Equals, true)
-	c.Assert(fsutil.IsRegular(targetDir+"/test_application-service2.conf"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-service2.conf"), Equals, true)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.conf"), Equals, true)
+	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceB.conf"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceB.conf"), Equals, true)
 
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service1.sh"), Equals, true)
-	c.Assert(fsutil.IsRegular(helperDir+"/test_application-service1.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-service1.sh"), Equals, true)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA2.sh"), Equals, true)
+	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA2.sh"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA2.sh"), Equals, true)
 
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service2.sh"), Equals, true)
-	c.Assert(fsutil.IsRegular(helperDir+"/test_application-service2.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-service2.sh"), Equals, true)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, true)
+	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceB.sh"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceB.sh"), Equals, true)
 
 	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.conf")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
 
-	service1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-service1.conf")
+	serviceA1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA1.conf")
 
 	c.Assert(err, IsNil)
-	c.Assert(service1UnitData, NotNil)
+	c.Assert(serviceA1UnitData, NotNil)
 
-	service2UnitData, err := ioutil.ReadFile(targetDir + "/test_application-service2.conf")
-
-	c.Assert(err, IsNil)
-	c.Assert(service2UnitData, NotNil)
-
-	service1HelperData, err := ioutil.ReadFile(helperDir + "/test_application-service1.sh")
+	serviceA2UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA2.conf")
 
 	c.Assert(err, IsNil)
-	c.Assert(service1HelperData, NotNil)
+	c.Assert(serviceA2UnitData, NotNil)
 
-	service2HelperData, err := ioutil.ReadFile(helperDir + "/test_application-service2.sh")
+	serviceBUnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceB.conf")
 
 	c.Assert(err, IsNil)
-	c.Assert(service2HelperData, NotNil)
+	c.Assert(serviceBUnitData, NotNil)
+
+	serviceAHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceA1.sh")
+
+	c.Assert(err, IsNil)
+	c.Assert(serviceAHelperData, NotNil)
+
+	serviceBHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceB.sh")
+
+	c.Assert(err, IsNil)
+	c.Assert(serviceBHelperData, NotNil)
 
 	appUnit := strings.Split(string(appUnitData), "\n")
-	service1Unit := strings.Split(string(service1UnitData), "\n")
-	service2Unit := strings.Split(string(service2UnitData), "\n")
-	service1Helper := strings.Split(string(service1HelperData), "\n")
-	service2Helper := strings.Split(string(service2HelperData), "\n")
+	serviceA1Unit := strings.Split(string(serviceA1UnitData), "\n")
+	serviceA2Unit := strings.Split(string(serviceA2UnitData), "\n")
+	serviceBUnit := strings.Split(string(serviceBUnitData), "\n")
+	serviceAHelper := strings.Split(string(serviceAHelperData), "\n")
+	serviceBHelper := strings.Split(string(serviceBHelperData), "\n")
 
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
@@ -129,7 +141,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"end script", ""},
 	)
 
-	c.Assert(service1Unit[2:], DeepEquals,
+	c.Assert(serviceA1Unit[2:], DeepEquals,
 		[]string{
 			"start on starting test_application",
 			"stop on stopping test_application",
@@ -145,15 +157,39 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"",
 			"script",
-			"  touch /var/log/test_application/service1.log",
-			"  chown service /var/log/test_application/service1.log",
-			"  chgrp service /var/log/test_application/service1.log",
-			"  chmod g+w /var/log/test_application/service1.log",
-			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
+			"  touch /var/log/test_application/serviceA.log",
+			"  chown service /var/log/test_application/serviceA.log",
+			"  chgrp service /var/log/test_application/serviceA.log",
+			"  chmod g+w /var/log/test_application/serviceA.log",
+			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-serviceA1.sh &>>/var/log/test_application/serviceA.log", helperDir),
 			"end script", ""},
 	)
 
-	c.Assert(service2Unit[2:], DeepEquals,
+	c.Assert(serviceA2Unit[2:], DeepEquals,
+		[]string{
+			"start on starting test_application",
+			"stop on stopping test_application",
+			"",
+			"respawn",
+			"respawn limit 15 25",
+			"",
+			"kill timeout 10",
+			"kill signal SIGQUIT",
+			"",
+			"",
+			"limit nofile 1024 1024",
+			"",
+			"",
+			"script",
+			"  touch /var/log/test_application/serviceA.log",
+			"  chown service /var/log/test_application/serviceA.log",
+			"  chgrp service /var/log/test_application/serviceA.log",
+			"  chmod g+w /var/log/test_application/serviceA.log",
+			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-serviceA2.sh &>>/var/log/test_application/serviceA.log", helperDir),
+			"end script", ""},
+	)
+
+	c.Assert(serviceBUnit[2:], DeepEquals,
 		[]string{
 			"start on starting test_application",
 			"stop on stopping test_application",
@@ -169,25 +205,25 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"limit nproc 4096 4096",
 			"",
 			"script",
-			"  touch /var/log/test_application/service2.log",
-			"  chown service /var/log/test_application/service2.log",
-			"  chgrp service /var/log/test_application/service2.log",
-			"  chmod g+w /var/log/test_application/service2.log",
-			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
+			"  touch /var/log/test_application/serviceB.log",
+			"  chown service /var/log/test_application/serviceB.log",
+			"  chgrp service /var/log/test_application/serviceB.log",
+			"  chmod g+w /var/log/test_application/serviceB.log",
+			fmt.Sprintf("  exec sudo -u service /bin/bash %s/test_application-serviceB.sh &>>/var/log/test_application/serviceB.log", helperDir),
 			"end script", ""},
 	)
 
-	c.Assert(service1Helper[4:], DeepEquals,
+	c.Assert(serviceAHelper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/service1-dir && exec env STAGING=true /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
+			"cd /srv/service/serviceA-dir && exec env STAGING=true /bin/echo 'serviceA:pre' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA:post' &>>/srv/service/serviceA-dir/log/serviceA.log",
 			""},
 	)
 
-	c.Assert(service2Helper[4:], DeepEquals,
+	c.Assert(serviceBHelper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'service2'",
+			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
 			""},
 	)
 
@@ -196,10 +232,10 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application.conf"), Equals, false)
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service1.conf"), Equals, false)
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service2.conf"), Equals, false)
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service1.sh"), Equals, false)
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service2.sh"), Equals, false)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA.conf"), Equals, false)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.conf"), Equals, false)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA.sh"), Equals, false)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, false)
 }
 
 func (s *ExportSuite) TestSystemdExport(c *C) {
@@ -226,52 +262,64 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application.service"), Equals, true)
 	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application.service"), Equals, true)
 
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service1.service"), Equals, true)
-	c.Assert(fsutil.IsRegular(targetDir+"/test_application-service1.service"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-service1.service"), Equals, true)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA1.service"), Equals, true)
+	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA1.service"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA1.service"), Equals, true)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA2.service"), Equals, true)
+	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA2.service"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA2.service"), Equals, true)
 
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service2.service"), Equals, true)
-	c.Assert(fsutil.IsRegular(targetDir+"/test_application-service2.service"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-service2.service"), Equals, true)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.service"), Equals, true)
+	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceB.service"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceB.service"), Equals, true)
 
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service1.sh"), Equals, true)
-	c.Assert(fsutil.IsRegular(helperDir+"/test_application-service1.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-service1.sh"), Equals, true)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA2.sh"), Equals, true)
+	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA2.sh"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA2.sh"), Equals, true)
 
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service2.sh"), Equals, true)
-	c.Assert(fsutil.IsRegular(helperDir+"/test_application-service2.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-service2.sh"), Equals, true)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, true)
+	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceB.sh"), Equals, true)
+	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceB.sh"), Equals, true)
 
 	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.service")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
 
-	service1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-service1.service")
+	serviceA1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA1.service")
 
 	c.Assert(err, IsNil)
-	c.Assert(service1UnitData, NotNil)
+	c.Assert(serviceA1UnitData, NotNil)
 
-	service2UnitData, err := ioutil.ReadFile(targetDir + "/test_application-service2.service")
-
-	c.Assert(err, IsNil)
-	c.Assert(service2UnitData, NotNil)
-
-	service1HelperData, err := ioutil.ReadFile(helperDir + "/test_application-service1.sh")
+	serviceA2UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA2.service")
 
 	c.Assert(err, IsNil)
-	c.Assert(service1HelperData, NotNil)
+	c.Assert(serviceA2UnitData, NotNil)
 
-	service2HelperData, err := ioutil.ReadFile(helperDir + "/test_application-service2.sh")
+	serviceBUnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceB.service")
 
 	c.Assert(err, IsNil)
-	c.Assert(service2HelperData, NotNil)
+	c.Assert(serviceBUnitData, NotNil)
+
+	serviceAHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceA1.sh")
+
+	c.Assert(err, IsNil)
+	c.Assert(serviceAHelperData, NotNil)
+
+	serviceBHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceB.sh")
+
+	c.Assert(err, IsNil)
+	c.Assert(serviceBHelperData, NotNil)
 
 	appUnit := strings.Split(string(appUnitData), "\n")
-	service1Unit := strings.Split(string(service1UnitData), "\n")
-	service2Unit := strings.Split(string(service2UnitData), "\n")
-	service1Helper := strings.Split(string(service1HelperData), "\n")
-	service2Helper := strings.Split(string(service2HelperData), "\n")
+	serviceA1Unit := strings.Split(string(serviceA1UnitData), "\n")
+	serviceA2Unit := strings.Split(string(serviceA2UnitData), "\n")
+	serviceBUnit := strings.Split(string(serviceBUnitData), "\n")
+	serviceAHelper := strings.Split(string(serviceAHelperData), "\n")
+	serviceBHelper := strings.Split(string(serviceBHelperData), "\n")
 
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
@@ -279,7 +327,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"",
 			"Description=Unit for test_application application",
 			"After=multi-user.target",
-			"Wants=test_application-service1.service test_application-service2.service",
+			"Wants=test_application-serviceA.service test_application-serviceB.service",
 			"",
 			"[Service]",
 			"Type=oneshot",
@@ -296,11 +344,11 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"WantedBy=multi-user.target", ""},
 	)
 
-	c.Assert(service1Unit[2:], DeepEquals,
+	c.Assert(serviceA1Unit[2:], DeepEquals,
 		[]string{
 			"[Unit]",
 			"",
-			"Description=Unit for service1 service (part of test_application application)",
+			"Description=Unit for serviceA service (part of test_application application)",
 			"PartOf=test_application.service",
 			"",
 			"[Service]",
@@ -315,24 +363,56 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"LimitNOFILE=1024",
 			"",
 			"",
-			"ExecStartPre=/bin/touch /var/log/test_application/service1.log",
-			"ExecStartPre=/bin/chown service /var/log/test_application/service1.log",
-			"ExecStartPre=/bin/chgrp service /var/log/test_application/service1.log",
-			"ExecStartPre=/bin/chmod g+w /var/log/test_application/service1.log",
+			"ExecStartPre=/bin/touch /var/log/test_application/serviceA.log",
+			"ExecStartPre=/bin/chown service /var/log/test_application/serviceA.log",
+			"ExecStartPre=/bin/chgrp service /var/log/test_application/serviceA.log",
+			"ExecStartPre=/bin/chmod g+w /var/log/test_application/serviceA.log",
 			"",
 			"User=service",
 			"Group=service",
-			"WorkingDirectory=/srv/service/service1-dir",
-			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service1.sh &>>/var/log/test_application/service1.log", helperDir),
+			"WorkingDirectory=/srv/service/serviceA-dir",
+			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-serviceA1.sh &>>/var/log/test_application/serviceA.log", helperDir),
 			"",
 			""},
 	)
 
-	c.Assert(service2Unit[2:], DeepEquals,
+	c.Assert(serviceA2Unit[2:], DeepEquals,
 		[]string{
 			"[Unit]",
 			"",
-			"Description=Unit for service2 service (part of test_application application)",
+			"Description=Unit for serviceA service (part of test_application application)",
+			"PartOf=test_application.service",
+			"",
+			"[Service]",
+			"Type=simple",
+			"",
+			"KillSignal=SIGQUIT",
+			"TimeoutStopSec=10",
+			"Restart=on-failure",
+			"StartLimitInterval=25",
+			"StartLimitBurst=15",
+			"",
+			"LimitNOFILE=1024",
+			"",
+			"",
+			"ExecStartPre=/bin/touch /var/log/test_application/serviceA.log",
+			"ExecStartPre=/bin/chown service /var/log/test_application/serviceA.log",
+			"ExecStartPre=/bin/chgrp service /var/log/test_application/serviceA.log",
+			"ExecStartPre=/bin/chmod g+w /var/log/test_application/serviceA.log",
+			"",
+			"User=service",
+			"Group=service",
+			"WorkingDirectory=/srv/service/serviceA-dir",
+			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-serviceA2.sh &>>/var/log/test_application/serviceA.log", helperDir),
+			"",
+			""},
+	)
+
+	c.Assert(serviceBUnit[2:], DeepEquals,
+		[]string{
+			"[Unit]",
+			"",
+			"Description=Unit for serviceB service (part of test_application application)",
 			"PartOf=test_application.service",
 			"",
 			"[Service]",
@@ -347,30 +427,30 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"LimitNOFILE=4096",
 			"LimitNPROC=4096",
 			"",
-			"ExecStartPre=/bin/touch /var/log/test_application/service2.log",
-			"ExecStartPre=/bin/chown service /var/log/test_application/service2.log",
-			"ExecStartPre=/bin/chgrp service /var/log/test_application/service2.log",
-			"ExecStartPre=/bin/chmod g+w /var/log/test_application/service2.log",
+			"ExecStartPre=/bin/touch /var/log/test_application/serviceB.log",
+			"ExecStartPre=/bin/chown service /var/log/test_application/serviceB.log",
+			"ExecStartPre=/bin/chgrp service /var/log/test_application/serviceB.log",
+			"ExecStartPre=/bin/chmod g+w /var/log/test_application/serviceB.log",
 			"",
 			"User=service",
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
-			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-service2.sh &>>/var/log/test_application/service2.log", helperDir),
+			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-serviceB.sh &>>/var/log/test_application/serviceB.log", helperDir),
 			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
 			""},
 	)
 
-	c.Assert(service1Helper[4:], DeepEquals,
+	c.Assert(serviceAHelper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec env STAGING=true /bin/echo 'service1:pre' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1' &>>/srv/service/service1-dir/log/service1.log && exec env STAGING=true /bin/echo 'service1:post' &>>/srv/service/service1-dir/log/service1.log",
+			"exec env STAGING=true /bin/echo 'serviceA:pre' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA:post' &>>/srv/service/serviceA-dir/log/serviceA.log",
 			""},
 	)
 
-	c.Assert(service2Helper[4:], DeepEquals,
+	c.Assert(serviceBHelper[4:], DeepEquals,
 		[]string{
 			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
-			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'service2'",
+			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
 			""},
 	)
 
@@ -379,10 +459,10 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(err, IsNil)
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application.service"), Equals, false)
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service1.service"), Equals, false)
-	c.Assert(fsutil.IsExist(targetDir+"/test_application-service2.service"), Equals, false)
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service1.sh"), Equals, false)
-	c.Assert(fsutil.IsExist(helperDir+"/test_application-service2.sh"), Equals, false)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA.service"), Equals, false)
+	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.service"), Equals, false)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA.sh"), Equals, false)
+	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, false)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -399,16 +479,16 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		Services:    []*procfile.Service{},
 	}
 
-	service1 := &procfile.Service{
-		Name:        "service1",
-		Cmd:         "/bin/echo 'service1'",
-		PreCmd:      "/bin/echo 'service1:pre'",
-		PostCmd:     "/bin/echo 'service1:post'",
+	serviceA := &procfile.Service{
+		Name:        "serviceA",
+		Cmd:         "/bin/echo 'serviceA'",
+		PreCmd:      "/bin/echo 'serviceA:pre'",
+		PostCmd:     "/bin/echo 'serviceA:post'",
 		Application: app,
 		Options: &procfile.ServiceOptions{
 			Env:              map[string]string{"STAGING": "true"},
-			WorkingDir:       "/srv/service/service1-dir",
-			LogFile:          "log/service1.log",
+			WorkingDir:       "/srv/service/serviceA-dir",
+			LogFile:          "log/serviceA.log",
 			KillTimeout:      10,
 			KillSignal:       "SIGQUIT",
 			Count:            2,
@@ -419,9 +499,9 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		},
 	}
 
-	service2 := &procfile.Service{
-		Name:        "service2",
-		Cmd:         "/bin/echo 'service2'",
+	serviceB := &procfile.Service{
+		Name:        "serviceB",
+		Cmd:         "/bin/echo 'serviceB'",
 		Application: app,
 		Options: &procfile.ServiceOptions{
 			EnvFile:          "shared/env.vars",
@@ -434,7 +514,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 		},
 	}
 
-	app.Services = append(app.Services, service1, service2)
+	app.Services = append(app.Services, serviceA, serviceB)
 
 	return app
 }
