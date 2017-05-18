@@ -76,8 +76,6 @@ pushd src/github.com/funbox/%{name}
   %{__make} %{?_smp_mflags}
 popd
 
-go build -o %{name} src/github.com/funbox/%{name}/%{name}.go
-
 %install
 rm -rf %{buildroot}
 
