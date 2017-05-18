@@ -28,4 +28,3 @@ script:
   - make test
   - make all
   - ./init-exporter --version
-  - ./init-exporter-converter --version
