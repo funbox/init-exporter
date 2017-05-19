@@ -155,7 +155,7 @@ func (e *Exporter) writeServicesUnits(app *procfile.Application) error {
 	}
 
 	for _, service := range app.Services {
-		if service.Options.Count == 0 {
+		if service.Options.Count <= 1 {
 			err = e.writeServiceUnit(service, app.Name, "")
 
 			if err != nil {
