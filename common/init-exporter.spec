@@ -115,6 +115,7 @@ rm -rf %{buildroot}
 - Migrated to ek.v9
 - Fixed count property handling
 - init-exporter-converter moved to separate repository
+- Changed default permissions for helpers to 0644
 
 * Wed May 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.14.0-1
 - [init-exporter-converter] Added validation for result YAML data
