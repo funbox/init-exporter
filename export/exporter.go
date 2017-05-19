@@ -207,7 +207,7 @@ func (e *Exporter) writeServiceUnit(service *procfile.Service, appName, index st
 		log.Debug("Unit for %s (%s) saved as %s", service.Name, index, unitPath)
 	}
 
-	err = ioutil.WriteFile(service.HelperPath, []byte(helperData), 0755)
+	err = ioutil.WriteFile(service.HelperPath, []byte(helperData), 0644)
 
 	if err != nil {
 		return err
