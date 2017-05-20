@@ -10,10 +10,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
-	"pkg.re/essentialkaos/ek.v8/fsutil"
-	"pkg.re/essentialkaos/ek.v8/log"
-	"pkg.re/essentialkaos/ek.v8/path"
+	"pkg.re/essentialkaos/ek.v9/fsutil"
+	"pkg.re/essentialkaos/ek.v9/log"
+	"pkg.re/essentialkaos/ek.v9/path"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -154,39 +155,68 @@ func (e *Exporter) writeServicesUnits(app *procfile.Application) error {
 	}
 
 	for _, service := range app.Services {
-		fullServiceName := app.Name + "-" + service.Name
+		if service.Options.Count <= 1 {
+			err = e.writeServiceUnit(service, app.Name, "")
 
-		service.HelperPath = e.helperPath(fullServiceName)
+			if err != nil {
+				return err
+			}
+		} else {
+			for i := 1; i <= service.Options.Count; i++ {
+				err = e.writeServiceUnit(service, app.Name, strconv.Itoa(i))
 
-		helperData, err := e.Provider.RenderHelperTemplate(service)
-
-		if err != nil {
-			return err
+				if err != nil {
+					return err
+				}
+			}
 		}
+	}
 
-		unitData, err := e.Provider.RenderServiceTemplate(service)
+	return nil
+}
 
-		if err != nil {
-			return err
-		}
+// writeServiceUnit create unit and helper for given service
+func (e *Exporter) writeServiceUnit(service *procfile.Service, appName, index string) error {
+	fullServiceName := appName + "-" + service.Name + index
 
-		unitPath := e.unitPath(fullServiceName)
+	service.HelperPath = e.helperPath(fullServiceName)
 
-		err = ioutil.WriteFile(unitPath, []byte(unitData), 0644)
+	helperData, err := e.Provider.RenderHelperTemplate(service)
 
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		log.Debug("Service unit saved as %s", unitPath)
+	unitData, err := e.Provider.RenderServiceTemplate(service)
 
-		err = ioutil.WriteFile(service.HelperPath, []byte(helperData), 0755)
+	if err != nil {
+		return err
+	}
 
-		if err != nil {
-			return err
-		}
+	unitPath := e.unitPath(fullServiceName)
 
-		log.Debug("Helper saved as %s", service.HelperPath)
+	err = ioutil.WriteFile(unitPath, []byte(unitData), 0644)
+
+	if err != nil {
+		return err
+	}
+
+	if index == "" {
+		log.Debug("Unit for %s saved as %s", service.Name, unitPath)
+	} else {
+		log.Debug("Unit for %s (%s) saved as %s", service.Name, index, unitPath)
+	}
+
+	err = ioutil.WriteFile(service.HelperPath, []byte(helperData), 0644)
+
+	if err != nil {
+		return err
+	}
+
+	if index == "" {
+		log.Debug("Helper for %s saved as %s", service.Name, service.HelperPath)
+	} else {
+		log.Debug("Helper for %s (%s) saved as %s", service.Name, index, service.HelperPath)
 	}
 
 	return nil

@@ -9,7 +9,7 @@ package procfile
 import (
 	"fmt"
 
-	"pkg.re/essentialkaos/ek.v8/log"
+	"pkg.re/essentialkaos/ek.v9/log"
 
 	"pkg.re/essentialkaos/go-simpleyaml.v1"
 )

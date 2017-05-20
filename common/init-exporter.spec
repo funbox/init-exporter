@@ -42,8 +42,8 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.14.0
-Release:         1%{?dist}
+Version:         0.15.0
+Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
 URL:             https://github.com/funbox/init-exporter
@@ -66,17 +66,6 @@ Utility for exporting services described by Procfile to init system.
 
 ###############################################################################
 
-%package converter
-
-Summary:         Utility for converting procfiles from v1 to v2 format
-Version:         0.7.0
-Release:         0%{?dist}
-
-%description converter
-Utility for converting procfiles from v1 to v2 format.
-
-###############################################################################
-
 %prep
 %setup -q
 
@@ -86,9 +75,6 @@ export GOPATH=$(pwd)
 pushd src/github.com/funbox/%{name}
   %{__make} %{?_smp_mflags}
 popd
-
-go build -o %{name} src/github.com/funbox/%{name}/%{name}.go
-go build -o %{name}-converter src/github.com/funbox/%{name}/%{name}-converter.go
 
 %install
 rm -rf %{buildroot}
@@ -100,9 +86,6 @@ install -dm 755 %{buildroot}%{_loc_prefix}/%{name}
 install -dm 755 %{buildroot}%{_localstatedir}/local/%{name}/helpers
 
 install -pm 755 src/github.com/funbox/%{name}/%{name} \
-                %{buildroot}%{_bindir}/
-
-install -pm 755 src/github.com/funbox/%{name}/%{name}-converter \
                 %{buildroot}%{_bindir}/
 
 ln -sf %{_bindir}/%{name} %{buildroot}%{_bindir}/upstart-export
@@ -125,13 +108,15 @@ rm -rf %{buildroot}
 %{_bindir}/upstart-export
 %{_bindir}/systemd-export
 
-%files converter
-%defattr(-,root,root,-)
-%{_bindir}/init-exporter-converter
-
 ###############################################################################
 
 %changelog
+* Thu May 18 2017 Anton Novojilov <andyone@fun-box.ru> - 0.15.0-0
+- Migrated to ek.v9
+- Fixed count property handling
+- init-exporter-converter moved to separate repository
+- Changed default permissions for helpers to 0644
+
 * Wed May 03 2017 Anton Novojilov <andyone@fun-box.ru> - 0.14.0-1
 - [init-exporter-converter] Added validation for result YAML data
 

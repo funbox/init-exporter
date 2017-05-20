@@ -13,10 +13,10 @@ import (
 	"sort"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v8/errutil"
-	"pkg.re/essentialkaos/ek.v8/fsutil"
-	"pkg.re/essentialkaos/ek.v8/log"
-	"pkg.re/essentialkaos/ek.v8/path"
+	"pkg.re/essentialkaos/ek.v9/errutil"
+	"pkg.re/essentialkaos/ek.v9/fsutil"
+	"pkg.re/essentialkaos/ek.v9/log"
+	"pkg.re/essentialkaos/ek.v9/path"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -161,6 +161,30 @@ func (so *ServiceOptions) Validate() []error {
 
 	for envName, envVal := range so.Env {
 		errs.Add(checkEnv(envName, envVal))
+	}
+
+	if so.Count < 0 {
+		errs.Add(fmt.Errorf("Property \"count\" must be greater or equal 0"))
+	}
+
+	if so.KillTimeout < 0 {
+		errs.Add(fmt.Errorf("Property \"kill_timeout\" must be greater or equal 0"))
+	}
+
+	if so.LimitFile < 0 {
+		errs.Add(fmt.Errorf("Property \"nofile\" must be greater or equal 0"))
+	}
+
+	if so.LimitProc < 0 {
+		errs.Add(fmt.Errorf("Property \"nproc\" must be greater or equal 0"))
+	}
+
+	if so.RespawnCount < 0 {
+		errs.Add(fmt.Errorf("Property \"respawn:count\" must be greater or equal 0"))
+	}
+
+	if so.RespawnInterval < 0 {
+		errs.Add(fmt.Errorf("Property \"respawn:interval\" must be greater or equal 0"))
 	}
 
 	return errs.All()
