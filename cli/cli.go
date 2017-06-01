@@ -169,6 +169,9 @@ func checkArguments() {
 		proc := options.GetS(OPT_PROCFILE)
 
 		switch {
+		case proc == "":
+			printErrorAndExit("You should define path to procfile", proc)
+
 		case fsutil.IsExist(proc) == false:
 			printErrorAndExit("Procfile %s does not exist", proc)
 

@@ -113,6 +113,8 @@ rm -rf %{buildroot}
 %changelog
 * Thu Jun 01 2017 Anton Novojilov <andyone@fun-box.ru> - 0.15.1-0
 - Added support of asterisk symbol in environment variables
+- Improved paths validation
+- Improved procfile path validation
 
 * Thu May 18 2017 Anton Novojilov <andyone@fun-box.ru> - 0.15.0-0
 - Migrated to ek.v9

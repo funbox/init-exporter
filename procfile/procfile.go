@@ -156,8 +156,14 @@ func (so *ServiceOptions) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkPath(so.WorkingDir))
-	errs.Add(checkPath(so.LogFile))
-	errs.Add(checkPath(so.EnvFile))
+
+	if so.IsCustomLogEnabled() {
+		errs.Add(checkPath(so.FullLogPath()))
+	}
+
+	if so.IsEnvFileSet() {
+		errs.Add(checkPath(so.FullEnvFilePath()))
+	}
 
 	for envName, envVal := range so.Env {
 		errs.Add(checkEnv(envName, envVal))
