@@ -25,7 +25,7 @@ const (
 	REGEXP_V1_LINE     = `^([A-z\d_]+):\s*(.+)`
 	REGEXP_V2_VERSION  = `(?m)^\s*version:\s*2\s*$`
 	REGEXP_PATH_CHECK  = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;${}"' =]+\z`
+	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;${}"' =\*]+\z`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -156,8 +156,14 @@ func (so *ServiceOptions) Validate() []error {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkPath(so.WorkingDir))
-	errs.Add(checkPath(so.LogFile))
-	errs.Add(checkPath(so.EnvFile))
+
+	if so.IsCustomLogEnabled() {
+		errs.Add(checkPath(so.FullLogPath()))
+	}
+
+	if so.IsEnvFileSet() {
+		errs.Add(checkPath(so.FullEnvFilePath()))
+	}
 
 	for envName, envVal := range so.Env {
 		errs.Add(checkEnv(envName, envVal))
@@ -486,8 +492,14 @@ func checkEnv(name, value string) error {
 	}
 
 	if strings.Contains(value, " ") {
-		if !strings.Contains(value, "\"") && !strings.Contains(value, "'") {
+		if isUnquotedValue(value) {
 			return fmt.Errorf("Environment variable %s has unquoted value with spaces", name)
+		}
+	}
+
+	if strings.Contains(value, "*") {
+		if isUnquotedValue(value) {
+			return fmt.Errorf("Environment variable %s has unquoted asterisk symbol", name)
 		}
 	}
 
@@ -534,4 +546,25 @@ func addCrossLink(app *Application) {
 	for _, service := range app.Services {
 		service.Application = app
 	}
+}
+
+// isUnquotedValue return true if given value is unquoted
+func isUnquotedValue(value string) bool {
+	if !strings.Contains(value, "\"") && !strings.Contains(value, "'") {
+		return true
+	}
+
+	if strings.Contains(value, "\"") {
+		if strings.Count(value, "\"")%2 != 0 {
+			return true
+		}
+	}
+
+	if strings.Contains(value, "'") {
+		if strings.Count(value, "'")%2 != 0 {
+			return true
+		}
+	}
+
+	return false
 }

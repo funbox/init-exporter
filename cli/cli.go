@@ -31,7 +31,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.15.0"
+	VER  = "0.15.1"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -169,6 +169,9 @@ func checkArguments() {
 		proc := options.GetS(OPT_PROCFILE)
 
 		switch {
+		case proc == "":
+			printErrorAndExit("You should define path to procfile", proc)
+
 		case fsutil.IsExist(proc) == false:
 			printErrorAndExit("Procfile %s does not exist", proc)
 

@@ -28,6 +28,7 @@ commands:
       JAVA_OPTS: '"${JAVA_OPTS} -Xms512m -Xmx1g -XX:+HeapDumpOnIutOfMemoryError -Djava.net.preferIPv4Stack=true"'
       AUX_OPTS: "'--debug --native'"
       QUEUE: log_syncronizer,file_downloader,log_searcher
+      PATTERN: "'*'"
       HEX_HOME: /srv/projects/ploy/shared/tmp
       LC_ALL: "en_US.UTF-8"
     working_directory: '/var/...' # if needs to be redefined
