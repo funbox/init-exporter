@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.15.1
+Version:         0.15.2
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Tue Aug 29 2017 Anton Novojilov <andyone@fun-box.ru> - 0.15.2-0
+- Fixed output redirect in systemd units
+
 * Thu Jun 01 2017 Anton Novojilov <andyone@fun-box.ru> - 0.15.1-0
 - Added support of asterisk symbol in environment variables
 - Improved paths validation
