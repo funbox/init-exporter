@@ -371,7 +371,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"User=service",
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
-			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-serviceA1.sh &>>/var/log/test_application/serviceA.log", helperDir),
+			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA1.sh &>>/var/log/test_application/serviceA.log'", helperDir),
 			"",
 			""},
 	)
@@ -403,7 +403,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"User=service",
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
-			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-serviceA2.sh &>>/var/log/test_application/serviceA.log", helperDir),
+			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA2.sh &>>/var/log/test_application/serviceA.log'", helperDir),
 			"",
 			""},
 	)
@@ -435,7 +435,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"User=service",
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
-			fmt.Sprintf("ExecStart=/bin/bash %s/test_application-serviceB.sh &>>/var/log/test_application/serviceB.log", helperDir),
+			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceB.sh &>>/var/log/test_application/serviceB.log'", helperDir),
 			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
 			""},
 	)
