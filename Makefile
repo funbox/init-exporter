@@ -15,6 +15,7 @@ init-exporter:
 	go build init-exporter.go
 
 deps:
+	git config --global http.https://pkg.re.followRedirects true
 	go get -d -v pkg.re/check.v1
 	go get -d -v pkg.re/essentialkaos/ek.v9
 	go get -d -v pkg.re/essentialkaos/go-simpleyaml.v1
