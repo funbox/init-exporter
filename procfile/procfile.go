@@ -17,6 +17,7 @@ import (
 	"pkg.re/essentialkaos/ek.v9/fsutil"
 	"pkg.re/essentialkaos/ek.v9/log"
 	"pkg.re/essentialkaos/ek.v9/path"
+	"pkg.re/essentialkaos/ek.v9/strutil"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -329,43 +330,42 @@ func parseCommand(command string) (string, string, map[string]string) {
 
 	cmdSlice := strings.Fields(command)
 
-	for cmdIndex, cmdPart := range cmdSlice {
-		if strings.TrimSpace(cmdPart) == "" {
+	for index, token := range cmdSlice {
+		if strings.TrimSpace(token) == "" {
 			continue
 		}
 
-		if strings.HasPrefix(cmdPart, "env") {
+		if strings.HasPrefix(token, "env") {
 			env = make(map[string]string)
 			isEnv = true
 			continue
 		}
 
-		if cmdIndex == 0 && strings.Contains(cmdPart, "=") {
+		if index == 0 && strings.Contains(token, "=") {
 			env = make(map[string]string)
 			isEnv = true
 		}
 
 		if isEnv {
-			if strings.Contains(cmdPart, "=") {
-				envSlice := strings.Split(cmdPart, "=")
-				env[envSlice[0]] = envSlice[1]
+			if strings.Contains(token, "=") {
+				env[strutil.ReadField(token, 0, false, "=")] = strutil.ReadField(token, 1, false, "=")
 				continue
 			} else {
 				isEnv = false
 			}
 		}
 
-		if strings.Contains(cmdPart, ">>") {
+		if strings.Contains(token, ">>") {
 			isLog = true
 			continue
 		}
 
 		if isLog {
-			log = cmdPart
+			log = token
 			break
 		}
 
-		cmd = append(cmd, cmdPart)
+		cmd = append(cmd, token)
 	}
 
 	return strings.Join(cmd, " "), log, env
