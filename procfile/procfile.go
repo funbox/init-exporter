@@ -329,7 +329,7 @@ func parseCommand(command string) (string, string, map[string]string) {
 
 	cmdSlice := strings.Fields(command)
 
-	for _, cmdPart := range cmdSlice {
+	for cmdIndex, cmdPart := range cmdSlice {
 		if strings.TrimSpace(cmdPart) == "" {
 			continue
 		}
@@ -338,6 +338,11 @@ func parseCommand(command string) (string, string, map[string]string) {
 			env = make(map[string]string)
 			isEnv = true
 			continue
+		}
+
+		if cmdIndex == 0 && strings.Contains(cmdPart, "=") {
+			env = make(map[string]string)
+			isEnv = true
 		}
 
 		if isEnv {
