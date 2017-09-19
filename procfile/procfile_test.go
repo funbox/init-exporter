@@ -50,6 +50,8 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 	c.Assert(app.Services[1].Cmd, Equals, "/usr/bin/tailf /var/log/messages")
 	c.Assert(app.Services[1].PreCmd, Equals, "echo my_another_tail_cmd")
 	c.Assert(app.Services[1].Options, NotNil)
+	c.Assert(app.Services[1].Options.Env, HasLen, 1)
+	c.Assert(app.Services[1].Options.Env["BASIC_ENN"], Equals, "abc")
 	c.Assert(app.Services[1].Options.LogFile, Equals, "log/my_another_tail_cmd.log")
 
 	c.Assert(app.Services[2].Name, Equals, "cmd_with_cd")

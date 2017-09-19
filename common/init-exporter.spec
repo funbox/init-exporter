@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.15.2
+Version:         0.16.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Thu Sep 14 2017 Anton Novojilov <andyone@fun-box.ru> - 0.16.0-0
+- Improved environment variables parsing in v1
+
 * Tue Aug 29 2017 Anton Novojilov <andyone@fun-box.ru> - 0.15.2-0
 - Fixed output redirect in systemd units
 
