@@ -7,6 +7,7 @@ package export
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -194,7 +195,13 @@ func (sp *SystemdProvider) renderWantsClause(app *procfile.Application) string {
 	var wants []string
 
 	for _, service := range app.Services {
-		wants = append(wants, sp.UnitName(app.Name+"-"+service.Name))
+		if service.Options.Count <= 0 {
+			wants = append(wants, sp.UnitName(app.Name+"-"+service.Name))
+		} else {
+			for i := 1; i <= service.Options.Count; i++ {
+				wants = append(wants, sp.UnitName(app.Name+"-"+service.Name+strconv.Itoa(i)))
+			}
+		}
 	}
 
 	return strings.Join(wants, " ")
