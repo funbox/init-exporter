@@ -7,6 +7,7 @@ package export
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -41,7 +42,7 @@ const TEMPLATE_SYSTEMD_APP = `# This unit generated {{.ExportDate}} by init-expo
 
 Description=Unit for {{.Application.Name}} application
 After={{.StartLevel}}
-Wants={{.Wants}}
+{{.Wants}}
 
 [Service]
 Type=oneshot
@@ -124,12 +125,24 @@ func (sp *SystemdProvider) UnitName(name string) string {
 
 // EnableService enable service with given name
 func (sp *SystemdProvider) EnableService(appName string) error {
-	return exec.Run("systemctl", "enable", sp.UnitName(appName))
+	err := exec.Run("systemctl", "enable", sp.UnitName(appName))
+
+	if err != nil {
+		return errors.New("Can't enable service through systemctl")
+	}
+
+	return nil
 }
 
 // DisableService disable service with given name
 func (sp *SystemdProvider) DisableService(appName string) error {
-	return exec.Run("systemctl", "disable", sp.UnitName(appName))
+	err := exec.Run("systemctl", "disable", sp.UnitName(appName))
+
+	if err != nil {
+		return errors.New("Can't disable service through systemctl")
+	}
+
+	return nil
 }
 
 // RenderAppTemplate render unit template data with given app data and return
@@ -193,16 +206,33 @@ func (sp *SystemdProvider) renderLevel(level int) string {
 // renderWantsClause render list of services in application for upstart config
 func (sp *SystemdProvider) renderWantsClause(app *procfile.Application) string {
 	var wants []string
+	var buffer string
 
 	for _, service := range app.Services {
 		if service.Options.Count <= 0 {
-			wants = append(wants, sp.UnitName(app.Name+"-"+service.Name))
+			unitName := sp.UnitName(app.Name+"-"+service.Name) + " "
+
+			if len(buffer)+len(unitName) >= 1536 {
+				wants = append(wants, strings.TrimSpace(buffer))
+				buffer = ""
+			}
+
+			buffer += unitName
 		} else {
 			for i := 1; i <= service.Options.Count; i++ {
-				wants = append(wants, sp.UnitName(app.Name+"-"+service.Name+strconv.Itoa(i)))
+				unitName := sp.UnitName(app.Name+"-"+service.Name+strconv.Itoa(i)) + " "
+
+				if len(buffer)+len(unitName) >= 1536 {
+					wants = append(wants, "Wants="+strings.TrimSpace(buffer))
+					buffer = ""
+				}
+
+				buffer += unitName
 			}
 		}
 	}
 
-	return strings.Join(wants, " ")
+	wants = append(wants, "Wants="+strings.TrimSpace(buffer))
+
+	return strings.Join(wants, "\n")
 }
