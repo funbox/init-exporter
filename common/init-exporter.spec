@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.16.0
+Version:         0.16.1
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -111,6 +111,10 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Fri Oct 13 2017 Anton Novojilov <andyone@fun-box.ru> - 0.16.1-0
+- Fixed bug with exporting multiple systemd units for command
+- Fixed bug with generating Wants clause for systemd unit exceeding LINE_MAX
+
 * Thu Sep 14 2017 Anton Novojilov <andyone@fun-box.ru> - 0.16.0-0
 - Improved environment variables parsing in v1
 

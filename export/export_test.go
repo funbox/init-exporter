@@ -327,7 +327,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"",
 			"Description=Unit for test_application application",
 			"After=multi-user.target",
-			"Wants=test_application-serviceA.service test_application-serviceB.service",
+			"Wants=test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
 			"",
 			"[Service]",
 			"Type=oneshot",
