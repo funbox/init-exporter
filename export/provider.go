@@ -39,6 +39,9 @@ type Provider interface {
 
 	// DisableService disable service with given name
 	DisableService(appName string) error
+
+	// Reload reload service units
+	Reload() error
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

@@ -25,6 +25,7 @@ type Config struct {
 	HelperDir        string
 	TargetDir        string
 	DisableAutoStart bool
+	DisableReload    bool
 }
 
 type Exporter struct {
@@ -58,11 +59,15 @@ func (e *Exporter) Install(app *procfile.Application) error {
 		return err
 	}
 
+	log.Debug("Service %s application unit created", app.Name)
+
 	err = e.writeServicesUnits(app)
 
 	if err != nil {
 		return err
 	}
+
+	log.Debug("Service %s units created", app.Name)
 
 	if !e.Config.DisableAutoStart {
 		err = e.Provider.EnableService(app.Name)
@@ -72,6 +77,16 @@ func (e *Exporter) Install(app *procfile.Application) error {
 		}
 
 		log.Debug("Service %s enabled", app.Name)
+	}
+
+	if !e.Config.DisableReload {
+		err = e.Provider.Reload()
+
+		if err != nil {
+			return err
+		}
+
+		log.Debug("Units reloaded")
 	}
 
 	return nil
@@ -110,7 +125,7 @@ func (e *Exporter) Uninstall(app *procfile.Application) error {
 		return err
 	}
 
-	log.Debug("Service units deleted")
+	log.Debug("Service %s units deleted", app.Name)
 
 	err = deleteByMask(e.Config.HelperDir, app.Name+"-*.sh")
 
@@ -119,6 +134,16 @@ func (e *Exporter) Uninstall(app *procfile.Application) error {
 	}
 
 	log.Debug("Helpers deleted")
+
+	if !e.Config.DisableReload {
+		err = e.Provider.Reload()
+
+		if err != nil {
+			return err
+		}
+
+		log.Debug("Units reloaded")
+	}
 
 	return nil
 }

@@ -246,6 +246,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 		HelperDir:        helperDir,
 		TargetDir:        targetDir,
 		DisableAutoStart: true,
+		DisableReload:    true,
 	}
 
 	exporter := NewExporter(config, NewSystemd())

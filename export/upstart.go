@@ -116,6 +116,11 @@ func (up *UpstartProvider) DisableService(appName string) error {
 	return nil
 }
 
+// Reload reload service units
+func (up *UpstartProvider) Reload() error {
+	return nil
+}
+
 // RenderAppTemplate render unit template data with given app data and return
 // app unit code
 func (up *UpstartProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
