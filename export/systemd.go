@@ -145,6 +145,17 @@ func (sp *SystemdProvider) DisableService(appName string) error {
 	return nil
 }
 
+// Reload reload service units
+func (sp *SystemdProvider) Reload() error {
+	err := exec.Run("systemctl", "daemon-reload")
+
+	if err != nil {
+		return errors.New("Can't reload units through systemctl")
+	}
+
+	return nil
+}
+
 // RenderAppTemplate render unit template data with given app data and return
 // app unit code
 func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
