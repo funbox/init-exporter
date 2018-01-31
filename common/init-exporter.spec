@@ -73,7 +73,7 @@ Utility for exporting services described by Procfile to init system.
 export GOPATH=$(pwd)
 
 pushd src/github.com/funbox/%{name}
-  %{__make} %{?_smp_mflags}
+  %{__make} %{?_smp_mflags} all
 popd
 
 %install
