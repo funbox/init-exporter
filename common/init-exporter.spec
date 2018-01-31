@@ -1,8 +1,8 @@
-###############################################################################
+################################################################################
 
 # rpmbuilder:relative-pack true
 
-###############################################################################
+################################################################################
 
 %define _posixroot        /
 %define _root             /root
@@ -34,11 +34,11 @@
 %define _rpmstatedir      %{_sharedstatedir}/rpm-state
 %define _pkgconfigdir     %{_libdir}/pkgconfig
 
-###############################################################################
+################################################################################
 
 %define  debug_package %{nil}
 
-###############################################################################
+################################################################################
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
@@ -59,12 +59,12 @@ Provides:        systemd-exporter = %{version}-%{release}
 
 Provides:        %{name} = %{version}-%{release}
 
-###############################################################################
+################################################################################
 
 %description
 Utility for exporting services described by Procfile to init system.
 
-###############################################################################
+################################################################################
 
 %prep
 %setup -q
@@ -73,7 +73,7 @@ Utility for exporting services described by Procfile to init system.
 export GOPATH=$(pwd)
 
 pushd src/github.com/funbox/%{name}
-  %{__make} %{?_smp_mflags}
+  %{__make} %{?_smp_mflags} all
 popd
 
 %install
@@ -97,7 +97,7 @@ install -pm 755 src/github.com/funbox/%{name}/common/%{name}.conf \
 %clean
 rm -rf %{buildroot}
 
-###############################################################################
+################################################################################
 
 %files
 %defattr(-,root,root,-)
@@ -108,7 +108,7 @@ rm -rf %{buildroot}
 %{_bindir}/upstart-export
 %{_bindir}/systemd-export
 
-###############################################################################
+################################################################################
 
 %changelog
 * Wed Nov 08 2017 Anton Novojilov <andyone@fun-box.ru> - 0.17.0-0
