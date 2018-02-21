@@ -133,7 +133,7 @@ deployuser        ALL=(deployuser) NOPASSWD: ALL, (root) NOPASSWD: UPSTART, SYST
 
 ### Usage
 
-`init-exporter` is able to process two versions of Procfiles. Utility automatically recognise used format.
+`init-exporter` is able to process two versions of Procfiles. Utility automatically recognises used format.
 
 #### Procfile v.1
 
@@ -180,7 +180,7 @@ commands:
     env:
       RAILS_ENV: staging # if needs to be redefined or extended
     working_directory: '/var/...' # if needs to be redefined
-  
+
   my_another_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
     kill_timeout: 60
@@ -188,13 +188,13 @@ commands:
     reload_signal: SIGUSR2
     env_file: shared/staging.env
     respawn: false # by default respawn option is enabled
-  
+
   my_one_another_tail_cmd:
     pre: /usr/bin/echo pre_command
     command: /usr/bin/tail -F /var/log/messages
     post: /usr/bin/echo post_command
     log: /var/log/messages_copy
-  
+
   my_multi_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
     count: 2
