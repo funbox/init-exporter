@@ -2,7 +2,7 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2017 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -23,10 +23,10 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
-	REGEXP_V1_LINE     = `^([A-z\d_]+):\s*(.+)`
-	REGEXP_V2_VERSION  = `(?m)^\s*version:\s*2\s*$`
-	REGEXP_PATH_CHECK  = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_VALUE_CHECK = `\A[A-Za-z0-9_\-.,+/:;${}"' =\*]+\z`
+	REGEXP_V1_LINE    = `^([A-z\d_]+):\s*(.+)`
+	REGEXP_V2_VERSION = `(?m)^\s*version:\s*2\s*$`
+	REGEXP_PATH_CHECK = `\A[A-Za-z0-9_\-./]+\z`
+	REGEXP_NAME_CHECK = `\A[A-Za-z0-9_\-]+\z`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -146,7 +146,10 @@ func (a *Application) Validate() []error {
 func (s *Service) Validate() []error {
 	errs := errutil.NewErrors()
 
-	errs.Add(checkValue(s.Name))
+	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(s.Name) {
+		errs.Add(fmt.Errorf("Service name %s is misformatted and can't be accepted", s.Name))
+	}
+
 	errs.Add(s.Options.Validate()...)
 
 	return errs.All()
@@ -508,25 +511,8 @@ func checkEnv(name, value string) error {
 		}
 	}
 
-	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(name) {
+	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(name) {
 		return fmt.Errorf("Environment variable name %s is misformatted and can't be accepted", name)
-	}
-
-	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(value) {
-		return fmt.Errorf("Environment variable value %s is misformatted and can't be accepted", value)
-	}
-
-	return nil
-}
-
-// checkValue check any value and return error if value is insecure
-func checkValue(value string) error {
-	if value == "" {
-		return nil
-	}
-
-	if !regexp.MustCompile(REGEXP_VALUE_CHECK).MatchString(value) {
-		return fmt.Errorf("Value %s is insecure and can't be accepted", value)
 	}
 
 	return nil

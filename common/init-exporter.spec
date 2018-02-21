@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.17.0
+Version:         0.18.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -52,7 +52,7 @@ Source0:         %{name}-%{version}.tar.gz
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.8
+BuildRequires:   golang >= 1.9
 
 Provides:        upstart-exporter = %{version}-%{release}
 Provides:        systemd-exporter = %{version}-%{release}
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Wed Feb 21 2018 Anton Novojilov <andyone@fun-box.ru> - 0.18.0-0
+- Removed validation for environment variables' values
+
 * Wed Nov 08 2017 Anton Novojilov <andyone@fun-box.ru> - 0.17.0-0
 - Reloading units after application installation and uninstallation
 
