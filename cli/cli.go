@@ -3,7 +3,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2017 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -31,7 +31,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.17.0"
+	VER  = "0.18.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
