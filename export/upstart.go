@@ -28,6 +28,7 @@ const TEMPLATE_UPSTART_HELPER = `#!/bin/bash
 # This helper generated {{.ExportDate}} by init-exporter/upstart for {{.Application.Name}} application
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
+[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh
 
 cd {{.Service.Options.WorkingDir}} && {{ if .Service.HasPreCmd }}{{.Service.GetCommandExec "pre"}} && {{ end }}{{.Service.GetCommandExec ""}}{{ if .Service.HasPostCmd }} && {{.Service.GetCommandExec "post"}}{{ end }}
 `
