@@ -31,6 +31,7 @@ const TEMPLATE_SYSTEMD_HELPER = `#!/bin/bash
 # This helper generated {{.ExportDate}} by init-exporter/systemd for {{.Application.Name}} application
 
 [[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh
+[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh
 
 {{ if .Service.HasPreCmd }}{{.Service.GetCommandExec "pre"}} && {{ end }}{{.Service.GetCommandExec ""}}{{ if .Service.HasPostCmd }} && {{.Service.GetCommandExec "post"}}{{ end }}
 `

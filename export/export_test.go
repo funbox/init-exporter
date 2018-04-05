@@ -215,14 +215,14 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 
 	c.Assert(serviceAHelper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
 			"cd /srv/service/serviceA-dir && exec env STAGING=true /bin/echo 'serviceA:pre' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA:post' &>>/srv/service/serviceA-dir/log/serviceA.log",
 			""},
 	)
 
 	c.Assert(serviceBHelper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
 			"cd /srv/service/working-dir && exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
 			""},
 	)
@@ -443,14 +443,14 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 
 	c.Assert(serviceAHelper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
 			"exec env STAGING=true /bin/echo 'serviceA:pre' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA' &>>/srv/service/serviceA-dir/log/serviceA.log && exec env STAGING=true /bin/echo 'serviceA:post' &>>/srv/service/serviceA-dir/log/serviceA.log",
 			""},
 	)
 
 	c.Assert(serviceBHelper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "",
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
 			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
 			""},
 	)
