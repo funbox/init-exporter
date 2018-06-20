@@ -49,6 +49,24 @@ commands:
   my_one_another_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages
     log: log/my_one_another_tail_cmd.log
+    resources:
+      cpu_weight: 50
+      startup_cpu_weight: 15
+      cpu_quota: 40%
+      memory_low: 1G
+      memory_high: 4G
+      memory_max: 8G
+      memory_swap_max: 2G
+      task_max: 150
+      io_weight: 70
+      startup_io_weight: 80
+      io_device_weight: /dev/sda 200
+      io_read_bandwidth_max: /dev/sda 200M
+      io_write_bandwidth_max: /dev/sda 50M
+      io_read_iops_max: /dev/sda 1K
+      io_write_iops_max: /dev/sda 2K
+      ip_address_allow: 127.0.0.0/8 ::1/128
+      ip_address_deny: 0.0.0.0/0 ::/0
   
   my_multi_tail_cmd:
     command: /usr/bin/tail -F /var/log/messages

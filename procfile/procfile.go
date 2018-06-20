@@ -68,6 +68,27 @@ type ServiceOptions struct {
 	IsRespawnEnabled bool              // Respawn enabled flag
 	LimitProc        int               // Processes limit
 	LimitFile        int               // Descriptors limit
+	Resources        *Resources        // Resources limits (systemd only)
+}
+
+type Resources struct {
+	CPUWeight           int
+	StartupCPUWeight    int
+	CPUQuota            string
+	MemoryLow           string
+	MemoryHigh          string
+	MemoryMax           string
+	MemorySwapMax       string
+	TasksMax            int
+	IOWeight            int
+	StartupIOWeight     int
+	IODeviceWeight      string
+	IOReadBandwidthMax  string
+	IOWriteBandwidthMax string
+	IOReadIOPSMax       string
+	IOWriteIOPSMax      string
+	IPAddressAllow      string
+	IPAddressDeny       string
 }
 
 type Application struct {
@@ -280,6 +301,11 @@ func (so *ServiceOptions) IsKillSignalSet() bool {
 // IsReloadSignalSet return true if custom reload signal set
 func (so *ServiceOptions) IsReloadSignalSet() bool {
 	return so.ReloadSignal != ""
+}
+
+// IsResourcesSet return true if resources limits are set
+func (so *ServiceOptions) IsResourcesSet() bool {
+	return so.Resources != nil
 }
 
 // EnvString return environment variables as string

@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.19.0
+Version:         0.20.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Wed Jun 20 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.0-0
+- Added support of resources usage configuration
+
 * Thu Apr 05 2018 Anton Novojilov <andyone@fun-box.ru> - 0.19.0-0
 - Added pyenv support
 
