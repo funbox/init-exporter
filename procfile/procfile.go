@@ -17,6 +17,7 @@ import (
 	"pkg.re/essentialkaos/ek.v9/fsutil"
 	"pkg.re/essentialkaos/ek.v9/log"
 	"pkg.re/essentialkaos/ek.v9/path"
+	"pkg.re/essentialkaos/ek.v9/sliceutil"
 	"pkg.re/essentialkaos/ek.v9/strutil"
 )
 
@@ -61,6 +62,7 @@ type ServiceOptions struct {
 	LogFile          string            // Path to log file
 	KillTimeout      int               // Kill timeout in seconds
 	KillSignal       string            // Kill signal name
+	KillMode         string            // Kill mode (systemd only)
 	ReloadSignal     string            // Reload signal name
 	Count            int               // Exec count
 	RespawnInterval  int               // Respawn interval in seconds
@@ -74,7 +76,7 @@ type ServiceOptions struct {
 type Resources struct {
 	CPUWeight           int
 	StartupCPUWeight    int
-	CPUQuota            string
+	CPUQuota            int
 	MemoryLow           string
 	MemoryHigh          string
 	MemoryMax           string
@@ -218,6 +220,32 @@ func (so *ServiceOptions) Validate() []error {
 		errs.Add(fmt.Errorf("Property \"respawn:interval\" must be greater or equal 0"))
 	}
 
+	if so.KillMode != "" && !sliceutil.Contains([]string{"control-group", "process", "mixed", "none"}, so.KillMode) {
+		errs.Add(fmt.Errorf("Property \"kill_mode\" must contains 'control-group', 'process', 'mixed' or 'none'"))
+	}
+
+	if so.Resources != nil {
+		if so.Resources.CPUWeight < 0 || so.Resources.CPUWeight > 10000 {
+			errs.Add(fmt.Errorf("Property \"resources:cpu_weight\" must be greater or equal 0 and less or equal 10000"))
+		}
+
+		if so.Resources.StartupCPUWeight < 0 || so.Resources.StartupCPUWeight > 10000 {
+			errs.Add(fmt.Errorf("Property \"resources:startup_cpu_weight\" must be greater or equal 0 and less or equal 10000"))
+		}
+
+		if so.Resources.CPUQuota < 0 {
+			errs.Add(fmt.Errorf("Property \"resources:cpu_quota\" must be greater than 0"))
+		}
+
+		if so.Resources.IOWeight < 0 || so.Resources.IOWeight > 10000 {
+			errs.Add(fmt.Errorf("Property \"resources:io_weight\" must be greater or equal 0 and less or equal 10000"))
+		}
+
+		if so.Resources.StartupIOWeight < 0 || so.Resources.StartupIOWeight > 10000 {
+			errs.Add(fmt.Errorf("Property \"resources:startup_io_weight\" must be greater or equal 0 and less or equal 10000"))
+		}
+	}
+
 	return errs.All()
 }
 
@@ -296,6 +324,11 @@ func (so *ServiceOptions) IsProcLimitSet() bool {
 // IsKillSignalSet return true if custom kill signal set
 func (so *ServiceOptions) IsKillSignalSet() bool {
 	return so.KillSignal != ""
+}
+
+// IsKillModeSet return true if custom kill mode set
+func (so *ServiceOptions) IsKillModeSet() bool {
+	return so.KillMode != ""
 }
 
 // IsReloadSignalSet return true if custom reload signal set

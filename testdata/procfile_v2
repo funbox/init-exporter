@@ -40,6 +40,7 @@ commands:
     limits:
       nofile: 8192
       nproc: 8192
+    kill_mode: process
     kill_timeout: 60
     kill_signal: SIGQUIT
     reload_signal: SIGUSR2
@@ -52,7 +53,7 @@ commands:
     resources:
       cpu_weight: 50
       startup_cpu_weight: 15
-      cpu_quota: 40%
+      cpu_quota: 40
       memory_low: 1G
       memory_high: 4G
       memory_max: 8G

@@ -113,6 +113,7 @@ rm -rf %{buildroot}
 %changelog
 * Wed Jun 20 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.0-0
 - Added support of resources usage limits configuration (systemd feature)
+- Added support of kill mode configuration (systemd feature)
 
 * Thu Apr 05 2018 Anton Novojilov <andyone@fun-box.ru> - 0.19.0-0
 - Added pyenv support

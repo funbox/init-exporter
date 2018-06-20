@@ -72,6 +72,7 @@ PartOf={{.Application.Name}}.service
 [Service]
 Type=simple
 
+{{ if .Service.Options.IsKillModeSet }}KillMode={{.Service.Options.KillMode}}{{ end }}
 {{ if .Service.Options.IsKillSignalSet }}KillSignal={{.Service.Options.KillSignal}}{{ end }}
 TimeoutStopSec={{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsRespawnEnabled }}Restart=on-failure{{ end }}
@@ -135,8 +136,8 @@ func (sd *systemdServiceData) ResourcesAsString() string {
 		result += fmt.Sprintf("StartupCPUWeight=%d\n", resources.CPUWeight)
 	}
 
-	if resources.CPUQuota != "" {
-		result += fmt.Sprintf("CPUQuota=%s\n", resources.CPUQuota)
+	if resources.CPUQuota != 0 {
+		result += fmt.Sprintf("CPUQuota=%d%%\n", resources.CPUQuota)
 	}
 
 	if resources.MemoryLow != "" {

@@ -197,6 +197,14 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		}
 	}
 
+	if yaml.IsExist("kill_mode") {
+		options.KillMode, err = yaml.Get("kill_mode").String()
+
+		if err != nil {
+			return formatPropError("kill_mode", err)
+		}
+	}
+
 	if yaml.IsExist("reload_signal") {
 		options.ReloadSignal, err = yaml.Get("reload_signal").String()
 
@@ -236,7 +244,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 			options.RespawnCount, err = yaml.Get("respawn").Get("count").Int()
 
 			if err != nil {
-				return formatPropError("respawn.count", err)
+				return formatPropError("respawn:count", err)
 			}
 		}
 
@@ -244,7 +252,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 			options.RespawnInterval, err = yaml.Get("respawn").Get("interval").Int()
 
 			if err != nil {
-				return formatPropError("respawn.interval", err)
+				return formatPropError("respawn:interval", err)
 			}
 		}
 
@@ -261,7 +269,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 			options.LimitFile, err = yaml.Get("limits").Get("nofile").Int()
 
 			if err != nil {
-				return formatPropError("limits.nofile", err)
+				return formatPropError("limits:nofile", err)
 			}
 		}
 
@@ -269,7 +277,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 			options.LimitProc, err = yaml.Get("limits").Get("nproc").Int()
 
 			if err != nil {
-				return formatPropError("limits.nproc", err)
+				return formatPropError("limits:nproc", err)
 			}
 		}
 	}
@@ -295,7 +303,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.CPUWeight, err = yaml.Get("cpu_weight").Int()
 
 		if err != nil {
-			return nil, formatPropError("cpu_weight", err)
+			return nil, formatPropError("resources:cpu_weight", err)
 		}
 	}
 
@@ -303,15 +311,15 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.StartupCPUWeight, err = yaml.Get("startup_cpu_weight").Int()
 
 		if err != nil {
-			return nil, formatPropError("startup_cpu_weight", err)
+			return nil, formatPropError("resources:startup_cpu_weight", err)
 		}
 	}
 
 	if yaml.IsExist("cpu_quota") {
-		resources.CPUQuota, err = yaml.Get("cpu_quota").String()
+		resources.CPUQuota, err = yaml.Get("cpu_quota").Int()
 
 		if err != nil {
-			return nil, formatPropError("cpu_quota", err)
+			return nil, formatPropError("resources:cpu_quota", err)
 		}
 	}
 
@@ -319,7 +327,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.MemoryLow, err = yaml.Get("memory_low").String()
 
 		if err != nil {
-			return nil, formatPropError("memory_low", err)
+			return nil, formatPropError("resources:memory_low", err)
 		}
 	}
 
@@ -327,7 +335,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.MemoryHigh, err = yaml.Get("memory_high").String()
 
 		if err != nil {
-			return nil, formatPropError("memory_high", err)
+			return nil, formatPropError("resources:memory_high", err)
 		}
 	}
 
@@ -335,7 +343,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.MemoryMax, err = yaml.Get("memory_max").String()
 
 		if err != nil {
-			return nil, formatPropError("memory_max", err)
+			return nil, formatPropError("resources:memory_max", err)
 		}
 	}
 
@@ -343,7 +351,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.MemorySwapMax, err = yaml.Get("memory_swap_max").String()
 
 		if err != nil {
-			return nil, formatPropError("memory_swap_max", err)
+			return nil, formatPropError("resources:memory_swap_max", err)
 		}
 	}
 
@@ -351,7 +359,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.TasksMax, err = yaml.Get("task_max").Int()
 
 		if err != nil {
-			return nil, formatPropError("task_max", err)
+			return nil, formatPropError("resources:task_max", err)
 		}
 	}
 
@@ -359,7 +367,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IOWeight, err = yaml.Get("io_weight").Int()
 
 		if err != nil {
-			return nil, formatPropError("io_weight", err)
+			return nil, formatPropError("resources:io_weight", err)
 		}
 	}
 
@@ -367,7 +375,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.StartupIOWeight, err = yaml.Get("startup_io_weight").Int()
 
 		if err != nil {
-			return nil, formatPropError("startup_io_weight", err)
+			return nil, formatPropError("resources:startup_io_weight", err)
 		}
 	}
 
@@ -375,7 +383,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IODeviceWeight, err = yaml.Get("io_device_weight").String()
 
 		if err != nil {
-			return nil, formatPropError("io_device_weight", err)
+			return nil, formatPropError("resources:io_device_weight", err)
 		}
 	}
 
@@ -383,7 +391,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IOReadBandwidthMax, err = yaml.Get("io_read_bandwidth_max").String()
 
 		if err != nil {
-			return nil, formatPropError("io_read_bandwidth_max", err)
+			return nil, formatPropError("resources:io_read_bandwidth_max", err)
 		}
 	}
 
@@ -391,7 +399,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IOWriteBandwidthMax, err = yaml.Get("io_write_bandwidth_max").String()
 
 		if err != nil {
-			return nil, formatPropError("io_write_bandwidth_max", err)
+			return nil, formatPropError("resources:io_write_bandwidth_max", err)
 		}
 	}
 
@@ -399,7 +407,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IOReadIOPSMax, err = yaml.Get("io_read_iops_max").String()
 
 		if err != nil {
-			return nil, formatPropError("io_read_iops_max", err)
+			return nil, formatPropError("resources:io_read_iops_max", err)
 		}
 	}
 
@@ -407,7 +415,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IOWriteIOPSMax, err = yaml.Get("io_write_iops_max").String()
 
 		if err != nil {
-			return nil, formatPropError("io_write_iops_max", err)
+			return nil, formatPropError("resources:io_write_iops_max", err)
 		}
 	}
 
@@ -415,7 +423,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IPAddressAllow, err = yaml.Get("ip_address_allow").String()
 
 		if err != nil {
-			return nil, formatPropError("ip_address_allow", err)
+			return nil, formatPropError("resources:ip_address_allow", err)
 		}
 	}
 
@@ -423,7 +431,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		resources.IPAddressDeny, err = yaml.Get("ip_address_deny").String()
 
 		if err != nil {
-			return nil, formatPropError("ip_address_deny", err)
+			return nil, formatPropError("resources:ip_address_deny", err)
 		}
 	}
 
