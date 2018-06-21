@@ -65,6 +65,14 @@ The export process can be configured through the config `/etc/init-exporter.conf
   # Prefix used for exported units and helpers
   prefix: fb-
 
+[procfile]
+
+  # Enable/disable support of version 1 proc files
+  version1: false
+
+  # Enable/disable support of version 2 proc files
+  version2: true
+
 [paths]
 
   # Working dir
