@@ -169,7 +169,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.WorkingDir, err = yaml.Get("working_directory").String()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"working_directory\" value: %v", err)
+			return formatPropError("working_directory", err)
 		}
 	}
 
@@ -177,7 +177,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.LogFile, err = yaml.Get("log").String()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"log\" value: %v", err)
+			return formatPropError("log", err)
 		}
 	}
 
@@ -185,7 +185,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.KillTimeout, err = yaml.Get("kill_timeout").Int()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"kill_timeout\" value: %v", err)
+			return formatPropError("kill_timeout", err)
 		}
 	}
 
@@ -193,7 +193,15 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.KillSignal, err = yaml.Get("kill_signal").String()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"kill_signal\" value: %v", err)
+			return formatPropError("kill_signal", err)
+		}
+	}
+
+	if yaml.IsExist("kill_mode") {
+		options.KillMode, err = yaml.Get("kill_mode").String()
+
+		if err != nil {
+			return formatPropError("kill_mode", err)
 		}
 	}
 
@@ -201,7 +209,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.ReloadSignal, err = yaml.Get("reload_signal").String()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"reload_signal\" value: %v", err)
+			return formatPropError("reload_signal", err)
 		}
 	}
 
@@ -209,7 +217,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.Count, err = yaml.Get("count").Int()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"count\" value: %v", err)
+			return formatPropError("count", err)
 		}
 	}
 
@@ -217,7 +225,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		env, err := yaml.Get("env").Map()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"env\" value: %v", err)
+			return formatPropError("env", err)
 		}
 
 		options.Env = convertMapType(env)
@@ -227,7 +235,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.EnvFile, err = yaml.Get("env_file").String()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"env_file\" value: %v", err)
+			return formatPropError("env_file", err)
 		}
 	}
 
@@ -236,7 +244,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 			options.RespawnCount, err = yaml.Get("respawn").Get("count").Int()
 
 			if err != nil {
-				return fmt.Errorf("Can't parse \"respawn.count\" value: %v", err)
+				return formatPropError("respawn:count", err)
 			}
 		}
 
@@ -244,7 +252,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 			options.RespawnInterval, err = yaml.Get("respawn").Get("interval").Int()
 
 			if err != nil {
-				return fmt.Errorf("Can't parse \"respawn.interval\" value: %v", err)
+				return formatPropError("respawn:interval", err)
 			}
 		}
 
@@ -252,16 +260,16 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.IsRespawnEnabled, err = yaml.Get("respawn").Bool()
 
 		if err != nil {
-			return fmt.Errorf("Can't parse \"respawn\" value: %v", err)
+			return formatPropError("respawn", err)
 		}
 	}
 
-	if yaml.IsPathExist("limits", "nproc") || yaml.IsPathExist("limits", "nofile") {
+	if yaml.IsExist("limits") {
 		if yaml.IsPathExist("limits", "nofile") {
 			options.LimitFile, err = yaml.Get("limits").Get("nofile").Int()
 
 			if err != nil {
-				return fmt.Errorf("Can't parse \"limits.nofile\" value: %v", err)
+				return formatPropError("limits:nofile", err)
 			}
 		}
 
@@ -269,10 +277,168 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 			options.LimitProc, err = yaml.Get("limits").Get("nproc").Int()
 
 			if err != nil {
-				return fmt.Errorf("Can't parse \"limits.nproc\" value: %v", err)
+				return formatPropError("limits:nproc", err)
 			}
 		}
 	}
 
+	if yaml.IsExist("resources") {
+		options.Resources, err = parseV2Resources(yaml.Get("resources"))
+
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+// parseV2Resources parse service resources options in yaml based procfile
+func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
+	var err error
+
+	resources := &Resources{}
+
+	if yaml.IsExist("cpu_weight") {
+		resources.CPUWeight, err = yaml.Get("cpu_weight").Int()
+
+		if err != nil {
+			return nil, formatPropError("resources:cpu_weight", err)
+		}
+	}
+
+	if yaml.IsExist("startup_cpu_weight") {
+		resources.StartupCPUWeight, err = yaml.Get("startup_cpu_weight").Int()
+
+		if err != nil {
+			return nil, formatPropError("resources:startup_cpu_weight", err)
+		}
+	}
+
+	if yaml.IsExist("cpu_quota") {
+		resources.CPUQuota, err = yaml.Get("cpu_quota").Int()
+
+		if err != nil {
+			return nil, formatPropError("resources:cpu_quota", err)
+		}
+	}
+
+	if yaml.IsExist("memory_low") {
+		resources.MemoryLow, err = yaml.Get("memory_low").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:memory_low", err)
+		}
+	}
+
+	if yaml.IsExist("memory_high") {
+		resources.MemoryHigh, err = yaml.Get("memory_high").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:memory_high", err)
+		}
+	}
+
+	if yaml.IsExist("memory_max") {
+		resources.MemoryMax, err = yaml.Get("memory_max").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:memory_max", err)
+		}
+	}
+
+	if yaml.IsExist("memory_swap_max") {
+		resources.MemorySwapMax, err = yaml.Get("memory_swap_max").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:memory_swap_max", err)
+		}
+	}
+
+	if yaml.IsExist("task_max") {
+		resources.TasksMax, err = yaml.Get("task_max").Int()
+
+		if err != nil {
+			return nil, formatPropError("resources:task_max", err)
+		}
+	}
+
+	if yaml.IsExist("io_weight") {
+		resources.IOWeight, err = yaml.Get("io_weight").Int()
+
+		if err != nil {
+			return nil, formatPropError("resources:io_weight", err)
+		}
+	}
+
+	if yaml.IsExist("startup_io_weight") {
+		resources.StartupIOWeight, err = yaml.Get("startup_io_weight").Int()
+
+		if err != nil {
+			return nil, formatPropError("resources:startup_io_weight", err)
+		}
+	}
+
+	if yaml.IsExist("io_device_weight") {
+		resources.IODeviceWeight, err = yaml.Get("io_device_weight").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:io_device_weight", err)
+		}
+	}
+
+	if yaml.IsExist("io_read_bandwidth_max") {
+		resources.IOReadBandwidthMax, err = yaml.Get("io_read_bandwidth_max").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:io_read_bandwidth_max", err)
+		}
+	}
+
+	if yaml.IsExist("io_write_bandwidth_max") {
+		resources.IOWriteBandwidthMax, err = yaml.Get("io_write_bandwidth_max").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:io_write_bandwidth_max", err)
+		}
+	}
+
+	if yaml.IsExist("io_read_iops_max") {
+		resources.IOReadIOPSMax, err = yaml.Get("io_read_iops_max").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:io_read_iops_max", err)
+		}
+	}
+
+	if yaml.IsExist("io_write_iops_max") {
+		resources.IOWriteIOPSMax, err = yaml.Get("io_write_iops_max").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:io_write_iops_max", err)
+		}
+	}
+
+	if yaml.IsExist("ip_address_allow") {
+		resources.IPAddressAllow, err = yaml.Get("ip_address_allow").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:ip_address_allow", err)
+		}
+	}
+
+	if yaml.IsExist("ip_address_deny") {
+		resources.IPAddressDeny, err = yaml.Get("ip_address_deny").String()
+
+		if err != nil {
+			return nil, formatPropError("resources:ip_address_deny", err)
+		}
+	}
+
+	return resources, nil
+}
+
+// formatPropError format property parsing error
+func formatPropError(prop string, err error) error {
+	return fmt.Errorf("Can't parse \"%s\" value: %v", prop, err)
 }

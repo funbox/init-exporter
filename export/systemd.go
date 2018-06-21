@@ -8,6 +8,7 @@ package export
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -71,6 +72,7 @@ PartOf={{.Application.Name}}.service
 [Service]
 Type=simple
 
+{{ if .Service.Options.IsKillModeSet }}KillMode={{.Service.Options.KillMode}}{{ end }}
 {{ if .Service.Options.IsKillSignalSet }}KillSignal={{.Service.Options.KillSignal}}{{ end }}
 TimeoutStopSec={{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsRespawnEnabled }}Restart=on-failure{{ end }}
@@ -80,6 +82,7 @@ TimeoutStopSec={{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsFileLimitSet }}LimitNOFILE={{.Service.Options.LimitFile}}{{ end }}
 {{ if .Service.Options.IsProcLimitSet }}LimitNPROC={{.Service.Options.LimitProc}}{{ end }}
 
+{{ if .Service.Options.IsResourcesSet }}{{.ResourcesAsString}}{{ end }}
 ExecStartPre=/bin/touch /var/log/{{.Application.Name}}/{{.Service.Name}}.log
 ExecStartPre=/bin/chown {{.Application.User}} /var/log/{{.Application.Name}}/{{.Service.Name}}.log
 ExecStartPre=/bin/chgrp {{.Application.Group}} /var/log/{{.Application.Name}}/{{.Service.Name}}.log
@@ -115,6 +118,81 @@ type systemdServiceData struct {
 // NewSystemd create new SystemdProvider struct
 func NewSystemd() *SystemdProvider {
 	return &SystemdProvider{}
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// ResourcesAsString return resources settings as string
+func (sd *systemdServiceData) ResourcesAsString() string {
+	var result string
+
+	resources := sd.Service.Options.Resources
+
+	if resources.CPUWeight != 0 {
+		result += fmt.Sprintf("CPUWeight=%d\n", resources.CPUWeight)
+	}
+
+	if resources.StartupCPUWeight != 0 {
+		result += fmt.Sprintf("StartupCPUWeight=%d\n", resources.CPUWeight)
+	}
+
+	if resources.CPUQuota != 0 {
+		result += fmt.Sprintf("CPUQuota=%d%%\n", resources.CPUQuota)
+	}
+
+	if resources.MemoryLow != "" {
+		result += fmt.Sprintf("MemoryLow=%s\n", resources.MemoryLow)
+	}
+
+	if resources.MemoryHigh != "" {
+		result += fmt.Sprintf("MemoryHigh=%s\n", resources.MemoryHigh)
+	}
+
+	if resources.MemoryMax != "" {
+		result += fmt.Sprintf("MemoryMax=%s\n", resources.MemoryMax)
+	}
+
+	if resources.MemorySwapMax != "" {
+		result += fmt.Sprintf("MemorySwapMax=%s\n", resources.MemorySwapMax)
+	}
+
+	if resources.TasksMax != 0 {
+		result += fmt.Sprintf("TasksMax=%d\n", resources.TasksMax)
+	}
+
+	if resources.IOWeight != 0 {
+		result += fmt.Sprintf("IOWeight=%d\n", resources.IOWeight)
+	}
+
+	if resources.IODeviceWeight != "" {
+		result += fmt.Sprintf("IODeviceWeight=%s\n", resources.IODeviceWeight)
+	}
+
+	if resources.IOReadBandwidthMax != "" {
+		result += fmt.Sprintf("IOReadBandwidthMax=%s\n", resources.IOReadBandwidthMax)
+	}
+
+	if resources.IOWriteBandwidthMax != "" {
+		result += fmt.Sprintf("IOWriteBandwidthMax=%s\n", resources.IOWriteBandwidthMax)
+	}
+
+	if resources.IOReadIOPSMax != "" {
+		result += fmt.Sprintf("IOReadIOPSMax=%s\n", resources.IOReadIOPSMax)
+	}
+
+	if resources.IOWriteIOPSMax != "" {
+		result += fmt.Sprintf("IOWriteIOPSMax=%s\n", resources.IOWriteIOPSMax)
+	}
+
+	if resources.IPAddressAllow != "" {
+		result += fmt.Sprintf("IPAddressAllow=%s\n", resources.IPAddressAllow)
+	}
+
+	if resources.IPAddressDeny != "" {
+		result += fmt.Sprintf("IPAddressDeny=%s\n", resources.IPAddressDeny)
+	}
+
+	return result
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -174,7 +252,7 @@ func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string,
 // RenderServiceTemplate render unit template data with given service data and
 // return service unit code
 func (sp *SystemdProvider) RenderServiceTemplate(service *procfile.Service) (string, error) {
-	data := systemdServiceData{
+	data := &systemdServiceData{
 		Application: service.Application,
 		Service:     service,
 		StartLevel:  sp.renderLevel(service.Application.StartLevel),
@@ -188,7 +266,7 @@ func (sp *SystemdProvider) RenderServiceTemplate(service *procfile.Service) (str
 // RenderHelperTemplate render helper template data with given service data and
 // return helper script code
 func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (string, error) {
-	data := systemdServiceData{
+	data := &systemdServiceData{
 		Application: service.Application,
 		Service:     service,
 		StartLevel:  sp.renderLevel(service.Application.StartLevel),
