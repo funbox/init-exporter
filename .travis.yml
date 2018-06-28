@@ -1,4 +1,4 @@
-sudo: false
+sudo: required
 
 language: go
 
@@ -8,13 +8,20 @@ go:
   - 1.10.x
   - tip
 
+os:
+  - linux
+
+services:
+  - docker
+
 branches:
   only:
   - master
   - develop
 
-os:
-  - linux
+env:
+  global:
+    - IMAGE=essentialkaos/perfecto:centos7
 
 matrix:
   fast_finish: true
@@ -22,6 +29,9 @@ matrix:
     - go: tip
 
 before_install:
+  - docker pull "$IMAGE"
+  - wget https://raw.githubusercontent.com/essentialkaos/perfecto/master/perfecto-docker
+  - chmod +x perfecto-docker
   - make deps
   - make deps-test
 
@@ -29,3 +39,4 @@ script:
   - make test
   - make all
   - ./init-exporter --version
+  - ./perfecto-docker common/init-exporter.spec
