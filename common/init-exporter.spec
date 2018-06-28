@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.20.0
+Version:         0.20.1
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Thu Jun 28 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.1-0
+- Fixed bug with unit files naming if count property is equal 1
+
 * Wed Jun 20 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.0-0
 - Added support of resources usage limits configuration (systemd feature)
 - Added support of kill mode configuration (systemd feature)
