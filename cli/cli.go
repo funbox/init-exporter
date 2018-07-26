@@ -32,7 +32,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.20.1"
+	VER  = "0.20.2"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -478,7 +478,7 @@ func showUsage() {
 	info.AddOption(OPT_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
 	info.AddOption(OPT_DISABLE_VALIDATION, "Disable application validation")
 	info.AddOption(OPT_UNINSTALL, "Remove scripts and helpers for a particular application")
-	info.AddOption(OPT_FORMAT, "Format of generated configs", "?upstart|systemd")
+	info.AddOption(OPT_FORMAT, "Format of generated configs", "upstart|systemd")
 	info.AddOption(OPT_NO_COLORS, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VERSION, "Show version")
