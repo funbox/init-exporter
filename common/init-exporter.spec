@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.20.2
+Version:         0.20.3
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Mon Oct 29 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.3-0
+- Fixed bug with parsing v1 procfile (found by go-fuzz)
+
 * Wed Jul 25 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.2-0
 - Fixed formatting error in help content
 
