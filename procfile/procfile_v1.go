@@ -89,16 +89,20 @@ func parseV1Line(line string) (*Service, error) {
 		return nil, fmt.Errorf("Procfile v1 should have format: 'some_label: command'")
 	}
 
-	return parseV1Command(matches[1], matches[2]), nil
+	return parseV1Command(matches[1], matches[2])
 }
 
 // parseV1Command parse command and extract command and working dir
-func parseV1Command(name, command string) *Service {
+func parseV1Command(name, command string) (*Service, error) {
 	var service = &Service{Name: name, Options: &ServiceOptions{}}
 
 	cmdSlice := splitV1Command(command)
 
 	if strings.HasPrefix(cmdSlice[0], "cd") {
+		if len(cmdSlice) == 1 {
+			return nil, fmt.Errorf("Procfile v1 command misformatted: %s", command)
+		}
+
 		service.Options.WorkingDir = strings.Replace(cmdSlice[0], "cd ", "", -1)
 		cmdSlice = cmdSlice[1:]
 	}
@@ -129,7 +133,7 @@ func parseV1Command(name, command string) *Service {
 	service.Options.Env = env
 	service.Options.LogFile = log
 
-	return service
+	return service, nil
 }
 
 // splitV1Cmd split command and format command
