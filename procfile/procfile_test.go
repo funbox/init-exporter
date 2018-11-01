@@ -67,6 +67,13 @@ func (s *ProcfileSuite) TestProcV1Parsing(c *C) {
 	c.Assert(app.Validate(), HasLen, 0)
 }
 
+func (s *ProcfileSuite) TestProcV1Fuzz(c *C) {
+	// Bug #1 found by fuzz testing
+	_, err := parseV1Line("0:cd")
+
+	c.Assert(err, NotNil)
+}
+
 func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 	app, err := Read("../testdata/procfile_v2", s.Config)
 
