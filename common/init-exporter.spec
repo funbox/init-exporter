@@ -113,6 +113,7 @@ rm -rf %{buildroot}
 %changelog
 * Wed Jan 09 2019 Anton Novojilov <andyone@fun-box.ru> - 0.21.0-0
 - Migrated to ek.v10
+- Added support of memlock limit configuration
 
 * Mon Oct 29 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.3-0
 - Fixed bug with parsing v1 procfile (found by go-fuzz)
