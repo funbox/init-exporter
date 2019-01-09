@@ -13,15 +13,15 @@ import (
 	"os"
 	"runtime"
 
-	"pkg.re/essentialkaos/ek.v9/env"
-	"pkg.re/essentialkaos/ek.v9/fmtc"
-	"pkg.re/essentialkaos/ek.v9/fsutil"
-	"pkg.re/essentialkaos/ek.v9/knf"
-	"pkg.re/essentialkaos/ek.v9/log"
-	"pkg.re/essentialkaos/ek.v9/options"
-	"pkg.re/essentialkaos/ek.v9/system"
-	"pkg.re/essentialkaos/ek.v9/usage"
-	"pkg.re/essentialkaos/ek.v9/usage/update"
+	"pkg.re/essentialkaos/ek.v10/env"
+	"pkg.re/essentialkaos/ek.v10/fmtc"
+	"pkg.re/essentialkaos/ek.v10/fsutil"
+	"pkg.re/essentialkaos/ek.v10/knf"
+	"pkg.re/essentialkaos/ek.v10/log"
+	"pkg.re/essentialkaos/ek.v10/options"
+	"pkg.re/essentialkaos/ek.v10/system"
+	"pkg.re/essentialkaos/ek.v10/usage"
+	"pkg.re/essentialkaos/ek.v10/usage/update"
 
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
@@ -32,7 +32,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.20.3"
+	VER  = "0.21.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 

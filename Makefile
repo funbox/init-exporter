@@ -23,13 +23,13 @@ uninstall: ## Uninstall binaries
 
 deps: ## Download dependencies
 	git config --global http.https://pkg.re.followRedirects true
-	go get -d -v pkg.re/essentialkaos/ek.v9
+	go get -d -v pkg.re/essentialkaos/ek.v10
 	go get -d -v pkg.re/essentialkaos/go-simpleyaml.v1
 
 deps-test: ## Download dependencies for tests
 	git config --global http.https://pkg.re.followRedirects true
 	go get -d -v pkg.re/check.v1
-	go get -d -v pkg.re/essentialkaos/ek.v9
+	go get -d -v pkg.re/essentialkaos/ek.v10
 
 test: ## Run tests
 	go test -covermode=count ./...

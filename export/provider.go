@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"pkg.re/essentialkaos/ek.v9/log"
+	"pkg.re/essentialkaos/ek.v10/log"
 
 	"github.com/funbox/init-exporter/procfile"
 )

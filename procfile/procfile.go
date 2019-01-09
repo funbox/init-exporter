@@ -13,12 +13,12 @@ import (
 	"sort"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v9/errutil"
-	"pkg.re/essentialkaos/ek.v9/fsutil"
-	"pkg.re/essentialkaos/ek.v9/log"
-	"pkg.re/essentialkaos/ek.v9/path"
-	"pkg.re/essentialkaos/ek.v9/sliceutil"
-	"pkg.re/essentialkaos/ek.v9/strutil"
+	"pkg.re/essentialkaos/ek.v10/errutil"
+	"pkg.re/essentialkaos/ek.v10/fsutil"
+	"pkg.re/essentialkaos/ek.v10/log"
+	"pkg.re/essentialkaos/ek.v10/path"
+	"pkg.re/essentialkaos/ek.v10/sliceutil"
+	"pkg.re/essentialkaos/ek.v10/strutil"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
