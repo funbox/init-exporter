@@ -280,6 +280,14 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 				return formatPropError("limits:nproc", err)
 			}
 		}
+
+		if yaml.IsPathExist("limits", "memlock") {
+			options.LimitMemlock, err = yaml.Get("limits").Get("memlock").Int()
+
+			if err != nil {
+				return formatPropError("limits:memlock", err)
+			}
+		}
 	}
 
 	if yaml.IsExist("resources") {

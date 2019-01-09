@@ -81,6 +81,7 @@ TimeoutStopSec={{.Service.Options.KillTimeout}}
 
 {{ if .Service.Options.IsFileLimitSet }}LimitNOFILE={{.Service.Options.LimitFile}}{{ end }}
 {{ if .Service.Options.IsProcLimitSet }}LimitNPROC={{.Service.Options.LimitProc}}{{ end }}
+{{ if .Service.Options.IsMemlockLimitSet }}LimitMEMLOCK={{.GetMemlockLimit}}{{ end }}
 
 {{ if .Service.Options.IsResourcesSet }}{{.ResourcesAsString}}{{ end }}
 ExecStartPre=/bin/touch /var/log/{{.Application.Name}}/{{.Service.Name}}.log
@@ -275,6 +276,17 @@ func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (stri
 	}
 
 	return renderTemplate("systemd-helper-template", TEMPLATE_SYSTEMD_HELPER, data)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// GetMemlockLimit return formatted memlock value
+func (d *systemdServiceData) GetMemlockLimit() string {
+	if d.Service.Options.LimitMemlock == -1 {
+		return "infinity"
+	}
+
+	return fmt.Sprintf("%d", d.Service.Options.LimitMemlock)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
