@@ -135,6 +135,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
 			c.Assert(service.Options.LimitFile, Equals, 8192)
 			c.Assert(service.Options.LimitProc, Equals, 8192)
+			c.Assert(service.Options.LimitMemlock, Equals, -1)
 			c.Assert(service.Application, NotNil)
 			c.Assert(service.Application.Name, Equals, "test-app")
 
@@ -154,6 +155,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.EnvString(), Equals, "RAILS_ENV=production TEST=true")
 			c.Assert(service.Options.LimitFile, Equals, 4096)
 			c.Assert(service.Options.LimitProc, Equals, 4096)
+			c.Assert(service.Options.LimitMemlock, Equals, 0)
 			c.Assert(service.Application, NotNil)
 			c.Assert(service.Application.Name, Equals, "test-app")
 			c.Assert(service.Options.Resources, NotNil)

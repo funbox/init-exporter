@@ -40,6 +40,7 @@ commands:
     limits:
       nofile: 8192
       nproc: 8192
+      memlock: -1 # -1 means unlimited/infinity
     kill_mode: process
     kill_timeout: 60
     kill_signal: SIGQUIT

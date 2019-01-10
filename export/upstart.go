@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v9/timeutil"
+	"pkg.re/essentialkaos/ek.v10/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -66,6 +66,7 @@ kill timeout {{.Service.Options.KillTimeout}}
 
 {{ if .Service.Options.IsFileLimitSet }}limit nofile {{.Service.Options.LimitFile}} {{.Service.Options.LimitFile}}{{ end }}
 {{ if .Service.Options.IsProcLimitSet }}limit nproc {{.Service.Options.LimitProc}} {{.Service.Options.LimitProc}}{{ end }}
+{{ if .Service.Options.IsMemlockLimitSet }}limit memlock {{.GetMemlockLimit}} {{.GetMemlockLimit}}{{ end }}
 
 script
   touch /var/log/{{.Application.Name}}/{{.Service.Name}}.log
@@ -161,4 +162,15 @@ func (up *UpstartProvider) RenderHelperTemplate(service *procfile.Service) (stri
 	}
 
 	return renderTemplate("upstart-helper-template", TEMPLATE_UPSTART_HELPER, data)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// GetMemlockLimit return formatted memlock value
+func (d *upstartServiceData) GetMemlockLimit() string {
+	if d.Service.Options.LimitMemlock == -1 {
+		return "unlimited"
+	}
+
+	return fmt.Sprintf("%d", d.Service.Options.LimitMemlock)
 }

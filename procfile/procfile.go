@@ -13,12 +13,12 @@ import (
 	"sort"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v9/errutil"
-	"pkg.re/essentialkaos/ek.v9/fsutil"
-	"pkg.re/essentialkaos/ek.v9/log"
-	"pkg.re/essentialkaos/ek.v9/path"
-	"pkg.re/essentialkaos/ek.v9/sliceutil"
-	"pkg.re/essentialkaos/ek.v9/strutil"
+	"pkg.re/essentialkaos/ek.v10/errutil"
+	"pkg.re/essentialkaos/ek.v10/fsutil"
+	"pkg.re/essentialkaos/ek.v10/log"
+	"pkg.re/essentialkaos/ek.v10/path"
+	"pkg.re/essentialkaos/ek.v10/sliceutil"
+	"pkg.re/essentialkaos/ek.v10/strutil"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -43,6 +43,7 @@ type Config struct {
 	KillTimeout      int    // Global kill timeout in seconds
 	LimitProc        int    // Global processes limit
 	LimitFile        int    // Global descriptors limit
+	LimitMemlock     int    // Global max locked memory limit
 }
 
 type Service struct {
@@ -70,6 +71,7 @@ type ServiceOptions struct {
 	IsRespawnEnabled bool              // Respawn enabled flag
 	LimitProc        int               // Processes limit
 	LimitFile        int               // Descriptors limit
+	LimitMemlock     int               // Max locked memory limit
 	Resources        *Resources        // Resources limits (systemd only)
 }
 
@@ -291,57 +293,62 @@ func (s *Service) GetCommandExec(command string) string {
 	return result
 }
 
-// IsRespawnLimitSet return true if respawn options is set
+// IsRespawnLimitSet returns true if respawn options is set
 func (so *ServiceOptions) IsRespawnLimitSet() bool {
 	return so.RespawnCount != 0 || so.RespawnInterval != 0
 }
 
-// IsCustomLogEnabled return true if service have custom log
+// IsCustomLogEnabled returns true if service have custom log
 func (so *ServiceOptions) IsCustomLogEnabled() bool {
 	return so.LogFile != ""
 }
 
-// IsEnvSet return true if service have custom env vars
+// IsEnvSet returns true if service have custom env vars
 func (so *ServiceOptions) IsEnvSet() bool {
 	return len(so.Env) != 0
 }
 
-// IsEnvFileSet return true if service have file with env vars
+// IsEnvFileSet returns true if service have file with env vars
 func (so *ServiceOptions) IsEnvFileSet() bool {
 	return so.EnvFile != ""
 }
 
-// IsFileLimitSet return true if descriptors limit is set
+// IsFileLimitSet returns true if descriptors limit is set
 func (so *ServiceOptions) IsFileLimitSet() bool {
 	return so.LimitFile != 0
 }
 
-// IsProcLimitSet return true if processes limit is set
+// IsProcLimitSet returns true if processes limit is set
 func (so *ServiceOptions) IsProcLimitSet() bool {
 	return so.LimitProc != 0
 }
 
-// IsKillSignalSet return true if custom kill signal set
+// IsMemlockLimitSet returns true if max memory limit is set
+func (so *ServiceOptions) IsMemlockLimitSet() bool {
+	return so.LimitMemlock != 0
+}
+
+// IsKillSignalSet returns true if custom kill signal set
 func (so *ServiceOptions) IsKillSignalSet() bool {
 	return so.KillSignal != ""
 }
 
-// IsKillModeSet return true if custom kill mode set
+// IsKillModeSet returns true if custom kill mode set
 func (so *ServiceOptions) IsKillModeSet() bool {
 	return so.KillMode != ""
 }
 
-// IsReloadSignalSet return true if custom reload signal set
+// IsReloadSignalSet returns true if custom reload signal set
 func (so *ServiceOptions) IsReloadSignalSet() bool {
 	return so.ReloadSignal != ""
 }
 
-// IsResourcesSet return true if resources limits are set
+// IsResourcesSet returns true if resources limits are set
 func (so *ServiceOptions) IsResourcesSet() bool {
 	return so.Resources != nil
 }
 
-// EnvString return environment variables as string
+// EnvString returns environment variables as string
 func (so *ServiceOptions) EnvString() string {
 	if len(so.Env) == 0 {
 		return ""
@@ -490,6 +497,14 @@ func mergeServiceOptions(dst, src *ServiceOptions) {
 
 	if dst.LimitProc == 0 {
 		dst.LimitProc = src.LimitProc
+	}
+
+	if dst.LimitProc == 0 {
+		dst.LimitProc = src.LimitProc
+	}
+
+	if dst.LimitMemlock == 0 {
+		dst.LimitMemlock = src.LimitMemlock
 	}
 }
 

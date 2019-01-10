@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.20.3
+Version:         0.21.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -111,6 +111,10 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Wed Jan 09 2019 Anton Novojilov <andyone@fun-box.ru> - 0.21.0-0
+- Migrated to ek.v10
+- Added support of memlock limit configuration
+
 * Mon Oct 29 2018 Anton Novojilov <andyone@fun-box.ru> - 0.20.3-0
 - Fixed bug with parsing v1 procfile (found by go-fuzz)
 
