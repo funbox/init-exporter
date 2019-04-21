@@ -2,6 +2,7 @@ version: 2
 
 start_on_runlevel: 2
 stop_on_runlevel: 5
+start_on_device: bond0
 
 env:
   RAILS_ENV: production

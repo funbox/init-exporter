@@ -43,7 +43,7 @@ const TEMPLATE_SYSTEMD_APP = `# This unit generated {{.ExportDate}} by init-expo
 [Unit]
 
 Description=Unit for {{.Application.Name}} application
-After={{.StartLevel}}
+After={{.After}}
 {{.Wants}}
 
 [Service]
@@ -103,6 +103,7 @@ type systemdAppData struct {
 	ExportDate  string
 	StartLevel  string
 	StopLevel   string
+	After       string
 	Wants       string
 }
 
@@ -110,20 +111,18 @@ type systemdServiceData struct {
 	Application *procfile.Application
 	Service     *procfile.Service
 	ExportDate  string
-	StartLevel  string
-	StopLevel   string
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// NewSystemd create new SystemdProvider struct
+// NewSystemd creates new SystemdProvider struct
 func NewSystemd() *SystemdProvider {
 	return &SystemdProvider{}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ResourcesAsString return resources settings as string
+// ResourcesAsString returns resources settings as string
 func (sd *systemdServiceData) ResourcesAsString() string {
 	var result string
 
@@ -198,12 +197,12 @@ func (sd *systemdServiceData) ResourcesAsString() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnitName return unit name with extension
+// UnitName returns unit name with extension
 func (sp *SystemdProvider) UnitName(name string) string {
 	return name + ".service"
 }
 
-// EnableService enable service with given name
+// EnableService enables service with given name
 func (sp *SystemdProvider) EnableService(appName string) error {
 	err := exec.Run("systemctl", "enable", sp.UnitName(appName))
 
@@ -214,7 +213,7 @@ func (sp *SystemdProvider) EnableService(appName string) error {
 	return nil
 }
 
-// DisableService disable service with given name
+// DisableService disables service with given name
 func (sp *SystemdProvider) DisableService(appName string) error {
 	err := exec.Run("systemctl", "disable", sp.UnitName(appName))
 
@@ -225,7 +224,7 @@ func (sp *SystemdProvider) DisableService(appName string) error {
 	return nil
 }
 
-// Reload reload service units
+// Reload reloads service units
 func (sp *SystemdProvider) Reload() error {
 	err := exec.Run("systemctl", "daemon-reload")
 
@@ -236,42 +235,39 @@ func (sp *SystemdProvider) Reload() error {
 	return nil
 }
 
-// RenderAppTemplate render unit template data with given app data and return
+// RenderAppTemplate renders unit template data with given app data and return
 // app unit code
 func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
 	data := &systemdAppData{
 		Application: app,
 		Wants:       sp.renderWantsClause(app),
-		StartLevel:  sp.renderLevel(app.StartLevel),
-		StopLevel:   sp.renderLevel(app.StopLevel),
+		After:       sp.renderLevel(app.StartLevel, app.StartDevice),
+		StartLevel:  sp.renderLevel(app.StartLevel, ""),
+		StopLevel:   sp.renderLevel(app.StopLevel, ""),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("systemd-app-template", TEMPLATE_SYSTEMD_APP, data)
 }
 
-// RenderServiceTemplate render unit template data with given service data and
+// RenderServiceTemplate renders unit template data with given service data and
 // return service unit code
 func (sp *SystemdProvider) RenderServiceTemplate(service *procfile.Service) (string, error) {
 	data := &systemdServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  sp.renderLevel(service.Application.StartLevel),
-		StopLevel:   sp.renderLevel(service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("systemd-service-template", TEMPLATE_SYSTEMD_SERVICE, data)
 }
 
-// RenderHelperTemplate render helper template data with given service data and
+// RenderHelperTemplate renders helper template data with given service data and
 // return helper script code
 func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (string, error) {
 	data := &systemdServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  sp.renderLevel(service.Application.StartLevel),
-		StopLevel:   sp.renderLevel(service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -280,7 +276,7 @@ func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (stri
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// GetMemlockLimit return formatted memlock value
+// GetMemlockLimit returns formatted memlock value
 func (d *systemdServiceData) GetMemlockLimit() string {
 	if d.Service.Options.LimitMemlock == -1 {
 		return "infinity"
@@ -291,8 +287,12 @@ func (d *systemdServiceData) GetMemlockLimit() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// renderLevel convert level number to upstart level name
-func (sp *SystemdProvider) renderLevel(level int) string {
+// renderLevel converts level number to systemd level name
+func (sp *SystemdProvider) renderLevel(level int, device string) string {
+	if device != "" {
+		return fmt.Sprintf("sys-subsystem-net-devices-%s.device", device)
+	}
+
 	switch level {
 	case 1:
 		return "rescue.target"
@@ -305,7 +305,7 @@ func (sp *SystemdProvider) renderLevel(level int) string {
 	}
 }
 
-// renderWantsClause render list of services in application for upstart config
+// renderWantsClause renders list of services in application for systemd config
 func (sp *SystemdProvider) renderWantsClause(app *procfile.Application) string {
 	var wants []string
 	var buffer string

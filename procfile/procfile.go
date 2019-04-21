@@ -24,10 +24,11 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
-	REGEXP_V1_LINE    = `^([A-z\d_]+):\s*(.+)`
-	REGEXP_V2_VERSION = `(?m)^\s*version:\s*2\s*$`
-	REGEXP_PATH_CHECK = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_NAME_CHECK = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_V1_LINE          = `^([A-z\d_]+):\s*(.+)`
+	REGEXP_V2_VERSION       = `(?m)^\s*version:\s*2\s*$`
+	REGEXP_PATH_CHECK       = `\A[A-Za-z0-9_\-./]+\z`
+	REGEXP_NAME_CHECK       = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_NET_DEVICE_CHECK = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -102,6 +103,7 @@ type Application struct {
 	Group       string     // Working group
 	StartLevel  int        // Start level
 	StopLevel   int        // Stop level
+	StartDevice string     // Start on device activation
 	WorkingDir  string     // Working directory
 	ProcVersion int        // Proc version 1/2
 }
@@ -158,6 +160,10 @@ func (a *Application) Validate() []error {
 
 	if a.WorkingDir == "" {
 		errs.Add(fmt.Errorf("Application working dir can't be empty"))
+	}
+
+	if a.StartDevice != "" && !regexp.MustCompile(REGEXP_NET_DEVICE_CHECK).MatchString(a.StartDevice) {
+		errs.Add(fmt.Errorf("Name of device (%s) is not a valid", a.StartDevice))
 	}
 
 	for _, service := range a.Services {

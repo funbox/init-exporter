@@ -75,6 +75,14 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		}
 	}
 
+	if yaml.IsExist("start_on_device") {
+		app.StartDevice, err = yaml.Get("start_on_device").String()
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't parse start_on_device value: %v", err)
+		}
+	}
+
 	addCrossLink(app)
 
 	return app, nil

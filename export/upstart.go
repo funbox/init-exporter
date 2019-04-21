@@ -96,47 +96,47 @@ type upstartServiceData struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// NewUpstart create new UpstartProvider struct
+// NewUpstart creates new UpstartProvider struct
 func NewUpstart() *UpstartProvider {
 	return &UpstartProvider{}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnitName return unit name with extension
+// UnitName returns unit name with extension
 func (up *UpstartProvider) UnitName(name string) string {
 	return name + ".conf"
 }
 
-// EnableService enable service with given name
+// EnableService enables service with given name
 func (up *UpstartProvider) EnableService(appName string) error {
 	return nil
 }
 
-// DisableService disable service with given name
+// DisableService disables service with given name
 func (up *UpstartProvider) DisableService(appName string) error {
 	return nil
 }
 
-// Reload reload service units
+// Reload reloads service units
 func (up *UpstartProvider) Reload() error {
 	return nil
 }
 
-// RenderAppTemplate render unit template data with given app data and return
+// RenderAppTemplate renders unit template data with given app data and return
 // app unit code
 func (up *UpstartProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
 	data := &upstartAppData{
 		Application: app,
-		StartLevel:  fmt.Sprintf("runlevel [%d]", app.StartLevel),
-		StopLevel:   fmt.Sprintf("runlevel [%d]", app.StopLevel),
+		StartLevel:  up.renderLevel(app.StartLevel, app.StartDevice),
+		StopLevel:   up.renderLevel(app.StopLevel, ""),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("upstart-app-template", TEMPLATE_UPSTART_APP, data)
 }
 
-// RenderServiceTemplate render unit template data with given service data and
+// RenderServiceTemplate renders unit template data with given service data and
 // return service unit code
 func (up *UpstartProvider) RenderServiceTemplate(service *procfile.Service) (string, error) {
 	data := &upstartServiceData{
@@ -150,14 +150,12 @@ func (up *UpstartProvider) RenderServiceTemplate(service *procfile.Service) (str
 	return renderTemplate("upstart-service-template", TEMPLATE_UPSTART_SERVICE, data)
 }
 
-// RenderHelperTemplate render helper template data with given service data and
+// RenderHelperTemplate renders helper template data with given service data and
 // return helper script code
 func (up *UpstartProvider) RenderHelperTemplate(service *procfile.Service) (string, error) {
 	data := &upstartServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  fmt.Sprintf("[%d]", service.Application.StartLevel),
-		StopLevel:   fmt.Sprintf("[%d]", service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -166,7 +164,18 @@ func (up *UpstartProvider) RenderHelperTemplate(service *procfile.Service) (stri
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// GetMemlockLimit return formatted memlock value
+// renderLevel converts level number to upstart level name
+func (up *UpstartProvider) renderLevel(level int, device string) string {
+	if device != "" {
+		return fmt.Sprintf("net-device-up IFACE=%s", device)
+	}
+
+	return fmt.Sprintf("runlevel [%d]", level)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// GetMemlockLimit returns formatted memlock value
 func (d *upstartServiceData) GetMemlockLimit() string {
 	if d.Service.Options.LimitMemlock == -1 {
 		return "unlimited"

@@ -241,6 +241,42 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, false)
 }
 
+func (s *ExportSuite) TestUpstartExportWithNet(c *C) {
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+	}
+
+	exporter := NewExporter(config, NewUpstart())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+
+	app.StartDevice = "bond0"
+
+	err := exporter.Install(app)
+	c.Assert(err, IsNil)
+
+	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.conf")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
+	appUnit := strings.Split(string(appUnitData), "\n")
+
+	c.Assert(appUnit[2:4], DeepEquals,
+		[]string{
+			"start on net-device-up IFACE=bond0",
+			"stop on runlevel [3]",
+		},
+	)
+}
+
 func (s *ExportSuite) TestSystemdExport(c *C) {
 	helperDir := c.MkDir()
 	targetDir := c.MkDir()
@@ -492,6 +528,47 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.service"), Equals, false)
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA.sh"), Equals, false)
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, false)
+}
+
+func (s *ExportSuite) TestSystemdExportWithNet(c *C) {
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+		DisableReload:    true,
+	}
+
+	exporter := NewExporter(config, NewSystemd())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+
+	app.StartDevice = "bond0"
+
+	err := exporter.Install(app)
+
+	c.Assert(err, IsNil)
+
+	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.service")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
+	appUnit := strings.Split(string(appUnitData), "\n")
+
+	c.Assert(appUnit[2:7], DeepEquals,
+		[]string{
+			"[Unit]",
+			"",
+			"Description=Unit for test_application application",
+			"After=sys-subsystem-net-devices-bond0.device",
+			"Wants=test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
+		},
+	)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
