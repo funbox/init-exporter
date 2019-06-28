@@ -48,7 +48,7 @@ clean: ## Remove generated files
 	rm -f init-exporter
 
 help: ## Show this info
-	@echo -e '\nSupported targets:\n'
+	@echo -e '\n\033[1mSupported targets:\033[0m\n'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[33m%-15s\033[0m %s\n", $$1, $$2}'
 	@echo -e ''
