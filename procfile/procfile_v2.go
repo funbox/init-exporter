@@ -8,6 +8,7 @@ package procfile
 
 import (
 	"fmt"
+	"strings"
 
 	"pkg.re/essentialkaos/ek.v10/log"
 
@@ -52,7 +53,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 	}
 
 	if yaml.IsExist("working_directory") {
-		app.WorkingDir, err = yaml.Get("working_directory").String()
+		app.WorkingDir, err = yamlGetSafe(yaml, "working_directory")
 
 		if err != nil {
 			return nil, fmt.Errorf("Can't parse working_directory value: %v", err)
@@ -76,7 +77,7 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 	}
 
 	if yaml.IsExist("start_on_device") {
-		app.StartDevice, err = yaml.Get("start_on_device").String()
+		app.StartDevice, err = yamlGetSafe(yaml, "start_on_device")
 
 		if err != nil {
 			return nil, fmt.Errorf("Can't parse start_on_device value: %v", err)
@@ -133,7 +134,7 @@ func parseV2Commands(service *Service, yaml *simpleyaml.Yaml) error {
 	var err error
 	var cmd, log string
 
-	cmd, err = yaml.Get("command").String()
+	cmd, err = yamlGetSafe(yaml, "command")
 
 	if err != nil {
 		return fmt.Errorf("Can't parse \"command\" value: %v", err)
@@ -148,7 +149,7 @@ func parseV2Commands(service *Service, yaml *simpleyaml.Yaml) error {
 	service.Cmd = cmd
 
 	if yaml.IsExist("pre") {
-		service.PreCmd, err = yaml.Get("pre").String()
+		service.PreCmd, err = yamlGetSafe(yaml, "pre")
 
 		if err != nil {
 			return fmt.Errorf("Can't parse \"pre\" value: %v", err)
@@ -156,7 +157,7 @@ func parseV2Commands(service *Service, yaml *simpleyaml.Yaml) error {
 	}
 
 	if yaml.IsExist("post") {
-		service.PostCmd, err = yaml.Get("post").String()
+		service.PostCmd, err = yamlGetSafe(yaml, "post")
 
 		if err != nil {
 			return fmt.Errorf("Can't parse \"post\" value: %v", err)
@@ -174,7 +175,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 	options.IsRespawnEnabled = true
 
 	if yaml.IsExist("working_directory") {
-		options.WorkingDir, err = yaml.Get("working_directory").String()
+		options.WorkingDir, err = yamlGetSafe(yaml, "working_directory")
 
 		if err != nil {
 			return formatPropError("working_directory", err)
@@ -182,7 +183,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 	}
 
 	if yaml.IsExist("log") {
-		options.LogFile, err = yaml.Get("log").String()
+		options.LogFile, err = yamlGetSafe(yaml, "log")
 
 		if err != nil {
 			return formatPropError("log", err)
@@ -198,7 +199,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 	}
 
 	if yaml.IsExist("kill_signal") {
-		options.KillSignal, err = yaml.Get("kill_signal").String()
+		options.KillSignal, err = yamlGetSafe(yaml, "kill_signal")
 
 		if err != nil {
 			return formatPropError("kill_signal", err)
@@ -206,7 +207,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 	}
 
 	if yaml.IsExist("kill_mode") {
-		options.KillMode, err = yaml.Get("kill_mode").String()
+		options.KillMode, err = yamlGetSafe(yaml, "kill_mode")
 
 		if err != nil {
 			return formatPropError("kill_mode", err)
@@ -232,7 +233,7 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 	}
 
 	if yaml.IsExist("env_file") {
-		options.EnvFile, err = yaml.Get("env_file").String()
+		options.EnvFile, err = yamlGetSafe(yaml, "env_file")
 
 		if err != nil {
 			return formatPropError("env_file", err)
@@ -332,7 +333,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("memory_low") {
-		resources.MemoryLow, err = yaml.Get("memory_low").String()
+		resources.MemoryLow, err = yamlGetSafe(yaml, "memory_low")
 
 		if err != nil {
 			return nil, formatPropError("resources:memory_low", err)
@@ -340,7 +341,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("memory_high") {
-		resources.MemoryHigh, err = yaml.Get("memory_high").String()
+		resources.MemoryHigh, err = yamlGetSafe(yaml, "memory_high")
 
 		if err != nil {
 			return nil, formatPropError("resources:memory_high", err)
@@ -348,7 +349,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("memory_max") {
-		resources.MemoryMax, err = yaml.Get("memory_max").String()
+		resources.MemoryMax, err = yamlGetSafe(yaml, "memory_max")
 
 		if err != nil {
 			return nil, formatPropError("resources:memory_max", err)
@@ -356,7 +357,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("memory_swap_max") {
-		resources.MemorySwapMax, err = yaml.Get("memory_swap_max").String()
+		resources.MemorySwapMax, err = yamlGetSafe(yaml, "memory_swap_max")
 
 		if err != nil {
 			return nil, formatPropError("resources:memory_swap_max", err)
@@ -388,7 +389,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("io_device_weight") {
-		resources.IODeviceWeight, err = yaml.Get("io_device_weight").String()
+		resources.IODeviceWeight, err = yamlGetSafe(yaml, "io_device_weight")
 
 		if err != nil {
 			return nil, formatPropError("resources:io_device_weight", err)
@@ -396,7 +397,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("io_read_bandwidth_max") {
-		resources.IOReadBandwidthMax, err = yaml.Get("io_read_bandwidth_max").String()
+		resources.IOReadBandwidthMax, err = yamlGetSafe(yaml, "io_read_bandwidth_max")
 
 		if err != nil {
 			return nil, formatPropError("resources:io_read_bandwidth_max", err)
@@ -404,7 +405,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("io_write_bandwidth_max") {
-		resources.IOWriteBandwidthMax, err = yaml.Get("io_write_bandwidth_max").String()
+		resources.IOWriteBandwidthMax, err = yamlGetSafe(yaml, "io_write_bandwidth_max")
 
 		if err != nil {
 			return nil, formatPropError("resources:io_write_bandwidth_max", err)
@@ -412,7 +413,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("io_read_iops_max") {
-		resources.IOReadIOPSMax, err = yaml.Get("io_read_iops_max").String()
+		resources.IOReadIOPSMax, err = yamlGetSafe(yaml, "io_read_iops_max")
 
 		if err != nil {
 			return nil, formatPropError("resources:io_read_iops_max", err)
@@ -420,7 +421,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("io_write_iops_max") {
-		resources.IOWriteIOPSMax, err = yaml.Get("io_write_iops_max").String()
+		resources.IOWriteIOPSMax, err = yamlGetSafe(yaml, "io_write_iops_max")
 
 		if err != nil {
 			return nil, formatPropError("resources:io_write_iops_max", err)
@@ -428,7 +429,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("ip_address_allow") {
-		resources.IPAddressAllow, err = yaml.Get("ip_address_allow").String()
+		resources.IPAddressAllow, err = yamlGetSafe(yaml, "ip_address_allow")
 
 		if err != nil {
 			return nil, formatPropError("resources:ip_address_allow", err)
@@ -436,7 +437,7 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	if yaml.IsExist("ip_address_deny") {
-		resources.IPAddressDeny, err = yaml.Get("ip_address_deny").String()
+		resources.IPAddressDeny, err = yamlGetSafe(yaml, "ip_address_deny")
 
 		if err != nil {
 			return nil, formatPropError("resources:ip_address_deny", err)
@@ -444,6 +445,17 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 	}
 
 	return resources, nil
+}
+
+// yamlGetSafe returns string from YAML without potentially unsafe symbols
+func yamlGetSafe(yaml *simpleyaml.Yaml, propName string) (string, error) {
+	value, err := yaml.Get(propName).String()
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Trim(value, "\n\r"), nil
 }
 
 // formatPropError format property parsing error
