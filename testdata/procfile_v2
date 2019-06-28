@@ -45,7 +45,6 @@ commands:
     kill_mode: process
     kill_timeout: 60
     kill_signal: SIGQUIT
-    reload_signal: SIGUSR2
     env_file: shared/env.file
     respawn: false # by default respawn option is enabled
   

@@ -62,7 +62,6 @@ stop on {{.StopLevel}}
 
 kill timeout {{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsKillSignalSet }}kill signal {{.Service.Options.KillSignal}}{{ end }}
-{{ if .Service.Options.IsReloadSignalSet }}reload signal {{.Service.Options.ReloadSignal}}{{ end }}
 
 {{ if .Service.Options.IsFileLimitSet }}limit nofile {{.Service.Options.LimitFile}} {{.Service.Options.LimitFile}}{{ end }}
 {{ if .Service.Options.IsProcLimitSet }}limit nproc {{.Service.Options.LimitProc}} {{.Service.Options.LimitProc}}{{ end }}

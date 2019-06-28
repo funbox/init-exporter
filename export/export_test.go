@@ -152,7 +152,6 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"kill timeout 10",
 			"kill signal SIGQUIT",
 			"",
-			"",
 			"limit nofile 1024 1024",
 			"",
 			"limit memlock unlimited unlimited",
@@ -177,7 +176,6 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"kill timeout 10",
 			"kill signal SIGQUIT",
 			"",
-			"",
 			"limit nofile 1024 1024",
 			"",
 			"limit memlock unlimited unlimited",
@@ -201,7 +199,6 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 0",
 			"",
-			"reload signal SIGUSR2",
 			"",
 			"limit nofile 4096 4096",
 			"limit nproc 4096 4096",
@@ -415,7 +412,6 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA1.sh &>>/var/log/test_application/serviceA.log'", helperDir),
-			"",
 			""},
 	)
 
@@ -450,7 +446,6 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA2.sh &>>/var/log/test_application/serviceA.log'", helperDir),
-			"",
 			""},
 	)
 
@@ -501,7 +496,6 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceB.sh &>>/var/log/test_application/serviceB.log'", helperDir),
-			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
 			""},
 	)
 
@@ -614,7 +608,6 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			EnvFile:          "shared/env.vars",
 			Env:              map[string]string{"STAGING": "true"},
 			WorkingDir:       "/srv/service/working-dir",
-			ReloadSignal:     "SIGUSR2",
 			IsRespawnEnabled: true,
 			LimitFile:        4096,
 			LimitProc:        4096,

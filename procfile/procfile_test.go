@@ -128,7 +128,6 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.KillTimeout, Equals, 60)
 			c.Assert(service.Options.KillSignal, Equals, "SIGQUIT")
 			c.Assert(service.Options.KillMode, Equals, "process")
-			c.Assert(service.Options.ReloadSignal, Equals, "SIGUSR2")
 			c.Assert(service.Options.RespawnCount, Equals, 7)
 			c.Assert(service.Options.RespawnInterval, Equals, 22)
 			c.Assert(service.Options.IsRespawnEnabled, Equals, false)

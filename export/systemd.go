@@ -93,7 +93,6 @@ User={{.Application.User}}
 Group={{.Application.Group}}
 WorkingDirectory={{.Service.Options.WorkingDir}}
 ExecStart=/bin/sh -c '/bin/bash {{.Service.HelperPath}} &>>/var/log/{{.Application.Name}}/{{.Service.Name}}.log'
-{{ if .Service.Options.IsReloadSignalSet }}ExecReload=/bin/kill -{{.Service.Options.ReloadSignal}} $MAINPID{{ end }}
 `
 
 // ////////////////////////////////////////////////////////////////////////////////// //

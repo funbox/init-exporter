@@ -65,7 +65,6 @@ type ServiceOptions struct {
 	KillTimeout      int               // Kill timeout in seconds
 	KillSignal       string            // Kill signal name
 	KillMode         string            // Kill mode (systemd only)
-	ReloadSignal     string            // Reload signal name
 	Count            int               // Exec count
 	RespawnInterval  int               // Respawn interval in seconds
 	RespawnCount     int               // Respawn count
@@ -342,11 +341,6 @@ func (so *ServiceOptions) IsKillSignalSet() bool {
 // IsKillModeSet returns true if custom kill mode set
 func (so *ServiceOptions) IsKillModeSet() bool {
 	return so.KillMode != ""
-}
-
-// IsReloadSignalSet returns true if custom reload signal set
-func (so *ServiceOptions) IsReloadSignalSet() bool {
-	return so.ReloadSignal != ""
 }
 
 // IsResourcesSet returns true if resources limits are set
