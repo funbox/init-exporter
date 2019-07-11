@@ -376,6 +376,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"ExecStartPre=/bin/chmod -R g+w /var/log/test_application",
 			"ExecStart=/bin/echo \"test_application started\"",
 			"ExecStop=/bin/echo \"test_application stopped\"",
+			fmt.Sprintf("ExecReload=/bin/sh -c '/bin/bash %s/test_application.sh'", helperDir),
 			"",
 			"[Install]",
 			"WantedBy=multi-user.target", ""},
@@ -412,6 +413,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA1.sh &>>/var/log/test_application/serviceA.log'", helperDir),
+			"ExecReload=/bin/pkill -SIGHUP -P $MAINPID",
 			""},
 	)
 
@@ -446,6 +448,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA2.sh &>>/var/log/test_application/serviceA.log'", helperDir),
+			"ExecReload=/bin/pkill -SIGHUP -P $MAINPID",
 			""},
 	)
 
@@ -496,6 +499,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceB.sh &>>/var/log/test_application/serviceB.log'", helperDir),
+			"",
 			""},
 	)
 
@@ -591,6 +595,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			LogFile:          "log/serviceA.log",
 			KillTimeout:      10,
 			KillSignal:       "SIGQUIT",
+			ReloadSignal:     "SIGHUP",
 			Count:            2,
 			RespawnInterval:  25,
 			RespawnCount:     15,

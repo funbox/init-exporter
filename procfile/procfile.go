@@ -38,13 +38,13 @@ type Config struct {
 	User             string // Working user
 	Group            string // Working group
 	WorkingDir       string // Working directory
-	IsRespawnEnabled bool   // Global respawn enabled flag
 	RespawnInterval  int    // Global respawn interval in seconds
 	RespawnCount     int    // Global respawn count
 	KillTimeout      int    // Global kill timeout in seconds
 	LimitProc        int    // Global processes limit
 	LimitFile        int    // Global descriptors limit
 	LimitMemlock     int    // Global max locked memory limit
+	IsRespawnEnabled bool   // Global respawn enabled flag
 }
 
 type Service struct {
@@ -65,14 +65,15 @@ type ServiceOptions struct {
 	KillTimeout      int               // Kill timeout in seconds
 	KillSignal       string            // Kill signal name
 	KillMode         string            // Kill mode (systemd only)
+	ReloadSignal     string            // Reload signal name (systemd only)
 	Count            int               // Exec count
 	RespawnInterval  int               // Respawn interval in seconds
 	RespawnCount     int               // Respawn count
-	IsRespawnEnabled bool              // Respawn enabled flag
 	LimitProc        int               // Processes limit
 	LimitFile        int               // Descriptors limit
 	LimitMemlock     int               // Max locked memory limit
 	Resources        *Resources        // Resources limits (systemd only)
+	IsRespawnEnabled bool              // Respawn enabled flag
 }
 
 type Resources struct {
@@ -96,15 +97,16 @@ type Resources struct {
 }
 
 type Application struct {
-	Name        string     // Name of application
-	Services    []*Service // List of services in application
-	User        string     // Working user
-	Group       string     // Working group
-	StartLevel  int        // Start level
-	StopLevel   int        // Stop level
-	StartDevice string     // Start on device activation
-	WorkingDir  string     // Working directory
-	ProcVersion int        // Proc version 1/2
+	Name             string     // Name of application
+	Services         []*Service // List of services in application
+	User             string     // Working user
+	Group            string     // Working group
+	StartLevel       int        // Start level
+	StopLevel        int        // Stop level
+	StartDevice      string     // Start on device activation
+	WorkingDir       string     // Working directory
+	ReloadHelperPath string     // Path to reload helper (will be set by exporter)
+	ProcVersion      int        // Proc version 1/2
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -170,6 +172,17 @@ func (a *Application) Validate() []error {
 	}
 
 	return errs.All()
+}
+
+// IsReloadSignalSet returns true if any service contains reload signal
+func (a *Application) IsReloadSignalSet() bool {
+	for _, service := range a.Services {
+		if service.Options.ReloadSignal != "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Validate validate service props and options
@@ -346,6 +359,11 @@ func (so *ServiceOptions) IsKillModeSet() bool {
 // IsResourcesSet returns true if resources limits are set
 func (so *ServiceOptions) IsResourcesSet() bool {
 	return so.Resources != nil
+}
+
+// IsReloadSignalSet returns true if custom reload signal set
+func (so *ServiceOptions) IsReloadSignalSet() bool {
+	return so.ReloadSignal != ""
 }
 
 // EnvString returns environment variables as string

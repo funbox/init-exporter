@@ -214,6 +214,14 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		}
 	}
 
+	if yaml.IsExist("reload_signal") {
+		options.ReloadSignal, err = yamlGetSafe(yaml, "reload_signal")
+
+		if err != nil {
+			return formatPropError("reload_signal", err)
+		}
+	}
+
 	if yaml.IsExist("count") {
 		options.Count, err = yaml.Get("count").Int()
 

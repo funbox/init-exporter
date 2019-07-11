@@ -161,6 +161,11 @@ func (up *UpstartProvider) RenderHelperTemplate(service *procfile.Service) (stri
 	return renderTemplate("upstart-helper-template", TEMPLATE_UPSTART_HELPER, data)
 }
 
+// RenderReloadHelperTemplate renders helper template data for reloading services
+func (up *UpstartProvider) RenderReloadHelperTemplate(app *procfile.Application) (string, error) {
+	return "", nil
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // renderLevel converts level number to upstart level name

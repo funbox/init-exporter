@@ -157,6 +157,8 @@ func (e *Exporter) IsInstalled(app *procfile.Application) bool {
 
 // writeAppUnit write app init to file
 func (e *Exporter) writeAppUnit(app *procfile.Application) error {
+	app.ReloadHelperPath = e.helperPath(app.Name)
+
 	unitPath := e.unitPath(app.Name)
 	data, err := e.Provider.RenderAppTemplate(app)
 
@@ -164,11 +166,34 @@ func (e *Exporter) writeAppUnit(app *procfile.Application) error {
 		return err
 	}
 
-	log.Debug("Application unit saved as %s", unitPath)
-
 	err = ioutil.WriteFile(unitPath, []byte(data), 0644)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	log.Debug("Application unit saved as %s", unitPath)
+
+	if !app.IsReloadSignalSet() {
+		return nil
+	}
+
+	helperPath := e.helperPath(app.Name)
+	helperData, err := e.Provider.RenderReloadHelperTemplate(app)
+
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(helperPath, []byte(helperData), 0644)
+
+	if err != nil {
+		return err
+	}
+
+	log.Debug("Application reload helper saved as %s", helperPath)
+
+	return nil
 }
 
 // writeAppUnit write services init to files
@@ -247,12 +272,12 @@ func (e *Exporter) writeServiceUnit(service *procfile.Service, appName, index st
 	return nil
 }
 
-// unitPath return path for unit
+// unitPath returns path for unit
 func (e *Exporter) unitPath(name string) string {
 	return path.Join(e.Config.TargetDir, e.Provider.UnitName(name))
 }
 
-// helperPath return path for helper
+// helperPath returns path for helper
 func (e *Exporter) helperPath(name string) string {
 	return path.Join(e.Config.HelperDir, name+".sh")
 }
