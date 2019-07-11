@@ -326,6 +326,11 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
 
+	appReloadHelperData, err := ioutil.ReadFile(helperDir + "/test_application.sh")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
 	serviceA1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA1.service")
 
 	c.Assert(err, IsNil)
@@ -357,6 +362,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	serviceBUnit := strings.Split(string(serviceBUnitData), "\n")
 	serviceAHelper := strings.Split(string(serviceAHelperData), "\n")
 	serviceBHelper := strings.Split(string(serviceBHelperData), "\n")
+	appReloadHelper := strings.Split(string(appReloadHelperData), "\n")
 
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
@@ -380,6 +386,13 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"",
 			"[Install]",
 			"WantedBy=multi-user.target", ""},
+	)
+
+	c.Assert(appReloadHelper[4:], DeepEquals,
+		[]string{
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
+			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
+			""},
 	)
 
 	c.Assert(serviceA1Unit[2:], DeepEquals,
@@ -512,9 +525,8 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 
 	c.Assert(serviceBHelper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
-			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
-			""},
+			"/bin/systemctl reload-or-restart test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service", "",
+		},
 	)
 
 	err = exporter.Uninstall(app)

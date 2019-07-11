@@ -115,7 +115,7 @@ type systemdAppData struct {
 	After        string
 	Wants        string
 	ReloadHelper string
-	ServiceList  []string
+	ServiceList  string
 }
 
 type systemdServiceData struct {
@@ -290,7 +290,7 @@ func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (stri
 func (sp *SystemdProvider) RenderReloadHelperTemplate(app *procfile.Application) (string, error) {
 	data := &systemdAppData{
 		Application: app,
-		ServiceList: sp.getServiceList(app),
+		ServiceList: strings.Join(sp.getServiceList(app), " "),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
