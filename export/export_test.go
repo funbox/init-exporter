@@ -390,9 +390,8 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 
 	c.Assert(appReloadHelper[4:], DeepEquals,
 		[]string{
-			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
-			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
-			""},
+			"/bin/systemctl reload-or-restart test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service", "",
+		},
 	)
 
 	c.Assert(serviceA1Unit[2:], DeepEquals,
@@ -525,8 +524,9 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 
 	c.Assert(serviceBHelper[4:], DeepEquals,
 		[]string{
-			"/bin/systemctl reload-or-restart test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service", "",
-		},
+			"[[ -r /etc/profile.d/rbenv.sh ]] && source /etc/profile.d/rbenv.sh", "[[ -r /etc/profile.d/pyenv.sh ]] && source /etc/profile.d/pyenv.sh", "",
+			"exec env $(cat /srv/service/working-dir/shared/env.vars 2>/dev/null | xargs) STAGING=true /bin/echo 'serviceB'",
+			""},
 	)
 
 	err = exporter.Uninstall(app)
