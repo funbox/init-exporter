@@ -208,6 +208,11 @@ func (sd *systemdServiceData) ResourcesAsString() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// CheckRequirements checks provider requirements for given application
+func (sp *SystemdProvider) CheckRequirements(app *procfile.Application) error {
+	return nil
+}
+
 // UnitName returns unit name with extension
 func (sp *SystemdProvider) UnitName(name string) string {
 	return name + ".service"

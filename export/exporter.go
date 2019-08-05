@@ -43,7 +43,11 @@ func NewExporter(config *Config, provider Provider) *Exporter {
 
 // Install install application to init system
 func (e *Exporter) Install(app *procfile.Application) error {
-	var err error
+	err := e.Provider.CheckRequirements(app)
+
+	if err != nil {
+		return err
+	}
 
 	if e.IsInstalled(app) {
 		err = e.Uninstall(app)

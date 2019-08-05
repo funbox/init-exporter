@@ -17,6 +17,7 @@ import (
 
 	"pkg.re/essentialkaos/ek.v10/fsutil"
 	"pkg.re/essentialkaos/ek.v10/log"
+	"pkg.re/essentialkaos/ek.v10/version"
 
 	. "pkg.re/check.v1"
 )
@@ -42,6 +43,9 @@ func (s *ExportSuite) SetUpSuite(c *C) {
 }
 
 func (s *ExportSuite) TestUpstartExport(c *C) {
+	// Mimic to Upstart 1.13.2 (the latest version of upstart, with reload signal support)
+	upstartVersionCache, _ = version.Parse("1.13.2")
+
 	helperDir := c.MkDir()
 	targetDir := c.MkDir()
 
@@ -151,6 +155,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 10",
 			"kill signal SIGQUIT",
+			"reload signal SIGHUP",
 			"",
 			"limit nofile 1024 1024",
 			"",
@@ -175,6 +180,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 10",
 			"kill signal SIGQUIT",
+			"reload signal SIGHUP",
 			"",
 			"limit nofile 1024 1024",
 			"",
@@ -198,6 +204,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"",
 			"kill timeout 0",
+			"",
 			"",
 			"",
 			"limit nofile 4096 4096",
@@ -272,6 +279,28 @@ func (s *ExportSuite) TestUpstartExportWithNet(c *C) {
 			"stop on runlevel [3]",
 		},
 	)
+}
+
+func (s *ExportSuite) TestUpstartExportWithOldUpstart(c *C) {
+	upstartVersionCache, _ = version.Parse("0.6.5")
+
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+	}
+
+	exporter := NewExporter(config, NewUpstart())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+	err := exporter.Install(app)
+
+	c.Assert(err, NotNil)
 }
 
 func (s *ExportSuite) TestSystemdExport(c *C) {
@@ -579,6 +608,20 @@ func (s *ExportSuite) TestSystemdExportWithNet(c *C) {
 			"Wants=test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
 		},
 	)
+}
+
+func (s *ExportSuite) TestUpstartVersionParser(c *C) {
+	data := `init (upstart 0.6.5)
+Copyright (C) 2010 Canonical Ltd.
+
+This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.`
+
+	v, err := parseUpstartVersionData(data)
+
+	c.Assert(err, IsNil)
+	c.Assert(v.Major(), Equals, 0)
+	c.Assert(v.Minor(), Equals, 6)
+	c.Assert(v.Patch(), Equals, 5)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

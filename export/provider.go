@@ -19,6 +19,9 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 type Provider interface {
+	// CheckRequirements checks provider requirements for given application
+	CheckRequirements(app *procfile.Application) error
+
 	// UnitName returns unit name with extension
 	UnitName(name string) string
 

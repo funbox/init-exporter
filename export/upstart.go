@@ -8,9 +8,13 @@ package export
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 	"time"
 
+	"pkg.re/essentialkaos/ek.v10/strutil"
 	"pkg.re/essentialkaos/ek.v10/timeutil"
+	"pkg.re/essentialkaos/ek.v10/version"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -62,6 +66,7 @@ stop on {{.StopLevel}}
 
 kill timeout {{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsKillSignalSet }}kill signal {{.Service.Options.KillSignal}}{{ end }}
+{{ if .Service.Options.IsReloadSignalSet }}reload signal {{.Service.Options.ReloadSignal}}{{ end }}
 
 {{ if .Service.Options.IsFileLimitSet }}limit nofile {{.Service.Options.LimitFile}} {{.Service.Options.LimitFile}}{{ end }}
 {{ if .Service.Options.IsProcLimitSet }}limit nproc {{.Service.Options.LimitProc}} {{.Service.Options.LimitProc}}{{ end }}
@@ -95,12 +100,21 @@ type upstartServiceData struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+var upstartVersionCache version.Version
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // NewUpstart creates new UpstartProvider struct
 func NewUpstart() *UpstartProvider {
 	return &UpstartProvider{}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
+
+// CheckRequirements checks provider requirements for given application
+func (up *UpstartProvider) CheckRequirements(app *procfile.Application) error {
+	return checkReloadSignalSupport(app)
+}
 
 // UnitName returns unit name with extension
 func (up *UpstartProvider) UnitName(name string) string {
@@ -186,4 +200,55 @@ func (d *upstartServiceData) GetMemlockLimit() string {
 	}
 
 	return fmt.Sprintf("%d", d.Service.Options.LimitMemlock)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// checkReloadSignalSupport checks if app requires reload signal
+// and if current upstart version supports it
+func checkReloadSignalSupport(app *procfile.Application) error {
+	if !app.IsReloadSignalSet() {
+		return nil
+	}
+
+	if upstartVersionCache.IsZero() {
+		upstartVersion, err := getUpstartVersion()
+
+		if err != nil {
+			return err
+		}
+
+		upstartVersionCache = upstartVersion
+	}
+
+	minReloadVer, _ := version.Parse("1.10.0")
+
+	if upstartVersionCache.Less(minReloadVer) {
+		return fmt.Errorf(
+			"Upstart %s doesn't support reload signal. Upstart 1.10.0 is required.",
+			upstartVersionCache.Simple(),
+		)
+	}
+
+	return nil
+}
+
+// getUpstartVersion returns current upstart version
+func getUpstartVersion() (version.Version, error) {
+	cmd := exec.Command("init", "--version")
+	output, err := cmd.Output()
+
+	if err != nil {
+		return version.Version{}, fmt.Errorf("Can't execute init binary")
+	}
+
+	return parseUpstartVersionData(string(output))
+}
+
+// parseUpstartVersionData parses upstart version data
+func parseUpstartVersionData(data string) (version.Version, error) {
+	line := strutil.ReadField(data, 0, false, "\n")
+	verStr := strings.Trim(strutil.ReadField(line, 2, false, " "), "()")
+
+	return version.Parse(verStr)
 }
