@@ -168,7 +168,7 @@ func (a *Application) Validate() []error {
 	}
 
 	for _, service := range a.Services {
-		errs.Add(service.Validate()...)
+		errs.Add(service.Validate())
 	}
 
 	return errs.All()
@@ -186,20 +186,20 @@ func (a *Application) IsReloadSignalSet() bool {
 }
 
 // Validate validate service props and options
-func (s *Service) Validate() []error {
+func (s *Service) Validate() *errutil.Errors {
 	errs := errutil.NewErrors()
 
 	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(s.Name) {
 		errs.Add(fmt.Errorf("Service name %s is misformatted and can't be accepted", s.Name))
 	}
 
-	errs.Add(s.Options.Validate()...)
+	errs.Add(s.Options.Validate())
 
-	return errs.All()
+	return errs
 }
 
 // Validate validate service options
-func (so *ServiceOptions) Validate() []error {
+func (so *ServiceOptions) Validate() *errutil.Errors {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkPath(so.WorkingDir))
@@ -266,7 +266,7 @@ func (so *ServiceOptions) Validate() []error {
 		}
 	}
 
-	return errs.All()
+	return errs
 }
 
 // HasPreCmd return true if pre command is defined
