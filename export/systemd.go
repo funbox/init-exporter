@@ -340,7 +340,7 @@ func (sp *SystemdProvider) renderWantsClause(services []string) string {
 
 	for _, service := range services {
 		if len(buffer)+len(service) >= 1536 {
-			wants = append(wants, strings.TrimSpace(buffer))
+			wants = append(wants, "Wants="+strings.TrimSpace(buffer))
 			buffer = ""
 		}
 

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -622,6 +623,25 @@ This is free software; see the source for copying conditions.  There is NO warra
 	c.Assert(v.Major(), Equals, 0)
 	c.Assert(v.Minor(), Equals, 6)
 	c.Assert(v.Patch(), Equals, 5)
+}
+
+func (s *ExportSuite) TestWantsClauseGeneration(c *C) {
+	var services []string
+
+	for i := 0; i < 50; i++ {
+		services = append(services, "application-service-"+strconv.Itoa(i))
+	}
+
+	p := NewSystemd()
+	wants := p.renderWantsClause(services)
+
+	c.Assert(strings.Count(wants, "\n"), Not(Equals), 1)
+
+	wantsSlice := strings.Split(wants, "\n")
+
+	for _, clause := range wantsSlice {
+		c.Assert(strings.HasPrefix(clause, "Wants="), Equals, true)
+	}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
