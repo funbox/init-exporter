@@ -113,7 +113,7 @@ rm -rf %{buildroot}
 %changelog
 * Fri Jul 12 2019 Anton Novojilov <andy@essentialkaos.com> - 0.22.0-0
 - Added 'start_on_device' option for v2 procfile format
-- Dropped 'reload_signal' support in upstart provider
+- Dropped 'reload_signal' support for Upstart ≤ 1.10.0
 - Fixed 'reload_signal' support for Systemd
 
 * Wed Jan 09 2019 Anton Novojilov <andyone@fun-box.ru> - 0.21.0-0
