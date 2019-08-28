@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -17,6 +18,7 @@ import (
 
 	"pkg.re/essentialkaos/ek.v10/fsutil"
 	"pkg.re/essentialkaos/ek.v10/log"
+	"pkg.re/essentialkaos/ek.v10/version"
 
 	. "pkg.re/check.v1"
 )
@@ -42,6 +44,9 @@ func (s *ExportSuite) SetUpSuite(c *C) {
 }
 
 func (s *ExportSuite) TestUpstartExport(c *C) {
+	// Mimic to Upstart 1.13.2 (the latest version of upstart, with reload signal support)
+	upstartVersionCache, _ = version.Parse("1.13.2")
+
 	helperDir := c.MkDir()
 	targetDir := c.MkDir()
 
@@ -151,7 +156,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 10",
 			"kill signal SIGQUIT",
-			"",
+			"reload signal SIGHUP",
 			"",
 			"limit nofile 1024 1024",
 			"",
@@ -176,7 +181,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 10",
 			"kill signal SIGQUIT",
-			"",
+			"reload signal SIGHUP",
 			"",
 			"limit nofile 1024 1024",
 			"",
@@ -201,7 +206,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"kill timeout 0",
 			"",
-			"reload signal SIGUSR2",
+			"",
 			"",
 			"limit nofile 4096 4096",
 			"limit nproc 4096 4096",
@@ -239,6 +244,64 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.conf"), Equals, false)
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA.sh"), Equals, false)
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, false)
+}
+
+func (s *ExportSuite) TestUpstartExportWithNet(c *C) {
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+	}
+
+	exporter := NewExporter(config, NewUpstart())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+
+	app.StartDevice = "bond0"
+
+	err := exporter.Install(app)
+	c.Assert(err, IsNil)
+
+	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.conf")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
+	appUnit := strings.Split(string(appUnitData), "\n")
+
+	c.Assert(appUnit[2:4], DeepEquals,
+		[]string{
+			"start on net-device-up IFACE=bond0",
+			"stop on runlevel [3]",
+		},
+	)
+}
+
+func (s *ExportSuite) TestUpstartExportWithOldUpstart(c *C) {
+	upstartVersionCache, _ = version.Parse("0.6.5")
+
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+	}
+
+	exporter := NewExporter(config, NewUpstart())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+	err := exporter.Install(app)
+
+	c.Assert(err, NotNil)
 }
 
 func (s *ExportSuite) TestSystemdExport(c *C) {
@@ -293,6 +356,11 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
 
+	appReloadHelperData, err := ioutil.ReadFile(helperDir + "/test_application.sh")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
 	serviceA1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA1.service")
 
 	c.Assert(err, IsNil)
@@ -324,6 +392,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	serviceBUnit := strings.Split(string(serviceBUnitData), "\n")
 	serviceAHelper := strings.Split(string(serviceAHelperData), "\n")
 	serviceBHelper := strings.Split(string(serviceBHelperData), "\n")
+	appReloadHelper := strings.Split(string(appReloadHelperData), "\n")
 
 	c.Assert(appUnit[2:], DeepEquals,
 		[]string{
@@ -343,9 +412,16 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"ExecStartPre=/bin/chmod -R g+w /var/log/test_application",
 			"ExecStart=/bin/echo \"test_application started\"",
 			"ExecStop=/bin/echo \"test_application stopped\"",
+			fmt.Sprintf("ExecReload=/bin/sh -c '/bin/bash %s/test_application.sh'", helperDir),
 			"",
 			"[Install]",
 			"WantedBy=multi-user.target", ""},
+	)
+
+	c.Assert(appReloadHelper[4:], DeepEquals,
+		[]string{
+			"/bin/systemctl reload-or-restart test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service", "",
+		},
 	)
 
 	c.Assert(serviceA1Unit[2:], DeepEquals,
@@ -379,7 +455,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA1.sh &>>/var/log/test_application/serviceA.log'", helperDir),
-			"",
+			"ExecReload=/bin/pkill -SIGHUP -P $MAINPID",
 			""},
 	)
 
@@ -414,7 +490,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/serviceA-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceA2.sh &>>/var/log/test_application/serviceA.log'", helperDir),
-			"",
+			"ExecReload=/bin/pkill -SIGHUP -P $MAINPID",
 			""},
 	)
 
@@ -465,7 +541,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Group=service",
 			"WorkingDirectory=/srv/service/working-dir",
 			fmt.Sprintf("ExecStart=/bin/sh -c '/bin/bash %s/test_application-serviceB.sh &>>/var/log/test_application/serviceB.log'", helperDir),
-			"ExecReload=/bin/kill -SIGUSR2 $MAINPID",
+			"",
 			""},
 	)
 
@@ -494,6 +570,80 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, false)
 }
 
+func (s *ExportSuite) TestSystemdExportWithNet(c *C) {
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+		DisableReload:    true,
+	}
+
+	exporter := NewExporter(config, NewSystemd())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+
+	app.StartDevice = "bond0"
+
+	err := exporter.Install(app)
+
+	c.Assert(err, IsNil)
+
+	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.service")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
+	appUnit := strings.Split(string(appUnitData), "\n")
+
+	c.Assert(appUnit[2:7], DeepEquals,
+		[]string{
+			"[Unit]",
+			"",
+			"Description=Unit for test_application application",
+			"After=sys-subsystem-net-devices-bond0.device",
+			"Wants=test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
+		},
+	)
+}
+
+func (s *ExportSuite) TestUpstartVersionParser(c *C) {
+	data := `init (upstart 0.6.5)
+Copyright (C) 2010 Canonical Ltd.
+
+This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.`
+
+	v, err := parseUpstartVersionData(data)
+
+	c.Assert(err, IsNil)
+	c.Assert(v.Major(), Equals, 0)
+	c.Assert(v.Minor(), Equals, 6)
+	c.Assert(v.Patch(), Equals, 5)
+}
+
+func (s *ExportSuite) TestWantsClauseGeneration(c *C) {
+	var services []string
+
+	for i := 0; i < 50; i++ {
+		services = append(services, "application-service-"+strconv.Itoa(i))
+	}
+
+	p := NewSystemd()
+	wants := p.renderWantsClause(services)
+
+	c.Assert(strings.Count(wants, "\n"), Not(Equals), 1)
+
+	wantsSlice := strings.Split(wants, "\n")
+
+	for _, clause := range wantsSlice {
+		c.Assert(strings.HasPrefix(clause, "Wants="), Equals, true)
+	}
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func createTestApp(helperDir, targetDir string) *procfile.Application {
@@ -520,6 +670,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			LogFile:          "log/serviceA.log",
 			KillTimeout:      10,
 			KillSignal:       "SIGQUIT",
+			ReloadSignal:     "SIGHUP",
 			Count:            2,
 			RespawnInterval:  25,
 			RespawnCount:     15,
@@ -537,7 +688,6 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			EnvFile:          "shared/env.vars",
 			Env:              map[string]string{"STAGING": "true"},
 			WorkingDir:       "/srv/service/working-dir",
-			ReloadSignal:     "SIGUSR2",
 			IsRespawnEnabled: true,
 			LimitFile:        4096,
 			LimitProc:        4096,

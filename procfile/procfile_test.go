@@ -2,7 +2,7 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -85,6 +85,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 
 	c.Assert(app.StartLevel, Equals, 2)
 	c.Assert(app.StopLevel, Equals, 5)
+	c.Assert(app.StartDevice, Equals, "bond0")
 
 	errs := app.Validate()
 

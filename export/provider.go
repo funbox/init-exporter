@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -19,28 +19,34 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 type Provider interface {
-	// UnitName return unit name with extension
+	// CheckRequirements checks provider requirements for given application
+	CheckRequirements(app *procfile.Application) error
+
+	// UnitName returns unit name with extension
 	UnitName(name string) string
 
-	// RenderAppTemplate render unit template data with given app data and return
+	// RenderAppTemplate renders unit template data with given app data and return
 	// app unit code
 	RenderAppTemplate(app *procfile.Application) (string, error)
 
-	// RenderServiceTemplate render unit template data with given service data and
+	// RenderServiceTemplate renders unit template data with given service data and
 	// return service unit code
 	RenderServiceTemplate(service *procfile.Service) (string, error)
 
-	// RenderHelperTemplate render helper template data with given service data and
+	// RenderHelperTemplate renders helper template data with given service data and
 	// return helper script code
 	RenderHelperTemplate(service *procfile.Service) (string, error)
 
-	// EnableService enable service with given name
+	// RenderReloadHelperTemplate renders helper template data for reloading services
+	RenderReloadHelperTemplate(app *procfile.Application) (string, error)
+
+	// EnableService enables service with given name
 	EnableService(appName string) error
 
-	// DisableService disable service with given name
+	// DisableService disables service with given name
 	DisableService(appName string) error
 
-	// Reload reload service units
+	// Reload reloads service units
 	Reload() error
 }
 

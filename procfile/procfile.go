@@ -2,7 +2,7 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -24,10 +24,11 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
-	REGEXP_V1_LINE    = `^([A-z\d_]+):\s*(.+)`
-	REGEXP_V2_VERSION = `(?m)^\s*version:\s*2\s*$`
-	REGEXP_PATH_CHECK = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_NAME_CHECK = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_V1_LINE          = `^([A-z\d_]+):\s*(.+)`
+	REGEXP_V2_VERSION       = `(?m)^\s*version:\s*2\s*$`
+	REGEXP_PATH_CHECK       = `\A[A-Za-z0-9_\-./]+\z`
+	REGEXP_NAME_CHECK       = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_NET_DEVICE_CHECK = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -37,13 +38,13 @@ type Config struct {
 	User             string // Working user
 	Group            string // Working group
 	WorkingDir       string // Working directory
-	IsRespawnEnabled bool   // Global respawn enabled flag
 	RespawnInterval  int    // Global respawn interval in seconds
 	RespawnCount     int    // Global respawn count
 	KillTimeout      int    // Global kill timeout in seconds
 	LimitProc        int    // Global processes limit
 	LimitFile        int    // Global descriptors limit
 	LimitMemlock     int    // Global max locked memory limit
+	IsRespawnEnabled bool   // Global respawn enabled flag
 }
 
 type Service struct {
@@ -64,15 +65,15 @@ type ServiceOptions struct {
 	KillTimeout      int               // Kill timeout in seconds
 	KillSignal       string            // Kill signal name
 	KillMode         string            // Kill mode (systemd only)
-	ReloadSignal     string            // Reload signal name
+	ReloadSignal     string            // Reload signal name (systemd only)
 	Count            int               // Exec count
 	RespawnInterval  int               // Respawn interval in seconds
 	RespawnCount     int               // Respawn count
-	IsRespawnEnabled bool              // Respawn enabled flag
 	LimitProc        int               // Processes limit
 	LimitFile        int               // Descriptors limit
 	LimitMemlock     int               // Max locked memory limit
 	Resources        *Resources        // Resources limits (systemd only)
+	IsRespawnEnabled bool              // Respawn enabled flag
 }
 
 type Resources struct {
@@ -96,14 +97,16 @@ type Resources struct {
 }
 
 type Application struct {
-	Name        string     // Name of application
-	Services    []*Service // List of services in application
-	User        string     // Working user
-	Group       string     // Working group
-	StartLevel  int        // Start level
-	StopLevel   int        // Stop level
-	WorkingDir  string     // Working directory
-	ProcVersion int        // Proc version 1/2
+	Name             string     // Name of application
+	Services         []*Service // List of services in application
+	User             string     // Working user
+	Group            string     // Working group
+	StartLevel       int        // Start level
+	StopLevel        int        // Stop level
+	StartDevice      string     // Start on device activation
+	WorkingDir       string     // Working directory
+	ReloadHelperPath string     // Path to reload helper (will be set by exporter)
+	ProcVersion      int        // Proc version 1/2
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -160,28 +163,43 @@ func (a *Application) Validate() []error {
 		errs.Add(fmt.Errorf("Application working dir can't be empty"))
 	}
 
+	if a.StartDevice != "" && !regexp.MustCompile(REGEXP_NET_DEVICE_CHECK).MatchString(a.StartDevice) {
+		errs.Add(fmt.Errorf("Name of device (%s) is not a valid", a.StartDevice))
+	}
+
 	for _, service := range a.Services {
-		errs.Add(service.Validate()...)
+		errs.Add(service.Validate())
 	}
 
 	return errs.All()
 }
 
+// IsReloadSignalSet returns true if any service contains reload signal
+func (a *Application) IsReloadSignalSet() bool {
+	for _, service := range a.Services {
+		if service.Options.ReloadSignal != "" {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Validate validate service props and options
-func (s *Service) Validate() []error {
+func (s *Service) Validate() *errutil.Errors {
 	errs := errutil.NewErrors()
 
 	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(s.Name) {
 		errs.Add(fmt.Errorf("Service name %s is misformatted and can't be accepted", s.Name))
 	}
 
-	errs.Add(s.Options.Validate()...)
+	errs.Add(s.Options.Validate())
 
-	return errs.All()
+	return errs
 }
 
 // Validate validate service options
-func (so *ServiceOptions) Validate() []error {
+func (so *ServiceOptions) Validate() *errutil.Errors {
 	errs := errutil.NewErrors()
 
 	errs.Add(checkPath(so.WorkingDir))
@@ -248,7 +266,7 @@ func (so *ServiceOptions) Validate() []error {
 		}
 	}
 
-	return errs.All()
+	return errs
 }
 
 // HasPreCmd return true if pre command is defined
@@ -338,14 +356,14 @@ func (so *ServiceOptions) IsKillModeSet() bool {
 	return so.KillMode != ""
 }
 
-// IsReloadSignalSet returns true if custom reload signal set
-func (so *ServiceOptions) IsReloadSignalSet() bool {
-	return so.ReloadSignal != ""
-}
-
 // IsResourcesSet returns true if resources limits are set
 func (so *ServiceOptions) IsResourcesSet() bool {
 	return so.Resources != nil
+}
+
+// IsReloadSignalSet returns true if custom reload signal set
+func (so *ServiceOptions) IsReloadSignalSet() bool {
+	return so.ReloadSignal != ""
 }
 
 // EnvString returns environment variables as string

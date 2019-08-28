@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -37,13 +37,21 @@ const TEMPLATE_SYSTEMD_HELPER = `#!/bin/bash
 {{ if .Service.HasPreCmd }}{{.Service.GetCommandExec "pre"}} && {{ end }}{{.Service.GetCommandExec ""}}{{ if .Service.HasPostCmd }} && {{.Service.GetCommandExec "post"}}{{ end }}
 `
 
+// TEMPLATE_SYSTEMD_RELOAD_HELPER contains reload helper template
+const TEMPLATE_SYSTEMD_RELOAD_HELPER = `#!/bin/bash
+
+# This helper generated {{.ExportDate}} by init-exporter/systemd for {{.Application.Name}} application
+
+/bin/systemctl reload-or-restart {{.ServiceList}}
+`
+
 // TEMPLATE_SYSTEMD_APP contains default application template
 const TEMPLATE_SYSTEMD_APP = `# This unit generated {{.ExportDate}} by init-exporter/systemd for {{.Application.Name}} application
 
 [Unit]
 
 Description=Unit for {{.Application.Name}} application
-After={{.StartLevel}}
+After={{.After}}
 {{.Wants}}
 
 [Service]
@@ -56,6 +64,7 @@ ExecStartPre=/bin/chgrp -R {{.Application.Group}} /var/log/{{.Application.Name}}
 ExecStartPre=/bin/chmod -R g+w /var/log/{{.Application.Name}}
 ExecStart=/bin/echo "{{.Application.Name}} started"
 ExecStop=/bin/echo "{{.Application.Name}} stopped"
+{{ if .Application.IsReloadSignalSet }}ExecReload=/bin/sh -c '/bin/bash {{.ReloadHelper}}'{{end}}
 
 [Install]
 WantedBy={{.StartLevel}}
@@ -93,37 +102,38 @@ User={{.Application.User}}
 Group={{.Application.Group}}
 WorkingDirectory={{.Service.Options.WorkingDir}}
 ExecStart=/bin/sh -c '/bin/bash {{.Service.HelperPath}} &>>/var/log/{{.Application.Name}}/{{.Service.Name}}.log'
-{{ if .Service.Options.IsReloadSignalSet }}ExecReload=/bin/kill -{{.Service.Options.ReloadSignal}} $MAINPID{{ end }}
+{{ if .Service.Options.IsReloadSignalSet }}ExecReload=/bin/pkill -{{.Service.Options.ReloadSignal}} -P $MAINPID{{ end }}
 `
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 type systemdAppData struct {
-	Application *procfile.Application
-	ExportDate  string
-	StartLevel  string
-	StopLevel   string
-	Wants       string
+	Application  *procfile.Application
+	ExportDate   string
+	StartLevel   string
+	StopLevel    string
+	After        string
+	Wants        string
+	ReloadHelper string
+	ServiceList  string
 }
 
 type systemdServiceData struct {
 	Application *procfile.Application
 	Service     *procfile.Service
 	ExportDate  string
-	StartLevel  string
-	StopLevel   string
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// NewSystemd create new SystemdProvider struct
+// NewSystemd creates new SystemdProvider struct
 func NewSystemd() *SystemdProvider {
 	return &SystemdProvider{}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ResourcesAsString return resources settings as string
+// ResourcesAsString returns resources settings as string
 func (sd *systemdServiceData) ResourcesAsString() string {
 	var result string
 
@@ -198,12 +208,17 @@ func (sd *systemdServiceData) ResourcesAsString() string {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnitName return unit name with extension
+// CheckRequirements checks provider requirements for given application
+func (sp *SystemdProvider) CheckRequirements(app *procfile.Application) error {
+	return nil
+}
+
+// UnitName returns unit name with extension
 func (sp *SystemdProvider) UnitName(name string) string {
 	return name + ".service"
 }
 
-// EnableService enable service with given name
+// EnableService enables service with given name
 func (sp *SystemdProvider) EnableService(appName string) error {
 	err := exec.Run("systemctl", "enable", sp.UnitName(appName))
 
@@ -214,7 +229,7 @@ func (sp *SystemdProvider) EnableService(appName string) error {
 	return nil
 }
 
-// DisableService disable service with given name
+// DisableService disables service with given name
 func (sp *SystemdProvider) DisableService(appName string) error {
 	err := exec.Run("systemctl", "disable", sp.UnitName(appName))
 
@@ -225,7 +240,7 @@ func (sp *SystemdProvider) DisableService(appName string) error {
 	return nil
 }
 
-// Reload reload service units
+// Reload reloads service units
 func (sp *SystemdProvider) Reload() error {
 	err := exec.Run("systemctl", "daemon-reload")
 
@@ -236,63 +251,76 @@ func (sp *SystemdProvider) Reload() error {
 	return nil
 }
 
-// RenderAppTemplate render unit template data with given app data and return
+// RenderAppTemplate renders unit template data with given app data and return
 // app unit code
 func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
 	data := &systemdAppData{
-		Application: app,
-		Wants:       sp.renderWantsClause(app),
-		StartLevel:  sp.renderLevel(app.StartLevel),
-		StopLevel:   sp.renderLevel(app.StopLevel),
-		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
+		Application:  app,
+		ReloadHelper: app.ReloadHelperPath,
+		Wants:        sp.renderWantsClause(sp.getServiceList(app)),
+		After:        sp.renderLevel(app.StartLevel, app.StartDevice),
+		StartLevel:   sp.renderLevel(app.StartLevel, ""),
+		StopLevel:    sp.renderLevel(app.StopLevel, ""),
+		ExportDate:   timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("systemd-app-template", TEMPLATE_SYSTEMD_APP, data)
 }
 
-// RenderServiceTemplate render unit template data with given service data and
+// RenderServiceTemplate renders unit template data with given service data and
 // return service unit code
 func (sp *SystemdProvider) RenderServiceTemplate(service *procfile.Service) (string, error) {
 	data := &systemdServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  sp.renderLevel(service.Application.StartLevel),
-		StopLevel:   sp.renderLevel(service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("systemd-service-template", TEMPLATE_SYSTEMD_SERVICE, data)
 }
 
-// RenderHelperTemplate render helper template data with given service data and
+// RenderHelperTemplate renders helper template data with given service data and
 // return helper script code
 func (sp *SystemdProvider) RenderHelperTemplate(service *procfile.Service) (string, error) {
 	data := &systemdServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  sp.renderLevel(service.Application.StartLevel),
-		StopLevel:   sp.renderLevel(service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("systemd-helper-template", TEMPLATE_SYSTEMD_HELPER, data)
 }
 
-// ////////////////////////////////////////////////////////////////////////////////// //
-
-// GetMemlockLimit return formatted memlock value
-func (d *systemdServiceData) GetMemlockLimit() string {
-	if d.Service.Options.LimitMemlock == -1 {
-		return "infinity"
+// RenderReloadHelperTemplate renders helper template data for reloading services
+func (sp *SystemdProvider) RenderReloadHelperTemplate(app *procfile.Application) (string, error) {
+	data := &systemdAppData{
+		Application: app,
+		ServiceList: strings.Join(sp.getServiceList(app), " "),
+		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
-	return fmt.Sprintf("%d", d.Service.Options.LimitMemlock)
+	return renderTemplate("systemd-reload-helper-template", TEMPLATE_SYSTEMD_RELOAD_HELPER, data)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// renderLevel convert level number to upstart level name
-func (sp *SystemdProvider) renderLevel(level int) string {
+// GetMemlockLimit returns formatted memlock value
+func (sd *systemdServiceData) GetMemlockLimit() string {
+	if sd.Service.Options.LimitMemlock == -1 {
+		return "infinity"
+	}
+
+	return fmt.Sprintf("%d", sd.Service.Options.LimitMemlock)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// renderLevel converts level number to systemd level name
+func (sp *SystemdProvider) renderLevel(level int, device string) string {
+	if device != "" {
+		return fmt.Sprintf("sys-subsystem-net-devices-%s.device", device)
+	}
+
 	switch level {
 	case 1:
 		return "rescue.target"
@@ -305,36 +333,38 @@ func (sp *SystemdProvider) renderLevel(level int) string {
 	}
 }
 
-// renderWantsClause render list of services in application for upstart config
-func (sp *SystemdProvider) renderWantsClause(app *procfile.Application) string {
+// renderWantsClause renders list of services in application for systemd config
+func (sp *SystemdProvider) renderWantsClause(services []string) string {
 	var wants []string
 	var buffer string
 
-	for _, service := range app.Services {
-		if service.Options.Count <= 0 {
-			unitName := sp.UnitName(app.Name+"-"+service.Name) + " "
-
-			if len(buffer)+len(unitName) >= 1536 {
-				wants = append(wants, strings.TrimSpace(buffer))
-				buffer = ""
-			}
-
-			buffer += unitName
-		} else {
-			for i := 1; i <= service.Options.Count; i++ {
-				unitName := sp.UnitName(app.Name+"-"+service.Name+strconv.Itoa(i)) + " "
-
-				if len(buffer)+len(unitName) >= 1536 {
-					wants = append(wants, "Wants="+strings.TrimSpace(buffer))
-					buffer = ""
-				}
-
-				buffer += unitName
-			}
+	for _, service := range services {
+		if len(buffer)+len(service) >= 1536 {
+			wants = append(wants, "Wants="+strings.TrimSpace(buffer))
+			buffer = ""
 		}
+
+		buffer += service + " "
 	}
 
 	wants = append(wants, "Wants="+strings.TrimSpace(buffer))
 
 	return strings.Join(wants, "\n")
+}
+
+// getServiceList return slice with all child services
+func (sp *SystemdProvider) getServiceList(app *procfile.Application) []string {
+	var result []string
+
+	for _, service := range app.Services {
+		if service.Options.Count <= 0 {
+			result = append(result, sp.UnitName(app.Name+"-"+service.Name))
+		} else {
+			for i := 1; i <= service.Options.Count; i++ {
+				result = append(result, sp.UnitName(app.Name+"-"+service.Name+strconv.Itoa(i)))
+			}
+		}
+	}
+
+	return result
 }

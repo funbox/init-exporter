@@ -2,15 +2,19 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2018 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 	"time"
 
+	"pkg.re/essentialkaos/ek.v10/strutil"
 	"pkg.re/essentialkaos/ek.v10/timeutil"
+	"pkg.re/essentialkaos/ek.v10/version"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -96,47 +100,56 @@ type upstartServiceData struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// NewUpstart create new UpstartProvider struct
+var upstartVersionCache version.Version
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// NewUpstart creates new UpstartProvider struct
 func NewUpstart() *UpstartProvider {
 	return &UpstartProvider{}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// UnitName return unit name with extension
+// CheckRequirements checks provider requirements for given application
+func (up *UpstartProvider) CheckRequirements(app *procfile.Application) error {
+	return checkReloadSignalSupport(app)
+}
+
+// UnitName returns unit name with extension
 func (up *UpstartProvider) UnitName(name string) string {
 	return name + ".conf"
 }
 
-// EnableService enable service with given name
+// EnableService enables service with given name
 func (up *UpstartProvider) EnableService(appName string) error {
 	return nil
 }
 
-// DisableService disable service with given name
+// DisableService disables service with given name
 func (up *UpstartProvider) DisableService(appName string) error {
 	return nil
 }
 
-// Reload reload service units
+// Reload reloads service units
 func (up *UpstartProvider) Reload() error {
 	return nil
 }
 
-// RenderAppTemplate render unit template data with given app data and return
+// RenderAppTemplate renders unit template data with given app data and return
 // app unit code
 func (up *UpstartProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
 	data := &upstartAppData{
 		Application: app,
-		StartLevel:  fmt.Sprintf("runlevel [%d]", app.StartLevel),
-		StopLevel:   fmt.Sprintf("runlevel [%d]", app.StopLevel),
+		StartLevel:  up.renderLevel(app.StartLevel, app.StartDevice),
+		StopLevel:   up.renderLevel(app.StopLevel, ""),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("upstart-app-template", TEMPLATE_UPSTART_APP, data)
 }
 
-// RenderServiceTemplate render unit template data with given service data and
+// RenderServiceTemplate renders unit template data with given service data and
 // return service unit code
 func (up *UpstartProvider) RenderServiceTemplate(service *procfile.Service) (string, error) {
 	data := &upstartServiceData{
@@ -150,27 +163,92 @@ func (up *UpstartProvider) RenderServiceTemplate(service *procfile.Service) (str
 	return renderTemplate("upstart-service-template", TEMPLATE_UPSTART_SERVICE, data)
 }
 
-// RenderHelperTemplate render helper template data with given service data and
+// RenderHelperTemplate renders helper template data with given service data and
 // return helper script code
 func (up *UpstartProvider) RenderHelperTemplate(service *procfile.Service) (string, error) {
 	data := &upstartServiceData{
 		Application: service.Application,
 		Service:     service,
-		StartLevel:  fmt.Sprintf("[%d]", service.Application.StartLevel),
-		StopLevel:   fmt.Sprintf("[%d]", service.Application.StopLevel),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
 	return renderTemplate("upstart-helper-template", TEMPLATE_UPSTART_HELPER, data)
 }
 
+// RenderReloadHelperTemplate renders helper template data for reloading services
+func (up *UpstartProvider) RenderReloadHelperTemplate(app *procfile.Application) (string, error) {
+	return "", nil
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// GetMemlockLimit return formatted memlock value
+// renderLevel converts level number to upstart level name
+func (up *UpstartProvider) renderLevel(level int, device string) string {
+	if device != "" {
+		return fmt.Sprintf("net-device-up IFACE=%s", device)
+	}
+
+	return fmt.Sprintf("runlevel [%d]", level)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// GetMemlockLimit returns formatted memlock value
 func (d *upstartServiceData) GetMemlockLimit() string {
 	if d.Service.Options.LimitMemlock == -1 {
 		return "unlimited"
 	}
 
 	return fmt.Sprintf("%d", d.Service.Options.LimitMemlock)
+}
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
+// checkReloadSignalSupport checks if app requires reload signal
+// and if current upstart version supports it
+func checkReloadSignalSupport(app *procfile.Application) error {
+	if !app.IsReloadSignalSet() {
+		return nil
+	}
+
+	if upstartVersionCache.IsZero() {
+		upstartVersion, err := getUpstartVersion()
+
+		if err != nil {
+			return err
+		}
+
+		upstartVersionCache = upstartVersion
+	}
+
+	minReloadVer, _ := version.Parse("1.10.0")
+
+	if upstartVersionCache.Less(minReloadVer) {
+		return fmt.Errorf(
+			"Upstart %s doesn't support reload signal. Upstart 1.10.0 is required.",
+			upstartVersionCache.Simple(),
+		)
+	}
+
+	return nil
+}
+
+// getUpstartVersion returns current upstart version
+func getUpstartVersion() (version.Version, error) {
+	cmd := exec.Command("init", "--version")
+	output, err := cmd.Output()
+
+	if err != nil {
+		return version.Version{}, fmt.Errorf("Can't execute init binary")
+	}
+
+	return parseUpstartVersionData(string(output))
+}
+
+// parseUpstartVersionData parses upstart version data
+func parseUpstartVersionData(data string) (version.Version, error) {
+	line := strutil.ReadField(data, 0, false, "\n")
+	verStr := strings.Trim(strutil.ReadField(line, 2, false, " "), "()")
+
+	return version.Parse(verStr)
 }
