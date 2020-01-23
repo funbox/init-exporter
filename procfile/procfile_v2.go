@@ -10,7 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v10/log"
+	"pkg.re/essentialkaos/ek.v11/log"
+	"pkg.re/essentialkaos/ek.v11/strutil"
 
 	"pkg.re/essentialkaos/go-simpleyaml.v1"
 )
@@ -82,6 +83,16 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Can't parse start_on_device value: %v", err)
 		}
+	}
+
+	if yaml.IsExist("depends") {
+		deps, err := yamlGetSafe(yaml, "depends")
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't parse depends value: %v", err)
+		}
+
+		app.Depends = strutil.Fields(deps)
 	}
 
 	addCrossLink(app)

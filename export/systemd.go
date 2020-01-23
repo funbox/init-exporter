@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v10/system/exec"
-	"pkg.re/essentialkaos/ek.v10/timeutil"
+	"pkg.re/essentialkaos/ek.v11/system/exec"
+	"pkg.re/essentialkaos/ek.v11/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -257,10 +257,10 @@ func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string,
 	data := &systemdAppData{
 		Application:  app,
 		ReloadHelper: app.ReloadHelperPath,
-		Wants:        sp.renderWantsClause(sp.getServiceList(app)),
-		After:        sp.renderLevel(app.StartLevel, app.StartDevice),
-		StartLevel:   sp.renderLevel(app.StartLevel, ""),
-		StopLevel:    sp.renderLevel(app.StopLevel, ""),
+		Wants:        sp.renderWantsClause(sp.getServiceList(app), app.Depends),
+		After:        sp.renderAfterClause(app.StartLevel, app.StartDevice, app.Depends),
+		StartLevel:   sp.renderLevel(app.StartLevel),
+		StopLevel:    sp.renderLevel(app.StopLevel),
 		ExportDate:   timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -316,11 +316,7 @@ func (sd *systemdServiceData) GetMemlockLimit() string {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // renderLevel converts level number to systemd level name
-func (sp *SystemdProvider) renderLevel(level int, device string) string {
-	if device != "" {
-		return fmt.Sprintf("sys-subsystem-net-devices-%s.device", device)
-	}
-
+func (sp *SystemdProvider) renderLevel(level int) string {
 	switch level {
 	case 1:
 		return "rescue.target"
@@ -334,9 +330,11 @@ func (sp *SystemdProvider) renderLevel(level int, device string) string {
 }
 
 // renderWantsClause renders list of services in application for systemd config
-func (sp *SystemdProvider) renderWantsClause(services []string) string {
+func (sp *SystemdProvider) renderWantsClause(services []string, deps []string) string {
 	var wants []string
 	var buffer string
+
+	services = append(sp.depsToServiceList(deps), services...)
 
 	for _, service := range services {
 		if len(buffer)+len(service) >= 1536 {
@@ -352,6 +350,19 @@ func (sp *SystemdProvider) renderWantsClause(services []string) string {
 	return strings.Join(wants, "\n")
 }
 
+// renderAfterClause renders dependencies
+func (sp *SystemdProvider) renderAfterClause(level int, device string, deps []string) string {
+	after := []string{sp.renderLevel(level)}
+
+	if device != "" {
+		after = append(after, fmt.Sprintf("sys-subsystem-net-devices-%s.device", device))
+	}
+
+	after = append(after, sp.depsToServiceList(deps)...)
+
+	return strings.Join(after, " ")
+}
+
 // getServiceList return slice with all child services
 func (sp *SystemdProvider) getServiceList(app *procfile.Application) []string {
 	var result []string
@@ -364,6 +375,17 @@ func (sp *SystemdProvider) getServiceList(app *procfile.Application) []string {
 				result = append(result, sp.UnitName(app.Name+"-"+service.Name+strconv.Itoa(i)))
 			}
 		}
+	}
+
+	return result
+}
+
+// depsToServiceList converts dependencies to services list
+func (sp *SystemdProvider) depsToServiceList(deps []string) []string {
+	var result []string
+
+	for _, dep := range deps {
+		result = append(result, dep+".service")
 	}
 
 	return result

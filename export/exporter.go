@@ -12,9 +12,9 @@ import (
 	"os"
 	"strconv"
 
-	"pkg.re/essentialkaos/ek.v10/fsutil"
-	"pkg.re/essentialkaos/ek.v10/log"
-	"pkg.re/essentialkaos/ek.v10/path"
+	"pkg.re/essentialkaos/ek.v11/fsutil"
+	"pkg.re/essentialkaos/ek.v11/log"
+	"pkg.re/essentialkaos/ek.v11/path"
 
 	"github.com/funbox/init-exporter/procfile"
 )

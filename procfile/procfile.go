@@ -13,12 +13,12 @@ import (
 	"sort"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v10/errutil"
-	"pkg.re/essentialkaos/ek.v10/fsutil"
-	"pkg.re/essentialkaos/ek.v10/log"
-	"pkg.re/essentialkaos/ek.v10/path"
-	"pkg.re/essentialkaos/ek.v10/sliceutil"
-	"pkg.re/essentialkaos/ek.v10/strutil"
+	"pkg.re/essentialkaos/ek.v11/errutil"
+	"pkg.re/essentialkaos/ek.v11/fsutil"
+	"pkg.re/essentialkaos/ek.v11/log"
+	"pkg.re/essentialkaos/ek.v11/path"
+	"pkg.re/essentialkaos/ek.v11/sliceutil"
+	"pkg.re/essentialkaos/ek.v11/strutil"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -104,6 +104,7 @@ type Application struct {
 	StartLevel       int        // Start level
 	StopLevel        int        // Stop level
 	StartDevice      string     // Start on device activation
+	Depends          []string   // Dependencies
 	WorkingDir       string     // Working directory
 	ReloadHelperPath string     // Path to reload helper (will be set by exporter)
 	ProcVersion      int        // Proc version 1/2
@@ -158,6 +159,7 @@ func (a *Application) Validate() []error {
 
 	errs.Add(checkRunLevel(a.StartLevel))
 	errs.Add(checkRunLevel(a.StopLevel))
+	errs.Add(checkDependencies(a.Depends))
 
 	if a.WorkingDir == "" {
 		errs.Add(fmt.Errorf("Application working dir can't be empty"))
@@ -564,7 +566,7 @@ func mergeStringMaps(dest, src map[string]string) {
 	}
 }
 
-// checkPath check path value and return error if value is insecure
+// checkPath checks path value and return error if value is insecure
 func checkPath(value string) error {
 	if value == "" {
 		return nil
@@ -581,7 +583,7 @@ func checkPath(value string) error {
 	return nil
 }
 
-// checkEnv check given env variable and return error if name or value is insecure
+// checkEnv checks given env variable and return error if name or value is insecure
 func checkEnv(name, value string) error {
 	if name == "" {
 		return nil
@@ -610,7 +612,7 @@ func checkEnv(name, value string) error {
 	return nil
 }
 
-// checkRunLevel check run level value and return error if value is insecure
+// checkRunLevel checks run level value and return error if value is insecure
 func checkRunLevel(value int) error {
 	if value < 1 {
 		return fmt.Errorf("Run level can't be less than 1")
@@ -623,7 +625,24 @@ func checkRunLevel(value int) error {
 	return nil
 }
 
-// addCrossLink add to all service structs pointer
+// checkDependencies checks dependencies
+func checkDependencies(deps []string) *errutil.Errors {
+	if len(deps) == 0 {
+		return nil
+	}
+
+	errs := errutil.NewErrors()
+
+	for _, dep := range deps {
+		if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(dep) {
+			errs.Add(fmt.Errorf("Dependency name %s is misformatted and can't be accepted", dep))
+		}
+	}
+
+	return nil
+}
+
+// addCrossLink adds to all service structs pointer
 // to parent application struct
 func addCrossLink(app *Application) {
 	for _, service := range app.Services {
@@ -631,7 +650,7 @@ func addCrossLink(app *Application) {
 	}
 }
 
-// isUnquotedValue return true if given value is unquoted
+// isUnquotedValue returns true if given value is unquoted
 func isUnquotedValue(value string) bool {
 	if !strings.Contains(value, "\"") && !strings.Contains(value, "'") {
 		return true

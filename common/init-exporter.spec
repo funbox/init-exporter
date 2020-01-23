@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.22.0
+Version:         0.23.0
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -52,7 +52,7 @@ Source0:         %{name}-%{version}.tar.gz
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.12
+BuildRequires:   golang >= 1.13
 
 Provides:        upstart-exporter = %{version}-%{release}
 Provides:        systemd-exporter = %{version}-%{release}
@@ -111,7 +111,11 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
-* Fri Jul 12 2019 Anton Novojilov <andy@essentialkaos.com> - 0.22.0-0
+* Fri Jan 24 2020 Anton Novojilov <andyone@fun-box.ru> - 0.23.0-0
+- Migrated to ek.v11
+- Added support of required dependencies definition
+
+* Fri Jul 12 2019 Anton Novojilov <andyone@fun-box.ru> - 0.22.0-0
 - Added 'start_on_device' option for v2 procfile format
 - Dropped 'reload_signal' support for Upstart ≤ 1.10.0
 - Fixed 'reload_signal' support for Systemd

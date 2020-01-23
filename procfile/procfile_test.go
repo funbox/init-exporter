@@ -86,6 +86,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 	c.Assert(app.StartLevel, Equals, 2)
 	c.Assert(app.StopLevel, Equals, 5)
 	c.Assert(app.StartDevice, Equals, "bond0")
+	c.Assert(app.Depends, DeepEquals, []string{"postgresql-11", "redis"})
 
 	errs := app.Validate()
 

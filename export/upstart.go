@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v10/strutil"
-	"pkg.re/essentialkaos/ek.v10/timeutil"
-	"pkg.re/essentialkaos/ek.v10/version"
+	"pkg.re/essentialkaos/ek.v11/strutil"
+	"pkg.re/essentialkaos/ek.v11/timeutil"
+	"pkg.re/essentialkaos/ek.v11/version"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -141,8 +141,8 @@ func (up *UpstartProvider) Reload() error {
 func (up *UpstartProvider) RenderAppTemplate(app *procfile.Application) (string, error) {
 	data := &upstartAppData{
 		Application: app,
-		StartLevel:  up.renderLevel(app.StartLevel, app.StartDevice),
-		StopLevel:   up.renderLevel(app.StopLevel, ""),
+		StartLevel:  up.renderStartLevel(app.StartLevel, app.StartDevice, app.Depends),
+		StopLevel:   up.renderStopLevel(app.StopLevel, app.Depends),
 		ExportDate:  timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -182,13 +182,38 @@ func (up *UpstartProvider) RenderReloadHelperTemplate(app *procfile.Application)
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// renderLevel converts level number to upstart level name
-func (up *UpstartProvider) renderLevel(level int, device string) string {
-	if device != "" {
-		return fmt.Sprintf("net-device-up IFACE=%s", device)
+// renderStartLevel converts level number to upstart start level name
+func (up *UpstartProvider) renderStartLevel(level int, device string, deps []string) string {
+	if device == "" && len(deps) == 0 {
+		return fmt.Sprintf("runlevel [%d]", level)
 	}
 
-	return fmt.Sprintf("runlevel [%d]", level)
+	var depsList []string
+
+	if device != "" {
+		depsList = append(depsList, "net-device-up IFACE="+device)
+	}
+
+	for _, dep := range deps {
+		depsList = append(depsList, "started "+dep)
+	}
+
+	return strings.Join(depsList, " and ")
+}
+
+// renderStopLevel converts level number to upstart stop level name
+func (up *UpstartProvider) renderStopLevel(level int, deps []string) string {
+	if len(deps) == 0 {
+		return fmt.Sprintf("runlevel [%d]", level)
+	}
+
+	var depsList []string
+
+	for _, dep := range deps {
+		depsList = append(depsList, "stopped "+dep)
+	}
+
+	return strings.Join(depsList, " and ")
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
