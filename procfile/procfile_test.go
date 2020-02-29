@@ -164,6 +164,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.Resources.CPUWeight, Equals, 50)
 			c.Assert(service.Options.Resources.StartupCPUWeight, Equals, 15)
 			c.Assert(service.Options.Resources.CPUQuota, Equals, 40)
+			c.Assert(service.Options.Resources.CPUAffinity, Equals, "1 3 5 7")
 			c.Assert(service.Options.Resources.MemoryLow, Equals, "1G")
 			c.Assert(service.Options.Resources.MemoryHigh, Equals, "4G")
 			c.Assert(service.Options.Resources.MemoryMax, Equals, "8G")

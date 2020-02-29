@@ -24,11 +24,12 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
-	REGEXP_V1_LINE          = `^([A-z\d_]+):\s*(.+)`
-	REGEXP_V2_VERSION       = `(?m)^\s*version:\s*2\s*$`
-	REGEXP_PATH_CHECK       = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_NAME_CHECK       = `\A[A-Za-z0-9_\-]+\z`
-	REGEXP_NET_DEVICE_CHECK = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
+	REGEXP_V1_LINE            = `^([A-z\d_]+):\s*(.+)`
+	REGEXP_V2_VERSION         = `(?m)^\s*version:\s*2\s*$`
+	REGEXP_PATH_CHECK         = `\A[A-Za-z0-9_\-./]+\z`
+	REGEXP_NAME_CHECK         = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_NET_DEVICE_CHECK   = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
+	REGEXP_CPU_AFFINITY_CHECK = `^[\d\- ]+$`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -80,6 +81,7 @@ type Resources struct {
 	CPUWeight           int
 	StartupCPUWeight    int
 	CPUQuota            int
+	CPUAffinity         string
 	MemoryLow           string
 	MemoryHigh          string
 	MemoryMax           string

@@ -151,6 +151,10 @@ func (sd *systemdServiceData) ResourcesAsString() string {
 		result += fmt.Sprintf("CPUQuota=%d%%\n", resources.CPUQuota)
 	}
 
+	if resources.CPUAffinity != "" {
+		result += fmt.Sprintf("CPUAffinity=%s\n", resources.CPUAffinity)
+	}
+
 	if resources.MemoryLow != "" {
 		result += fmt.Sprintf("MemoryLow=%s\n", resources.MemoryLow)
 	}

@@ -359,6 +359,14 @@ func parseV2Resources(yaml *simpleyaml.Yaml) (*Resources, error) {
 		}
 	}
 
+	if yaml.IsExist("cpu_affinity") {
+		resources.CPUAffinity, err = yamlGetSafe(yaml, "cpu_affinity")
+
+		if err != nil {
+			return nil, formatPropError("resources:cpu_affinity", err)
+		}
+	}
+
 	if yaml.IsExist("memory_low") {
 		resources.MemoryLow, err = yamlGetSafe(yaml, "memory_low")
 

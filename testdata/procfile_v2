@@ -58,6 +58,7 @@ commands:
       cpu_weight: 50
       startup_cpu_weight: 15
       cpu_quota: 40
+      cpu_affinity: 1 3 5 7
       memory_low: 1G
       memory_high: 4G
       memory_max: 8G
