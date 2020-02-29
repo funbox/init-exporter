@@ -710,7 +710,7 @@ func (s *ExportSuite) TestWantsClauseGeneration(c *C) {
 	}
 
 	p := NewSystemd()
-	wants := p.renderWantsClause(services, nil)
+	wants := p.renderWantsClause(services, nil, false)
 
 	c.Assert(strings.Count(wants, "\n"), Not(Equals), 1)
 
@@ -718,6 +718,16 @@ func (s *ExportSuite) TestWantsClauseGeneration(c *C) {
 
 	for _, clause := range wantsSlice {
 		c.Assert(strings.HasPrefix(clause, "Wants="), Equals, true)
+	}
+
+	wants = p.renderWantsClause(services, nil, true)
+
+	c.Assert(strings.Count(wants, "\n"), Not(Equals), 1)
+
+	wantsSlice = strings.Split(wants, "\n")
+
+	for _, clause := range wantsSlice {
+		c.Assert(strings.HasPrefix(clause, "Requires="), Equals, true)
 	}
 }
 

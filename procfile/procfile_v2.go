@@ -85,6 +85,14 @@ func parseV2Procfile(data []byte, config *Config) (*Application, error) {
 		}
 	}
 
+	if yaml.IsExist("strong_dependencies") {
+		app.StrongDependencies, err = yaml.Get("strong_dependencies").Bool()
+
+		if err != nil {
+			return nil, fmt.Errorf("Can't parse strong_dependencies value: %v", err)
+		}
+	}
+
 	if yaml.IsExist("depends") {
 		deps, err := yamlGetSafe(yaml, "depends")
 

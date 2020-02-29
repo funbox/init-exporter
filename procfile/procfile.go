@@ -97,17 +97,18 @@ type Resources struct {
 }
 
 type Application struct {
-	Name             string     // Name of application
-	Services         []*Service // List of services in application
-	User             string     // Working user
-	Group            string     // Working group
-	StartLevel       int        // Start level
-	StopLevel        int        // Stop level
-	StartDevice      string     // Start on device activation
-	Depends          []string   // Dependencies
-	WorkingDir       string     // Working directory
-	ReloadHelperPath string     // Path to reload helper (will be set by exporter)
-	ProcVersion      int        // Proc version 1/2
+	Name               string     // Name of application
+	Services           []*Service // List of services in application
+	User               string     // Working user
+	Group              string     // Working group
+	StartLevel         int        // Start level
+	StopLevel          int        // Stop level
+	StartDevice        string     // Start on device activation
+	Depends            []string   // Dependencies
+	WorkingDir         string     // Working directory
+	ReloadHelperPath   string     // Path to reload helper (will be set by exporter)
+	ProcVersion        int        // Proc version 1/2
+	StrongDependencies bool       // Use strong dependencies
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //

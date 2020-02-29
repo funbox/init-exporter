@@ -257,7 +257,7 @@ func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string,
 	data := &systemdAppData{
 		Application:  app,
 		ReloadHelper: app.ReloadHelperPath,
-		Wants:        sp.renderWantsClause(sp.getServiceList(app), app.Depends),
+		Wants:        sp.renderWantsClause(sp.getServiceList(app), app.Depends, app.StrongDependencies),
 		After:        sp.renderAfterClause(app.StartLevel, app.StartDevice, app.Depends),
 		StartLevel:   sp.renderLevel(app.StartLevel),
 		StopLevel:    sp.renderLevel(app.StopLevel),
@@ -330,22 +330,23 @@ func (sp *SystemdProvider) renderLevel(level int) string {
 }
 
 // renderWantsClause renders list of services in application for systemd config
-func (sp *SystemdProvider) renderWantsClause(services []string, deps []string) string {
+func (sp *SystemdProvider) renderWantsClause(services []string, deps []string, strongDeps bool) string {
 	var wants []string
 	var buffer string
 
+	depOption := getDepOption(strongDeps)
 	services = append(sp.depsToServiceList(deps), services...)
 
 	for _, service := range services {
 		if len(buffer)+len(service) >= 1536 {
-			wants = append(wants, "Wants="+strings.TrimSpace(buffer))
+			wants = append(wants, depOption+strings.TrimSpace(buffer))
 			buffer = ""
 		}
 
 		buffer += service + " "
 	}
 
-	wants = append(wants, "Wants="+strings.TrimSpace(buffer))
+	wants = append(wants, depOption+strings.TrimSpace(buffer))
 
 	return strings.Join(wants, "\n")
 }
@@ -389,4 +390,15 @@ func (sp *SystemdProvider) depsToServiceList(deps []string) []string {
 	}
 
 	return result
+}
+
+// getDepOption returns option for dependencies requirement based on
+// application settings
+func getDepOption(strongDeps bool) string {
+	switch strongDeps {
+	case true:
+		return "Requires="
+	default:
+		return "Wants="
+	}
 }

@@ -3,6 +3,7 @@ version: 2
 start_on_runlevel: 2
 stop_on_runlevel: 5
 start_on_device: bond0
+strong_dependencies: true
 depends: postgresql-11 redis
 
 env:
