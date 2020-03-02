@@ -254,6 +254,10 @@ func (so *ServiceOptions) Validate() *errutil.Errors {
 			errs.Add(fmt.Errorf("Property \"resources:cpu_weight\" must be greater or equal 0 and less or equal 10000"))
 		}
 
+		if so.Resources.CPUAffinity != "" && !regexp.MustCompile(REGEXP_CPU_AFFINITY_CHECK).MatchString(so.Resources.CPUAffinity) {
+			errs.Add(fmt.Errorf("Property \"resources:cpu_affinity\" contains misformatted value"))
+		}
+
 		if so.Resources.StartupCPUWeight < 0 || so.Resources.StartupCPUWeight > 10000 {
 			errs.Add(fmt.Errorf("Property \"resources:startup_cpu_weight\" must be greater or equal 0 and less or equal 10000"))
 		}
