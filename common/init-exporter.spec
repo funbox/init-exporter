@@ -112,7 +112,7 @@ rm -rf %{buildroot}
 
 %changelog
 * Fri Jan 24 2020 Anton Novojilov <andyone@fun-box.ru> - 0.23.0-0
-- Migrated to ek.v11
+- Migrated to ek.v12
 - Added support of required dependencies definition
 
 * Fri Jul 12 2019 Anton Novojilov <andyone@fun-box.ru> - 0.22.0-0
