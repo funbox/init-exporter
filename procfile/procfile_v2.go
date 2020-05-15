@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v11/log"
-	"pkg.re/essentialkaos/ek.v11/strutil"
+	"pkg.re/essentialkaos/ek.v12/log"
+	"pkg.re/essentialkaos/ek.v12/strutil"
 
 	"pkg.re/essentialkaos/go-simpleyaml.v1"
 )

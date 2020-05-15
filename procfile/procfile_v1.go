@@ -13,7 +13,7 @@ import (
 	"regexp"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v11/log"
+	"pkg.re/essentialkaos/ek.v12/log"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

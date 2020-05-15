@@ -27,12 +27,12 @@ git-config: ## Configure git redirects for stable import path services
 	git config --global http.https://pkg.re.followRedirects true
 
 deps: git-config ## Download dependencies
-	go get -d -v pkg.re/essentialkaos/ek.v11
+	go get -d -v pkg.re/essentialkaos/ek.v12
 	go get -d -v pkg.re/essentialkaos/go-simpleyaml.v1
 
 deps-test: git-config ## Download dependencies for tests
 	go get -d -v pkg.re/check.v1
-	go get -d -v pkg.re/essentialkaos/ek.v11
+	go get -d -v pkg.re/essentialkaos/ek.v12
 
 test: ## Run tests
 	go test -covermode=count ./export ./procfile
