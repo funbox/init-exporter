@@ -52,7 +52,7 @@ Source0:         %{name}-%{version}.tar.gz
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.13
+BuildRequires:   golang >= 1.14
 
 Provides:        upstart-exporter = %{version}-%{release}
 Provides:        systemd-exporter = %{version}-%{release}
@@ -113,7 +113,11 @@ rm -rf %{buildroot}
 %changelog
 * Fri Jan 24 2020 Anton Novojilov <andyone@fun-box.ru> - 0.23.0-0
 - Migrated to ek.v12
+- Migrated to go-simpleyaml.v12
 - Added support of required dependencies definition
+- Added option 'strong_dependencies' for strong dependencies configuration (for
+  using 'Requires' instead of 'Wants' for systemd units)
+- Added option 'resources:cpu_affinity' for CPU affinity configuration
 
 * Fri Jul 12 2019 Anton Novojilov <andyone@fun-box.ru> - 0.22.0-0
 - Added 'start_on_device' option for v2 procfile format

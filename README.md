@@ -23,7 +23,7 @@ Before the initial install allows git to use redirects for [pkg.re](https://gith
 git config --global http.https://pkg.re.followRedirects true
 ```
 
-To build the init-exporter from scratch, make sure you have a working Go 1.10+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the init-exporter from scratch, make sure you have a working Go 1.13+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```bash
 go get -d github.com/funbox/init-exporter
@@ -33,18 +33,11 @@ make all
 [sudo] make install
 ```
 
-#### From ESSENTIAL KAOS Public repo for RHEL6/CentOS6
+#### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
 
-```
-[sudo] yum install -y https://yum.kaos.st/kaos-repo-latest.el6.noarch.rpm
-[sudo] yum install init-exporter
-```
-
-#### From ESSENTIAL KAOS Public repo for RHEL7/CentOS7
-
-```
-[sudo] yum install -y https://yum.kaos.st/kaos-repo-latest.el7.noarch.rpm
-[sudo] yum install init-exporter
+```bash
+sudo yum install -y https://yum.kaos.st/get/$(uname -r).rpm
+sudo yum install init-exporter
 ```
 
 ### Configuration
