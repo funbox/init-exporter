@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -16,9 +16,9 @@ import (
 
 	"github.com/funbox/init-exporter/procfile"
 
-	"pkg.re/essentialkaos/ek.v10/fsutil"
-	"pkg.re/essentialkaos/ek.v10/log"
-	"pkg.re/essentialkaos/ek.v10/version"
+	"pkg.re/essentialkaos/ek.v12/fsutil"
+	"pkg.re/essentialkaos/ek.v12/log"
+	"pkg.re/essentialkaos/ek.v12/version"
 
 	. "pkg.re/check.v1"
 )
@@ -282,6 +282,42 @@ func (s *ExportSuite) TestUpstartExportWithNet(c *C) {
 	)
 }
 
+func (s *ExportSuite) TestUpstartExportWithDependencies(c *C) {
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+	}
+
+	exporter := NewExporter(config, NewUpstart())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+
+	app.Depends = []string{"postgresql-11", "redis"}
+
+	err := exporter.Install(app)
+	c.Assert(err, IsNil)
+
+	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.conf")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
+	appUnit := strings.Split(string(appUnitData), "\n")
+
+	c.Assert(appUnit[2:4], DeepEquals,
+		[]string{
+			"start on started postgresql-11 and started redis",
+			"stop on stopped postgresql-11 and stopped redis",
+		},
+	)
+}
+
 func (s *ExportSuite) TestUpstartExportWithOldUpstart(c *C) {
 	upstartVersionCache, _ = version.Parse("0.6.5")
 
@@ -518,6 +554,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"CPUWeight=50",
 			"StartupCPUWeight=50",
 			"CPUQuota=35%",
+			"CPUAffinity=4-8",
 			"MemoryLow=1G",
 			"MemoryHigh=4G",
 			"MemoryMax=8G",
@@ -605,8 +642,49 @@ func (s *ExportSuite) TestSystemdExportWithNet(c *C) {
 			"[Unit]",
 			"",
 			"Description=Unit for test_application application",
-			"After=sys-subsystem-net-devices-bond0.device",
+			"After=multi-user.target sys-subsystem-net-devices-bond0.device",
 			"Wants=test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
+		},
+	)
+}
+
+func (s *ExportSuite) TestSystemdExportWithDependencies(c *C) {
+	helperDir := c.MkDir()
+	targetDir := c.MkDir()
+
+	config := &Config{
+		HelperDir:        helperDir,
+		TargetDir:        targetDir,
+		DisableAutoStart: true,
+		DisableReload:    true,
+	}
+
+	exporter := NewExporter(config, NewSystemd())
+
+	c.Assert(exporter, NotNil)
+
+	app := createTestApp(targetDir, helperDir)
+
+	app.Depends = []string{"postgresql-11", "redis"}
+
+	err := exporter.Install(app)
+
+	c.Assert(err, IsNil)
+
+	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.service")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
+	appUnit := strings.Split(string(appUnitData), "\n")
+
+	c.Assert(appUnit[2:7], DeepEquals,
+		[]string{
+			"[Unit]",
+			"",
+			"Description=Unit for test_application application",
+			"After=multi-user.target postgresql-11.service redis.service",
+			"Wants=postgresql-11.service redis.service test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
 		},
 	)
 }
@@ -633,7 +711,7 @@ func (s *ExportSuite) TestWantsClauseGeneration(c *C) {
 	}
 
 	p := NewSystemd()
-	wants := p.renderWantsClause(services)
+	wants := p.renderWantsClause(services, nil, false)
 
 	c.Assert(strings.Count(wants, "\n"), Not(Equals), 1)
 
@@ -641,6 +719,16 @@ func (s *ExportSuite) TestWantsClauseGeneration(c *C) {
 
 	for _, clause := range wantsSlice {
 		c.Assert(strings.HasPrefix(clause, "Wants="), Equals, true)
+	}
+
+	wants = p.renderWantsClause(services, nil, true)
+
+	c.Assert(strings.Count(wants, "\n"), Not(Equals), 1)
+
+	wantsSlice = strings.Split(wants, "\n")
+
+	for _, clause := range wantsSlice {
+		c.Assert(strings.HasPrefix(clause, "Requires="), Equals, true)
 	}
 }
 
@@ -695,6 +783,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 				CPUWeight:           50,
 				StartupCPUWeight:    15,
 				CPUQuota:            35,
+				CPUAffinity:         "4-8",
 				MemoryLow:           "1G",
 				MemoryHigh:          "4G",
 				MemoryMax:           "8G",

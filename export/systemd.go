@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v10/system/exec"
-	"pkg.re/essentialkaos/ek.v10/timeutil"
+	"pkg.re/essentialkaos/ek.v12/system/exec"
+	"pkg.re/essentialkaos/ek.v12/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -151,6 +151,10 @@ func (sd *systemdServiceData) ResourcesAsString() string {
 		result += fmt.Sprintf("CPUQuota=%d%%\n", resources.CPUQuota)
 	}
 
+	if resources.CPUAffinity != "" {
+		result += fmt.Sprintf("CPUAffinity=%s\n", resources.CPUAffinity)
+	}
+
 	if resources.MemoryLow != "" {
 		result += fmt.Sprintf("MemoryLow=%s\n", resources.MemoryLow)
 	}
@@ -257,10 +261,10 @@ func (sp *SystemdProvider) RenderAppTemplate(app *procfile.Application) (string,
 	data := &systemdAppData{
 		Application:  app,
 		ReloadHelper: app.ReloadHelperPath,
-		Wants:        sp.renderWantsClause(sp.getServiceList(app)),
-		After:        sp.renderLevel(app.StartLevel, app.StartDevice),
-		StartLevel:   sp.renderLevel(app.StartLevel, ""),
-		StopLevel:    sp.renderLevel(app.StopLevel, ""),
+		Wants:        sp.renderWantsClause(sp.getServiceList(app), app.Depends, app.StrongDependencies),
+		After:        sp.renderAfterClause(app.StartLevel, app.StartDevice, app.Depends),
+		StartLevel:   sp.renderLevel(app.StartLevel),
+		StopLevel:    sp.renderLevel(app.StopLevel),
 		ExportDate:   timeutil.Format(time.Now(), "%Y/%m/%d %H:%M:%S"),
 	}
 
@@ -316,11 +320,7 @@ func (sd *systemdServiceData) GetMemlockLimit() string {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // renderLevel converts level number to systemd level name
-func (sp *SystemdProvider) renderLevel(level int, device string) string {
-	if device != "" {
-		return fmt.Sprintf("sys-subsystem-net-devices-%s.device", device)
-	}
-
+func (sp *SystemdProvider) renderLevel(level int) string {
 	switch level {
 	case 1:
 		return "rescue.target"
@@ -334,22 +334,38 @@ func (sp *SystemdProvider) renderLevel(level int, device string) string {
 }
 
 // renderWantsClause renders list of services in application for systemd config
-func (sp *SystemdProvider) renderWantsClause(services []string) string {
+func (sp *SystemdProvider) renderWantsClause(services []string, deps []string, strongDeps bool) string {
 	var wants []string
 	var buffer string
 
+	depOption := getDepOption(strongDeps)
+	services = append(sp.depsToServiceList(deps), services...)
+
 	for _, service := range services {
 		if len(buffer)+len(service) >= 1536 {
-			wants = append(wants, "Wants="+strings.TrimSpace(buffer))
+			wants = append(wants, depOption+strings.TrimSpace(buffer))
 			buffer = ""
 		}
 
 		buffer += service + " "
 	}
 
-	wants = append(wants, "Wants="+strings.TrimSpace(buffer))
+	wants = append(wants, depOption+strings.TrimSpace(buffer))
 
 	return strings.Join(wants, "\n")
+}
+
+// renderAfterClause renders dependencies
+func (sp *SystemdProvider) renderAfterClause(level int, device string, deps []string) string {
+	after := []string{sp.renderLevel(level)}
+
+	if device != "" {
+		after = append(after, fmt.Sprintf("sys-subsystem-net-devices-%s.device", device))
+	}
+
+	after = append(after, sp.depsToServiceList(deps)...)
+
+	return strings.Join(after, " ")
 }
 
 // getServiceList return slice with all child services
@@ -367,4 +383,26 @@ func (sp *SystemdProvider) getServiceList(app *procfile.Application) []string {
 	}
 
 	return result
+}
+
+// depsToServiceList converts dependencies to services list
+func (sp *SystemdProvider) depsToServiceList(deps []string) []string {
+	var result []string
+
+	for _, dep := range deps {
+		result = append(result, dep+".service")
+	}
+
+	return result
+}
+
+// getDepOption returns option for dependencies requirement based on
+// application settings
+func getDepOption(strongDeps bool) string {
+	switch strongDeps {
+	case true:
+		return "Requires="
+	default:
+		return "Wants="
+	}
 }

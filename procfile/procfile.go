@@ -2,7 +2,7 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -13,22 +13,23 @@ import (
 	"sort"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v10/errutil"
-	"pkg.re/essentialkaos/ek.v10/fsutil"
-	"pkg.re/essentialkaos/ek.v10/log"
-	"pkg.re/essentialkaos/ek.v10/path"
-	"pkg.re/essentialkaos/ek.v10/sliceutil"
-	"pkg.re/essentialkaos/ek.v10/strutil"
+	"pkg.re/essentialkaos/ek.v12/errutil"
+	"pkg.re/essentialkaos/ek.v12/fsutil"
+	"pkg.re/essentialkaos/ek.v12/log"
+	"pkg.re/essentialkaos/ek.v12/path"
+	"pkg.re/essentialkaos/ek.v12/sliceutil"
+	"pkg.re/essentialkaos/ek.v12/strutil"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
-	REGEXP_V1_LINE          = `^([A-z\d_]+):\s*(.+)`
-	REGEXP_V2_VERSION       = `(?m)^\s*version:\s*2\s*$`
-	REGEXP_PATH_CHECK       = `\A[A-Za-z0-9_\-./]+\z`
-	REGEXP_NAME_CHECK       = `\A[A-Za-z0-9_\-]+\z`
-	REGEXP_NET_DEVICE_CHECK = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
+	REGEXP_V1_LINE            = `^([A-z\d_]+):\s*(.+)`
+	REGEXP_V2_VERSION         = `(?m)^\s*version:\s*2\s*$`
+	REGEXP_PATH_CHECK         = `\A[A-Za-z0-9_\-./]+\z`
+	REGEXP_NAME_CHECK         = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_NET_DEVICE_CHECK   = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
+	REGEXP_CPU_AFFINITY_CHECK = `^[\d\-, ]+$`
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -80,6 +81,7 @@ type Resources struct {
 	CPUWeight           int
 	StartupCPUWeight    int
 	CPUQuota            int
+	CPUAffinity         string
 	MemoryLow           string
 	MemoryHigh          string
 	MemoryMax           string
@@ -97,16 +99,18 @@ type Resources struct {
 }
 
 type Application struct {
-	Name             string     // Name of application
-	Services         []*Service // List of services in application
-	User             string     // Working user
-	Group            string     // Working group
-	StartLevel       int        // Start level
-	StopLevel        int        // Stop level
-	StartDevice      string     // Start on device activation
-	WorkingDir       string     // Working directory
-	ReloadHelperPath string     // Path to reload helper (will be set by exporter)
-	ProcVersion      int        // Proc version 1/2
+	Name               string     // Name of application
+	Services           []*Service // List of services in application
+	User               string     // Working user
+	Group              string     // Working group
+	StartLevel         int        // Start level
+	StopLevel          int        // Stop level
+	StartDevice        string     // Start on device activation
+	Depends            []string   // Dependencies
+	WorkingDir         string     // Working directory
+	ReloadHelperPath   string     // Path to reload helper (will be set by exporter)
+	ProcVersion        int        // Proc version 1/2
+	StrongDependencies bool       // Use strong dependencies
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -158,6 +162,7 @@ func (a *Application) Validate() []error {
 
 	errs.Add(checkRunLevel(a.StartLevel))
 	errs.Add(checkRunLevel(a.StopLevel))
+	errs.Add(checkDependencies(a.Depends))
 
 	if a.WorkingDir == "" {
 		errs.Add(fmt.Errorf("Application working dir can't be empty"))
@@ -247,6 +252,10 @@ func (so *ServiceOptions) Validate() *errutil.Errors {
 	if so.Resources != nil {
 		if so.Resources.CPUWeight < 0 || so.Resources.CPUWeight > 10000 {
 			errs.Add(fmt.Errorf("Property \"resources:cpu_weight\" must be greater or equal 0 and less or equal 10000"))
+		}
+
+		if so.Resources.CPUAffinity != "" && !regexp.MustCompile(REGEXP_CPU_AFFINITY_CHECK).MatchString(so.Resources.CPUAffinity) {
+			errs.Add(fmt.Errorf("Property \"resources:cpu_affinity\" contains misformatted value"))
 		}
 
 		if so.Resources.StartupCPUWeight < 0 || so.Resources.StartupCPUWeight > 10000 {
@@ -564,7 +573,7 @@ func mergeStringMaps(dest, src map[string]string) {
 	}
 }
 
-// checkPath check path value and return error if value is insecure
+// checkPath checks path value and return error if value is insecure
 func checkPath(value string) error {
 	if value == "" {
 		return nil
@@ -581,7 +590,7 @@ func checkPath(value string) error {
 	return nil
 }
 
-// checkEnv check given env variable and return error if name or value is insecure
+// checkEnv checks given env variable and return error if name or value is insecure
 func checkEnv(name, value string) error {
 	if name == "" {
 		return nil
@@ -610,7 +619,7 @@ func checkEnv(name, value string) error {
 	return nil
 }
 
-// checkRunLevel check run level value and return error if value is insecure
+// checkRunLevel checks run level value and return error if value is insecure
 func checkRunLevel(value int) error {
 	if value < 1 {
 		return fmt.Errorf("Run level can't be less than 1")
@@ -623,7 +632,24 @@ func checkRunLevel(value int) error {
 	return nil
 }
 
-// addCrossLink add to all service structs pointer
+// checkDependencies checks dependencies
+func checkDependencies(deps []string) *errutil.Errors {
+	if len(deps) == 0 {
+		return nil
+	}
+
+	errs := errutil.NewErrors()
+
+	for _, dep := range deps {
+		if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(dep) {
+			errs.Add(fmt.Errorf("Dependency name %s is misformatted and can't be accepted", dep))
+		}
+	}
+
+	return nil
+}
+
+// addCrossLink adds to all service structs pointer
 // to parent application struct
 func addCrossLink(app *Application) {
 	for _, service := range app.Services {
@@ -631,7 +657,7 @@ func addCrossLink(app *Application) {
 	}
 }
 
-// isUnquotedValue return true if given value is unquoted
+// isUnquotedValue returns true if given value is unquoted
 func isUnquotedValue(value string) bool {
 	if !strings.Contains(value, "\"") && !strings.Contains(value, "'") {
 		return true

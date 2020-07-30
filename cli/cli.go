@@ -4,7 +4,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2019 FB GROUP LLC                         //
+//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -13,15 +13,19 @@ import (
 	"os"
 	"runtime"
 
-	"pkg.re/essentialkaos/ek.v10/env"
-	"pkg.re/essentialkaos/ek.v10/fmtc"
-	"pkg.re/essentialkaos/ek.v10/fsutil"
-	"pkg.re/essentialkaos/ek.v10/knf"
-	"pkg.re/essentialkaos/ek.v10/log"
-	"pkg.re/essentialkaos/ek.v10/options"
-	"pkg.re/essentialkaos/ek.v10/system"
-	"pkg.re/essentialkaos/ek.v10/usage"
-	"pkg.re/essentialkaos/ek.v10/usage/update"
+	"pkg.re/essentialkaos/ek.v12/env"
+	"pkg.re/essentialkaos/ek.v12/fmtc"
+	"pkg.re/essentialkaos/ek.v12/fsutil"
+	"pkg.re/essentialkaos/ek.v12/knf"
+	"pkg.re/essentialkaos/ek.v12/log"
+	"pkg.re/essentialkaos/ek.v12/options"
+	"pkg.re/essentialkaos/ek.v12/system"
+	"pkg.re/essentialkaos/ek.v12/usage"
+	"pkg.re/essentialkaos/ek.v12/usage/update"
+
+	knfv "pkg.re/essentialkaos/ek.v12/knf/validators"
+	knff "pkg.re/essentialkaos/ek.v12/knf/validators/fs"
+	knfs "pkg.re/essentialkaos/ek.v12/knf/validators/system"
 
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
@@ -32,7 +36,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.22.0"
+	VER  = "0.23.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -209,70 +213,37 @@ func loadConfig() {
 
 // validateConfig validate config values
 func validateConfig() {
-	var permsChecker = func(config *knf.Config, prop string, value interface{}) error {
-		if !fsutil.CheckPerms(value.(string), config.GetS(prop)) {
-			switch value.(string) {
-			case "DRX":
-				return fmt.Errorf("Property %s must be path to readable directory", prop)
-			case "DWX":
-				return fmt.Errorf("Property %s must be path to writable directory", prop)
-			case "DRWX":
-				return fmt.Errorf("Property %s must be path to writable/readable directory", prop)
-			case "FR":
-				return fmt.Errorf("Property %s must be path to readable file", prop)
-			}
-		}
-
-		return nil
-	}
-
-	var userChecker = func(config *knf.Config, prop string, value interface{}) error {
-		if !system.IsUserExist(knf.GetS(prop)) {
-			return fmt.Errorf("Property %s contains user which not exist on this system", prop)
-		}
-
-		return nil
-	}
-
-	var groupChecker = func(config *knf.Config, prop string, value interface{}) error {
-		if !system.IsGroupExist(knf.GetS(prop)) {
-			return fmt.Errorf("Property %s contains group which not exist on this system", prop)
-		}
-
-		return nil
-	}
-
 	validators := []*knf.Validator{
-		{MAIN_RUN_USER, knf.Empty, nil},
-		{MAIN_RUN_GROUP, knf.Empty, nil},
-		{PATHS_WORKING_DIR, knf.Empty, nil},
-		{PATHS_HELPER_DIR, knf.Empty, nil},
-		{PATHS_SYSTEMD_DIR, knf.Empty, nil},
-		{PATHS_UPSTART_DIR, knf.Empty, nil},
-		{DEFAULTS_NPROC, knf.Empty, nil},
-		{DEFAULTS_NOFILE, knf.Empty, nil},
-		{DEFAULTS_RESPAWN_COUNT, knf.Empty, nil},
-		{DEFAULTS_RESPAWN_INTERVAL, knf.Empty, nil},
-		{DEFAULTS_KILL_TIMEOUT, knf.Empty, nil},
+		{MAIN_RUN_USER, knfv.Empty, nil},
+		{MAIN_RUN_GROUP, knfv.Empty, nil},
+		{PATHS_WORKING_DIR, knfv.Empty, nil},
+		{PATHS_HELPER_DIR, knfv.Empty, nil},
+		{PATHS_SYSTEMD_DIR, knfv.Empty, nil},
+		{PATHS_UPSTART_DIR, knfv.Empty, nil},
+		{DEFAULTS_NPROC, knfv.Empty, nil},
+		{DEFAULTS_NOFILE, knfv.Empty, nil},
+		{DEFAULTS_RESPAWN_COUNT, knfv.Empty, nil},
+		{DEFAULTS_RESPAWN_INTERVAL, knfv.Empty, nil},
+		{DEFAULTS_KILL_TIMEOUT, knfv.Empty, nil},
 
-		{DEFAULTS_NPROC, knf.Less, 0},
-		{DEFAULTS_NOFILE, knf.Less, 0},
-		{DEFAULTS_RESPAWN_COUNT, knf.Less, 0},
-		{DEFAULTS_RESPAWN_INTERVAL, knf.Less, 0},
-		{DEFAULTS_KILL_TIMEOUT, knf.Less, 0},
+		{DEFAULTS_NPROC, knfv.Less, 0},
+		{DEFAULTS_NOFILE, knfv.Less, 0},
+		{DEFAULTS_RESPAWN_COUNT, knfv.Less, 0},
+		{DEFAULTS_RESPAWN_INTERVAL, knfv.Less, 0},
+		{DEFAULTS_KILL_TIMEOUT, knfv.Less, 0},
 
-		{MAIN_RUN_USER, userChecker, nil},
-		{MAIN_RUN_GROUP, groupChecker, nil},
+		{MAIN_RUN_USER, knfs.User, nil},
+		{MAIN_RUN_GROUP, knfs.Group, nil},
 
-		{PATHS_WORKING_DIR, permsChecker, "DRWX"},
-		{PATHS_HELPER_DIR, permsChecker, "DRWX"},
+		{PATHS_WORKING_DIR, knff.Perms, "DRWX"},
+		{PATHS_HELPER_DIR, knff.Perms, "DRWX"},
 	}
 
 	if knf.GetB(LOG_ENABLED, true) {
 		validators = append(validators,
-			&knf.Validator{LOG_DIR, knf.Empty, nil},
-			&knf.Validator{LOG_FILE, knf.Empty, nil},
-			&knf.Validator{LOG_DIR, permsChecker, "DWX"},
+			&knf.Validator{LOG_DIR, knfv.Empty, nil},
+			&knf.Validator{LOG_FILE, knfv.Empty, nil},
+			&knf.Validator{LOG_DIR, knff.Perms, "DWX"},
 		)
 	}
 
