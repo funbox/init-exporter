@@ -20,7 +20,7 @@ import (
 	"pkg.re/essentialkaos/ek.v12/log"
 	"pkg.re/essentialkaos/ek.v12/version"
 
-	. "pkg.re/check.v1"
+	. "pkg.re/essentialkaos/check.v1"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
