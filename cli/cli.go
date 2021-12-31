@@ -1,4 +1,4 @@
-// +build !windows
+//go:build !windows
 
 package cli
 
@@ -36,7 +36,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.23.0"
+	VER  = "0.24.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -445,6 +445,8 @@ func printErrorAndExit(f string, a ...interface{}) {
 func showUsage() {
 	info := usage.NewInfo("", "app-name")
 
+	info.AppNameColorTag = "{#148}"
+
 	info.AddOption(OPT_PROCFILE, "Path to procfile", "file")
 	info.AddOption(OPT_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
 	info.AddOption(OPT_DISABLE_VALIDATION, "Disable application validation")
@@ -473,6 +475,9 @@ func showAbout() {
 		Owner:         "FB Group",
 		License:       "MIT License",
 		UpdateChecker: usage.UpdateChecker{"funbox/init-exporter", update.GitHubChecker},
+
+		AppNameColorTag: "{*}{#148}",
+		VersionColorTag: "{#148}",
 	}
 
 	about.Render()
