@@ -23,7 +23,7 @@ Before the initial install allows git to use redirects for [pkg.re](https://gith
 git config --global http.https://pkg.re.followRedirects true
 ```
 
-To build the init-exporter from scratch, make sure you have a working Go 1.13+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the init-exporter from scratch, make sure you have a working Go 1.17+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```bash
 go get -d github.com/funbox/init-exporter
