@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"pkg.re/essentialkaos/ek.v12/strutil"
 	"pkg.re/essentialkaos/ek.v12/system/exec"
 	"pkg.re/essentialkaos/ek.v12/timeutil"
 
@@ -390,7 +391,13 @@ func (sp *SystemdProvider) depsToServiceList(deps []string) []string {
 	var result []string
 
 	for _, dep := range deps {
-		result = append(result, dep+".service")
+		if strutil.HasSuffixAny(dep,
+			".socket", ".device", ".mount", ".automount", ".swap",
+			".service", ".target", ".path", ".timer", ".slice", ".scope") {
+			result = append(result, dep)
+		} else {
+			result = append(result, dep+".service")
+		}
 	}
 
 	return result
