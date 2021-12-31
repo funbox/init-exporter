@@ -665,7 +665,7 @@ func (s *ExportSuite) TestSystemdExportWithDependencies(c *C) {
 
 	app := createTestApp(targetDir, helperDir)
 
-	app.Depends = []string{"postgresql-11", "redis"}
+	app.Depends = []string{"postgresql-11", "redis", "network-online.target"}
 
 	err := exporter.Install(app)
 
@@ -683,8 +683,8 @@ func (s *ExportSuite) TestSystemdExportWithDependencies(c *C) {
 			"[Unit]",
 			"",
 			"Description=Unit for test_application application",
-			"After=multi-user.target postgresql-11.service redis.service",
-			"Wants=postgresql-11.service redis.service test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
+			"After=multi-user.target postgresql-11.service redis.service network-online.target",
+			"Wants=postgresql-11.service redis.service network-online.target test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
 		},
 	)
 }
