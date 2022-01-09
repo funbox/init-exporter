@@ -40,8 +40,7 @@ jobs:
       - name: Download dependencies
         working-directory: ${{env.SRC_DIR}}
         run: |
-          make deps-test
-          make deps
+          make deps deps-test
 
       - name: Run tests
         working-directory: ${{env.SRC_DIR}}
@@ -77,7 +76,7 @@ jobs:
 
       - name: Download dependencies
         working-directory: ${{env.SRC_DIR}}
-        run: make deps
+        run: make deps deps-test
 
       - name: Check Golang sources with Aligo
         uses: essentialkaos/aligo-action@v1
