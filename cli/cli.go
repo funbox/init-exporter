@@ -1,4 +1,5 @@
 //go:build !windows
+// +build !windows
 
 package cli
 
@@ -12,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"pkg.re/essentialkaos/ek.v12/env"
 	"pkg.re/essentialkaos/ek.v12/fmtc"
@@ -48,7 +50,7 @@ const (
 	OPT_DISABLE_VALIDATION = "D:disable-validation"
 	OPT_UNINSTALL          = "u:uninstall"
 	OPT_FORMAT             = "f:format"
-	OPT_NO_COLORS          = "nc:no-colors"
+	OPT_NO_COLOR           = "nc:no-color"
 	OPT_HELP               = "h:help"
 	OPT_VERSION            = "v:version"
 )
@@ -96,12 +98,15 @@ var optMap = options.Map{
 	OPT_DISABLE_VALIDATION: {Type: options.BOOL},
 	OPT_UNINSTALL:          {Type: options.BOOL, Alias: "c:clear"},
 	OPT_FORMAT:             {},
-	OPT_NO_COLORS:          {Type: options.BOOL},
+	OPT_NO_COLOR:           {Type: options.BOOL},
 	OPT_HELP:               {Type: options.BOOL},
 	OPT_VERSION:            {Type: options.BOOL},
 }
 
 var user *system.User
+
+var colorTagApp string
+var colorTagVer string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -120,9 +125,7 @@ func Init() {
 		os.Exit(1)
 	}
 
-	if options.GetB(OPT_NO_COLORS) {
-		fmtc.DisableColors = true
-	}
+	configureUI()
 
 	if options.GetB(OPT_VERSION) {
 		showAbout()
@@ -150,6 +153,38 @@ func Init() {
 		startProcessing(options.GetS(OPT_APP_NAME))
 	default:
 		startProcessing(args[0])
+	}
+}
+
+// configureUI configures user interface
+func configureUI() {
+	envVars := env.Get()
+	term := envVars.GetS("TERM")
+
+	if term != "" {
+		switch {
+		case strings.Contains(term, "xterm"),
+			strings.Contains(term, "color"),
+			term == "screen":
+			fmtc.DisableColors = false
+		}
+	}
+
+	if !fsutil.IsCharacterDevice("/dev/stdout") && envVars.GetS("FAKETTY") == "" {
+		fmtc.DisableColors = true
+	}
+
+	if options.GetB(OPT_NO_COLOR) {
+		fmtc.DisableColors = true
+	}
+
+	switch {
+	case fmtc.IsTrueColorSupported():
+		colorTagApp, colorTagVer = "{#BCCF00}", "{#BCCF00}"
+	case fmtc.Is256ColorsSupported():
+		colorTagApp, colorTagVer = "{#148}", "{#148}"
+	default:
+		colorTagApp, colorTagVer = "{g}", "{g}"
 	}
 }
 
@@ -445,14 +480,14 @@ func printErrorAndExit(f string, a ...interface{}) {
 func showUsage() {
 	info := usage.NewInfo("", "app-name")
 
-	info.AppNameColorTag = "{#148}"
+	info.AppNameColorTag = "{*}" + colorTagApp
 
 	info.AddOption(OPT_PROCFILE, "Path to procfile", "file")
 	info.AddOption(OPT_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
 	info.AddOption(OPT_DISABLE_VALIDATION, "Disable application validation")
 	info.AddOption(OPT_UNINSTALL, "Remove scripts and helpers for a particular application")
 	info.AddOption(OPT_FORMAT, "Format of generated configs", "upstart|systemd")
-	info.AddOption(OPT_NO_COLORS, "Disable colors in output")
+	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VERSION, "Show version")
 
@@ -472,12 +507,12 @@ func showAbout() {
 		Version:       VER,
 		Desc:          DESC,
 		Year:          2006,
-		Owner:         "FB Group",
+		Owner:         "FunBox",
 		License:       "MIT License",
 		UpdateChecker: usage.UpdateChecker{"funbox/init-exporter", update.GitHubChecker},
 
-		AppNameColorTag: "{*}{#148}",
-		VersionColorTag: "{#148}",
+		AppNameColorTag: "{*}" + colorTagApp,
+		VersionColorTag: colorTagVer,
 	}
 
 	about.Render()
