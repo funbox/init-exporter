@@ -103,10 +103,10 @@ var optMap = options.Map{
 	OPT_VERSION:            {Type: options.BOOL},
 }
 
-var user *system.User
-
 var colorTagApp string
 var colorTagVer string
+
+var user *system.User
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -116,7 +116,7 @@ func Init() {
 	args, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
-		fmt.Println("Error while arguments parsing:")
+		fmt.Println("Error while options parsing:")
 
 		for _, err := range errs {
 			fmt.Printf("  %v\n", err)
@@ -143,7 +143,7 @@ func Init() {
 	}
 
 	checkForRoot()
-	checkArguments()
+	checkOptions()
 	loadConfig()
 	validateConfig()
 	setupLogger()
@@ -188,7 +188,7 @@ func configureUI() {
 	}
 }
 
-// checkForRoot check superuser privileges
+// checkForRoot checks superuser privileges
 func checkForRoot() {
 	var err error
 
@@ -199,12 +199,12 @@ func checkForRoot() {
 	}
 
 	if !user.IsRoot() {
-		printErrorAndExit("This utility must have superuser privileges (root)")
+		printErrorAndExit("This utility requires superuser privileges (root)")
 	}
 }
 
-// checkArguments check given arguments
-func checkArguments() {
+// checkOptions checks given arguments
+func checkOptions() {
 	if !options.GetB(OPT_UNINSTALL) {
 		proc := options.GetS(OPT_PROCFILE)
 
@@ -224,19 +224,19 @@ func checkArguments() {
 	}
 }
 
-// loadConfig check config path and load config
+// loadConfig checks configuration file path and loads it
 func loadConfig() {
 	var err error
 
 	switch {
 	case !fsutil.IsExist(CONFIG_FILE):
-		printErrorAndExit("Config %s is not exist", CONFIG_FILE)
+		printErrorAndExit("Configuration file %s does not exist", CONFIG_FILE)
 
 	case !fsutil.IsReadable(CONFIG_FILE):
-		printErrorAndExit("Config %s is not readable", CONFIG_FILE)
+		printErrorAndExit("Configuration file %s is not readable", CONFIG_FILE)
 
 	case !fsutil.IsNonEmpty(CONFIG_FILE):
-		printErrorAndExit("Config %s is empty", CONFIG_FILE)
+		printErrorAndExit("Configuration file %s is empty", CONFIG_FILE)
 	}
 
 	err = knf.Global(CONFIG_FILE)
@@ -246,7 +246,7 @@ func loadConfig() {
 	}
 }
 
-// validateConfig validate config values
+// validateConfig validates configuration file values
 func validateConfig() {
 	validators := []*knf.Validator{
 		{MAIN_RUN_USER, knfv.Empty, nil},
@@ -285,7 +285,7 @@ func validateConfig() {
 	errs := knf.Validate(validators)
 
 	if len(errs) != 0 {
-		printError("Errors while config validation:")
+		printError("Errors while configuration validation:")
 
 		for _, err := range errs {
 			printError("  - %v", err)
@@ -295,7 +295,7 @@ func validateConfig() {
 	}
 }
 
-// setupLogger configure logging subsystem
+// setupLogger configures logging subsystem
 func setupLogger() {
 	if !knf.GetB(LOG_ENABLED, true) {
 		log.Set(os.DevNull, 0)
@@ -315,7 +315,7 @@ func startProcessing(appName string) {
 	}
 }
 
-// installApplication install application to init system
+// installApplication installs application to init system
 func installApplication(appName string) {
 	fullAppName := knf.GetS(MAIN_PREFIX) + appName
 
@@ -355,7 +355,7 @@ func installApplication(appName string) {
 	}
 }
 
-// uninstallApplication uninstall application from init system
+// uninstallApplication uninstalls application from init system
 func uninstallApplication(appName string) {
 	fullAppName := knf.GetS(MAIN_PREFIX) + appName
 	app := &procfile.Application{Name: fullAppName}
@@ -370,14 +370,14 @@ func uninstallApplication(appName string) {
 	}
 }
 
-// validateApplication validate application and all services
+// validateApplication validates application and all services
 func validateApplication(app *procfile.Application) {
 	if app.ProcVersion == 1 && !knf.GetB(PROCFILE_VERSION1, true) {
-		printErrorAndExit("Proc format version 1 support is disabled")
+		printErrorAndExit("Procfile format version 1 support is disabled")
 	}
 
 	if app.ProcVersion == 2 && !knf.GetB(PROCFILE_VERSION2, true) {
-		printErrorAndExit("Proc format version 2 support is disabled")
+		printErrorAndExit("Procfile format version 2 support is disabled")
 	}
 
 	if !options.GetB(OPT_DRY_START) && options.GetB(OPT_DISABLE_VALIDATION) {
@@ -402,13 +402,13 @@ func validateApplication(app *procfile.Application) {
 // checkProviderTargetDir check permissions on target dir
 func checkProviderTargetDir(dir string) error {
 	if !fsutil.CheckPerms("DRWX", dir) {
-		return fmt.Errorf("This utility require read/write access to directory %s", dir)
+		return fmt.Errorf("This utility requires read/write access to directory %s", dir)
 	}
 
 	return nil
 }
 
-// getExporter create and configure exporter and return it
+// getExporter creates and configures exporter and return it
 func getExporter() *export.Exporter {
 	providerName, err := detectProvider(options.GetS(OPT_FORMAT))
 
@@ -438,7 +438,7 @@ func getExporter() *export.Exporter {
 	return export.NewExporter(exportConfig, provider)
 }
 
-// detectProvider try to detect provider
+// detectProvider tries to detect provider
 func detectProvider(format string) (string, error) {
 	switch {
 	case format == FORMAT_SYSTEMD:
@@ -454,7 +454,7 @@ func detectProvider(format string) (string, error) {
 	case env.Which("initctl") != "":
 		return FORMAT_UPSTART, nil
 	default:
-		return "", fmt.Errorf("Can't find init provider")
+		return "", fmt.Errorf("Can't find init system provider")
 	}
 }
 
@@ -468,7 +468,7 @@ func printWarn(f string, a ...interface{}) {
 	fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
 }
 
-// printErrorAndExit print error mesage and exit with exit code 1
+// printErrorAndExit prints error mesage and exit with exit code 1
 func printErrorAndExit(f string, a ...interface{}) {
 	printError(f, a...)
 	os.Exit(1)
@@ -476,7 +476,7 @@ func printErrorAndExit(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// showUsage print usage info to console
+// showUsage prints usage info to console
 func showUsage() {
 	info := usage.NewInfo("", "app-name")
 
@@ -500,7 +500,7 @@ func showUsage() {
 	info.Render()
 }
 
-// showAbout print version info to console
+// showAbout prints version info to console
 func showAbout() {
 	about := &usage.About{
 		App:           APP,
