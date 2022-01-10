@@ -63,6 +63,7 @@ stop on {{.StopLevel}}
 
 {{ if .Service.Options.IsRespawnEnabled }}respawn{{ end }}
 {{ if .Service.Options.IsRespawnLimitSet }}respawn limit {{.Service.Options.RespawnCount}} {{.Service.Options.RespawnInterval}}{{ end }}
+{{ if and .Service.Options.IsRespawnLimitSet (gt .Service.Options.RespawnDelay 0) }}post-stop exec sleep {{.Service.Options.RespawnDelay}}{{ end }}
 
 kill timeout {{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsKillSignalSet }}kill signal {{.Service.Options.KillSignal}}{{ end }}

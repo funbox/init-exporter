@@ -246,6 +246,10 @@ func (so *ServiceOptions) Validate() *errutil.Errors {
 		errs.Add(fmt.Errorf("Property \"respawn:interval\" must be greater or equal 0"))
 	}
 
+	if so.RespawnDelay < 0 {
+		errs.Add(fmt.Errorf("Property \"respawn:delay\" must be greater or equal 0"))
+	}
+
 	if so.KillMode != "" && !sliceutil.Contains([]string{"control-group", "process", "mixed", "none"}, so.KillMode) {
 		errs.Add(fmt.Errorf("Property \"kill_mode\" must contains 'control-group', 'process', 'mixed' or 'none'"))
 	}
