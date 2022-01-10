@@ -1,4 +1,4 @@
-## `init-exporter` [![Build Status](https://travis-ci.org/funbox/init-exporter.svg?branch=master)](https://travis-ci.org/funbox/init-exporter) [![Go Report Card](https://goreportcard.com/badge/github.com/funbox/init-exporter)](https://goreportcard.com/report/github.com/funbox/init-exporter) [![License](https://gh.kaos.st/mit.svg)](LICENSE)
+## `init-exporter` [![CI](https://github.com/funbox/init-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/funbox/init-exporter/actions/workflows/ci.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/funbox/init-exporter)](https://goreportcard.com/report/github.com/funbox/init-exporter) [![License](https://gh.kaos.st/mit.svg)](LICENSE)
 
 Utility for exporting services described by Procfile to init system.
 Supported init systems: upstart and systemd
@@ -17,20 +17,13 @@ Supported init systems: upstart and systemd
 
 #### From source
 
-Before the initial install allows git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (_reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)_):
-
-```
-git config --global http.https://pkg.re.followRedirects true
-```
-
-To build the init-exporter from scratch, make sure you have a working Go 1.17+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the init-exporter from scratch, make sure you have a working Go 1.16+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```bash
 go get -d github.com/funbox/init-exporter
 cd $GOPATH/src/github.com/funbox/init-exporter
-make deps
-make all
-[sudo] make install
+make deps all
+sudo make install
 ```
 
 #### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
@@ -323,13 +316,13 @@ Examples
 
 ### Build status
 
-| Repository | Status |
-|------------|--------|
-| Stable | [![Build Status](https://travis-ci.org/funbox/init-exporter.svg?branch=master)](https://travis-ci.org/funbox/init-exporter) |
-| Unstable | [![Build Status](https://travis-ci.org/funbox/init-exporter.svg?branch=develop)](https://travis-ci.org/funbox/init-exporter) |
+| Branch | Status |
+|--------|--------|
+| Stable | [![CI](https://github.com/funbox/init-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/funbox/init-exporter/actions/workflows/ci.yml) |
+| Unstable | [![CI](https://github.com/funbox/init-exporter/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/funbox/init-exporter/actions/workflows/ci.yml) |
 
 ### License
 
-init-exporter is released under the MIT license (see [LICENSE](LICENSE))
+`init-exporter` is released under the MIT license (see [LICENSE](LICENSE))
 
 [![Sponsored by FunBox](https://funbox.ru/badges/sponsored_by_funbox_grayscale.svg)](https://funbox.ru)
