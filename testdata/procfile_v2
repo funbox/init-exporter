@@ -26,6 +26,7 @@ commands:
     respawn:
       count: 5
       interval: 10
+      delay: 3
     env:
       RAILS_ENV: staging # if needs to be redefined or extended
       JAVA_OPTS: '"${JAVA_OPTS} -Xms512m -Xmx1g -XX:+HeapDumpOnIutOfMemoryError -Djava.net.preferIPv4Stack=true"'

@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -476,6 +476,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Restart=on-failure",
 			"StartLimitInterval=25",
 			"StartLimitBurst=15",
+			"RestartSec=10",
 			"",
 			"LimitNOFILE=1024",
 			"",
@@ -511,6 +512,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Restart=on-failure",
 			"StartLimitInterval=25",
 			"StartLimitBurst=15",
+			"RestartSec=10",
 			"",
 			"LimitNOFILE=1024",
 			"",
@@ -544,6 +546,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"",
 			"TimeoutStopSec=0",
 			"Restart=on-failure",
+			"",
 			"",
 			"",
 			"",
@@ -762,6 +765,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			Count:            2,
 			RespawnInterval:  25,
 			RespawnCount:     15,
+			RespawnDelay:     10,
 			IsRespawnEnabled: true,
 			LimitFile:        1024,
 			LimitMemlock:     -1,

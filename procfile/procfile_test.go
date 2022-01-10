@@ -2,7 +2,7 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -104,6 +104,7 @@ func (s *ProcfileSuite) TestProcV2Parsing(c *C) {
 			c.Assert(service.Options.IsCustomLogEnabled(), Equals, true)
 			c.Assert(service.Options.RespawnCount, Equals, 5)
 			c.Assert(service.Options.RespawnInterval, Equals, 10)
+			c.Assert(service.Options.RespawnDelay, Equals, 3)
 			c.Assert(service.Options.IsRespawnEnabled, Equals, true)
 			c.Assert(service.Options.Env, NotNil)
 			c.Assert(service.Options.Env["RAILS_ENV"], Equals, "staging")

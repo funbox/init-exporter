@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -88,6 +88,7 @@ TimeoutStopSec={{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsRespawnEnabled }}Restart=on-failure{{ end }}
 {{ if .Service.Options.IsRespawnLimitSet }}StartLimitInterval={{.Service.Options.RespawnInterval}}{{ end }}
 {{ if .Service.Options.IsRespawnLimitSet }}StartLimitBurst={{.Service.Options.RespawnCount}}{{ end }}
+{{ if .Service.Options.IsRespawnLimitSet }}RestartSec={{.Service.Options.RespawnDelay}}{{ end }}
 
 {{ if .Service.Options.IsFileLimitSet }}LimitNOFILE={{.Service.Options.LimitFile}}{{ end }}
 {{ if .Service.Options.IsProcLimitSet }}LimitNPROC={{.Service.Options.LimitProc}}{{ end }}
