@@ -2,7 +2,7 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -216,7 +216,9 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.EnvFile = yamlGetSafe(yaml, "env_file")
 	}
 
-	if yaml.IsPathExist("respawn", "count") || yaml.IsPathExist("respawn", "interval") {
+	if yaml.IsPathExist("respawn", "count") ||
+		yaml.IsPathExist("respawn", "interval") ||
+		yaml.IsPathExist("respawn", "delay") {
 		if yaml.IsPathExist("respawn", "count") {
 			options.RespawnCount, err = yaml.Get("respawn").Get("count").Int()
 
@@ -230,6 +232,14 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 
 			if err != nil {
 				return formatPropError("respawn:interval", err)
+			}
+		}
+
+		if yaml.IsPathExist("respawn", "delay") {
+			options.RespawnDelay, err = yaml.Get("respawn").Get("delay").Int()
+
+			if err != nil {
+				return formatPropError("respawn:delay", err)
 			}
 		}
 

@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -20,7 +20,7 @@ import (
 	"pkg.re/essentialkaos/ek.v12/log"
 	"pkg.re/essentialkaos/ek.v12/version"
 
-	. "pkg.re/check.v1"
+	. "pkg.re/essentialkaos/check.v1"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -153,6 +153,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"respawn",
 			"respawn limit 15 25",
+			"post-stop exec sleep 10",
 			"",
 			"kill timeout 10",
 			"kill signal SIGQUIT",
@@ -178,6 +179,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"",
 			"respawn",
 			"respawn limit 15 25",
+			"post-stop exec sleep 10",
 			"",
 			"kill timeout 10",
 			"kill signal SIGQUIT",
@@ -202,6 +204,7 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 			"stop on stopping test_application",
 			"",
 			"respawn",
+			"",
 			"",
 			"",
 			"kill timeout 0",
@@ -476,6 +479,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Restart=on-failure",
 			"StartLimitInterval=25",
 			"StartLimitBurst=15",
+			"RestartSec=10",
 			"",
 			"LimitNOFILE=1024",
 			"",
@@ -511,6 +515,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"Restart=on-failure",
 			"StartLimitInterval=25",
 			"StartLimitBurst=15",
+			"RestartSec=10",
 			"",
 			"LimitNOFILE=1024",
 			"",
@@ -544,6 +549,7 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 			"",
 			"TimeoutStopSec=0",
 			"Restart=on-failure",
+			"",
 			"",
 			"",
 			"",
@@ -665,7 +671,7 @@ func (s *ExportSuite) TestSystemdExportWithDependencies(c *C) {
 
 	app := createTestApp(targetDir, helperDir)
 
-	app.Depends = []string{"postgresql-11", "redis"}
+	app.Depends = []string{"postgresql-11", "redis", "network-online.target"}
 
 	err := exporter.Install(app)
 
@@ -683,8 +689,8 @@ func (s *ExportSuite) TestSystemdExportWithDependencies(c *C) {
 			"[Unit]",
 			"",
 			"Description=Unit for test_application application",
-			"After=multi-user.target postgresql-11.service redis.service",
-			"Wants=postgresql-11.service redis.service test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
+			"After=multi-user.target postgresql-11.service redis.service network-online.target",
+			"Wants=postgresql-11.service redis.service network-online.target test_application-serviceA1.service test_application-serviceA2.service test_application-serviceB.service",
 		},
 	)
 }
@@ -762,6 +768,7 @@ func createTestApp(helperDir, targetDir string) *procfile.Application {
 			Count:            2,
 			RespawnInterval:  25,
 			RespawnCount:     15,
+			RespawnDelay:     10,
 			IsRespawnEnabled: true,
 			LimitFile:        1024,
 			LimitMemlock:     -1,

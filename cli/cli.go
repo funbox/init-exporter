@@ -1,10 +1,11 @@
-// +build !windows
+//go:build linux
+// +build linux
 
 package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -12,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"pkg.re/essentialkaos/ek.v12/env"
 	"pkg.re/essentialkaos/ek.v12/fmtc"
@@ -36,7 +38,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.23.0"
+	VER  = "0.24.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -48,7 +50,7 @@ const (
 	OPT_DISABLE_VALIDATION = "D:disable-validation"
 	OPT_UNINSTALL          = "u:uninstall"
 	OPT_FORMAT             = "f:format"
-	OPT_NO_COLORS          = "nc:no-colors"
+	OPT_NO_COLOR           = "nc:no-color"
 	OPT_HELP               = "h:help"
 	OPT_VERSION            = "v:version"
 )
@@ -96,10 +98,13 @@ var optMap = options.Map{
 	OPT_DISABLE_VALIDATION: {Type: options.BOOL},
 	OPT_UNINSTALL:          {Type: options.BOOL, Alias: "c:clear"},
 	OPT_FORMAT:             {},
-	OPT_NO_COLORS:          {Type: options.BOOL},
+	OPT_NO_COLOR:           {Type: options.BOOL},
 	OPT_HELP:               {Type: options.BOOL},
 	OPT_VERSION:            {Type: options.BOOL},
 }
+
+var colorTagApp string
+var colorTagVer string
 
 var user *system.User
 
@@ -111,7 +116,7 @@ func Init() {
 	args, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
-		fmt.Println("Error while arguments parsing:")
+		fmt.Println("Error while options parsing:")
 
 		for _, err := range errs {
 			fmt.Printf("  %v\n", err)
@@ -120,9 +125,7 @@ func Init() {
 		os.Exit(1)
 	}
 
-	if options.GetB(OPT_NO_COLORS) {
-		fmtc.DisableColors = true
-	}
+	configureUI()
 
 	if options.GetB(OPT_VERSION) {
 		showAbout()
@@ -140,7 +143,7 @@ func Init() {
 	}
 
 	checkForRoot()
-	checkArguments()
+	checkOptions()
 	loadConfig()
 	validateConfig()
 	setupLogger()
@@ -153,7 +156,39 @@ func Init() {
 	}
 }
 
-// checkForRoot check superuser privileges
+// configureUI configures user interface
+func configureUI() {
+	envVars := env.Get()
+	term := envVars.GetS("TERM")
+
+	if term != "" {
+		switch {
+		case strings.Contains(term, "xterm"),
+			strings.Contains(term, "color"),
+			term == "screen":
+			fmtc.DisableColors = false
+		}
+	}
+
+	if !fsutil.IsCharacterDevice("/dev/stdout") && envVars.GetS("FAKETTY") == "" {
+		fmtc.DisableColors = true
+	}
+
+	if options.GetB(OPT_NO_COLOR) {
+		fmtc.DisableColors = true
+	}
+
+	switch {
+	case fmtc.IsTrueColorSupported():
+		colorTagApp, colorTagVer = "{#BCCF00}", "{#BCCF00}"
+	case fmtc.Is256ColorsSupported():
+		colorTagApp, colorTagVer = "{#148}", "{#148}"
+	default:
+		colorTagApp, colorTagVer = "{g}", "{g}"
+	}
+}
+
+// checkForRoot checks superuser privileges
 func checkForRoot() {
 	var err error
 
@@ -164,12 +199,12 @@ func checkForRoot() {
 	}
 
 	if !user.IsRoot() {
-		printErrorAndExit("This utility must have superuser privileges (root)")
+		printErrorAndExit("This utility requires superuser privileges (root)")
 	}
 }
 
-// checkArguments check given arguments
-func checkArguments() {
+// checkOptions checks given arguments
+func checkOptions() {
 	if !options.GetB(OPT_UNINSTALL) {
 		proc := options.GetS(OPT_PROCFILE)
 
@@ -189,19 +224,19 @@ func checkArguments() {
 	}
 }
 
-// loadConfig check config path and load config
+// loadConfig checks configuration file path and loads it
 func loadConfig() {
 	var err error
 
 	switch {
 	case !fsutil.IsExist(CONFIG_FILE):
-		printErrorAndExit("Config %s is not exist", CONFIG_FILE)
+		printErrorAndExit("Configuration file %s does not exist", CONFIG_FILE)
 
 	case !fsutil.IsReadable(CONFIG_FILE):
-		printErrorAndExit("Config %s is not readable", CONFIG_FILE)
+		printErrorAndExit("Configuration file %s is not readable", CONFIG_FILE)
 
 	case !fsutil.IsNonEmpty(CONFIG_FILE):
-		printErrorAndExit("Config %s is empty", CONFIG_FILE)
+		printErrorAndExit("Configuration file %s is empty", CONFIG_FILE)
 	}
 
 	err = knf.Global(CONFIG_FILE)
@@ -211,7 +246,7 @@ func loadConfig() {
 	}
 }
 
-// validateConfig validate config values
+// validateConfig validates configuration file values
 func validateConfig() {
 	validators := []*knf.Validator{
 		{MAIN_RUN_USER, knfv.Empty, nil},
@@ -250,7 +285,7 @@ func validateConfig() {
 	errs := knf.Validate(validators)
 
 	if len(errs) != 0 {
-		printError("Errors while config validation:")
+		printError("Errors while configuration validation:")
 
 		for _, err := range errs {
 			printError("  - %v", err)
@@ -260,7 +295,7 @@ func validateConfig() {
 	}
 }
 
-// setupLogger configure logging subsystem
+// setupLogger configures logging subsystem
 func setupLogger() {
 	if !knf.GetB(LOG_ENABLED, true) {
 		log.Set(os.DevNull, 0)
@@ -280,7 +315,7 @@ func startProcessing(appName string) {
 	}
 }
 
-// installApplication install application to init system
+// installApplication installs application to init system
 func installApplication(appName string) {
 	fullAppName := knf.GetS(MAIN_PREFIX) + appName
 
@@ -320,7 +355,7 @@ func installApplication(appName string) {
 	}
 }
 
-// uninstallApplication uninstall application from init system
+// uninstallApplication uninstalls application from init system
 func uninstallApplication(appName string) {
 	fullAppName := knf.GetS(MAIN_PREFIX) + appName
 	app := &procfile.Application{Name: fullAppName}
@@ -335,14 +370,14 @@ func uninstallApplication(appName string) {
 	}
 }
 
-// validateApplication validate application and all services
+// validateApplication validates application and all services
 func validateApplication(app *procfile.Application) {
 	if app.ProcVersion == 1 && !knf.GetB(PROCFILE_VERSION1, true) {
-		printErrorAndExit("Proc format version 1 support is disabled")
+		printErrorAndExit("Procfile format version 1 support is disabled")
 	}
 
 	if app.ProcVersion == 2 && !knf.GetB(PROCFILE_VERSION2, true) {
-		printErrorAndExit("Proc format version 2 support is disabled")
+		printErrorAndExit("Procfile format version 2 support is disabled")
 	}
 
 	if !options.GetB(OPT_DRY_START) && options.GetB(OPT_DISABLE_VALIDATION) {
@@ -367,13 +402,13 @@ func validateApplication(app *procfile.Application) {
 // checkProviderTargetDir check permissions on target dir
 func checkProviderTargetDir(dir string) error {
 	if !fsutil.CheckPerms("DRWX", dir) {
-		return fmt.Errorf("This utility require read/write access to directory %s", dir)
+		return fmt.Errorf("This utility requires read/write access to directory %s", dir)
 	}
 
 	return nil
 }
 
-// getExporter create and configure exporter and return it
+// getExporter creates and configures exporter and return it
 func getExporter() *export.Exporter {
 	providerName, err := detectProvider(options.GetS(OPT_FORMAT))
 
@@ -403,7 +438,7 @@ func getExporter() *export.Exporter {
 	return export.NewExporter(exportConfig, provider)
 }
 
-// detectProvider try to detect provider
+// detectProvider tries to detect provider
 func detectProvider(format string) (string, error) {
 	switch {
 	case format == FORMAT_SYSTEMD:
@@ -419,7 +454,7 @@ func detectProvider(format string) (string, error) {
 	case env.Which("initctl") != "":
 		return FORMAT_UPSTART, nil
 	default:
-		return "", fmt.Errorf("Can't find init provider")
+		return "", fmt.Errorf("Can't find init system provider")
 	}
 }
 
@@ -433,7 +468,7 @@ func printWarn(f string, a ...interface{}) {
 	fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
 }
 
-// printErrorAndExit print error mesage and exit with exit code 1
+// printErrorAndExit prints error mesage and exit with exit code 1
 func printErrorAndExit(f string, a ...interface{}) {
 	printError(f, a...)
 	os.Exit(1)
@@ -441,16 +476,18 @@ func printErrorAndExit(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// showUsage print usage info to console
+// showUsage prints usage info to console
 func showUsage() {
 	info := usage.NewInfo("", "app-name")
+
+	info.AppNameColorTag = "{*}" + colorTagApp
 
 	info.AddOption(OPT_PROCFILE, "Path to procfile", "file")
 	info.AddOption(OPT_DRY_START, "Dry start {s-}(don't export anything, just parse and test procfile){!}")
 	info.AddOption(OPT_DISABLE_VALIDATION, "Disable application validation")
 	info.AddOption(OPT_UNINSTALL, "Remove scripts and helpers for a particular application")
 	info.AddOption(OPT_FORMAT, "Format of generated configs", "upstart|systemd")
-	info.AddOption(OPT_NO_COLORS, "Disable colors in output")
+	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VERSION, "Show version")
 
@@ -463,16 +500,19 @@ func showUsage() {
 	info.Render()
 }
 
-// showAbout print version info to console
+// showAbout prints version info to console
 func showAbout() {
 	about := &usage.About{
 		App:           APP,
 		Version:       VER,
 		Desc:          DESC,
 		Year:          2006,
-		Owner:         "FB Group",
+		Owner:         "FunBox",
 		License:       "MIT License",
 		UpdateChecker: usage.UpdateChecker{"funbox/init-exporter", update.GitHubChecker},
+
+		AppNameColorTag: "{*}" + colorTagApp,
+		VersionColorTag: colorTagVer,
 	}
 
 	about.Render()

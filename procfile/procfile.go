@@ -2,7 +2,7 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -70,6 +70,7 @@ type ServiceOptions struct {
 	Count            int               // Exec count
 	RespawnInterval  int               // Respawn interval in seconds
 	RespawnCount     int               // Respawn count
+	RespawnDelay     int               // Respawn delay in seconds
 	LimitProc        int               // Processes limit
 	LimitFile        int               // Descriptors limit
 	LimitMemlock     int               // Max locked memory limit
@@ -245,6 +246,10 @@ func (so *ServiceOptions) Validate() *errutil.Errors {
 		errs.Add(fmt.Errorf("Property \"respawn:interval\" must be greater or equal 0"))
 	}
 
+	if so.RespawnDelay < 0 {
+		errs.Add(fmt.Errorf("Property \"respawn:delay\" must be greater or equal 0"))
+	}
+
 	if so.KillMode != "" && !sliceutil.Contains([]string{"control-group", "process", "mixed", "none"}, so.KillMode) {
 		errs.Add(fmt.Errorf("Property \"kill_mode\" must contains 'control-group', 'process', 'mixed' or 'none'"))
 	}
@@ -322,7 +327,7 @@ func (s *Service) GetCommandExec(command string) string {
 
 // IsRespawnLimitSet returns true if respawn options is set
 func (so *ServiceOptions) IsRespawnLimitSet() bool {
-	return so.RespawnCount != 0 || so.RespawnInterval != 0
+	return so.RespawnCount != 0 || so.RespawnInterval != 0 || so.RespawnDelay != 0
 }
 
 // IsCustomLogEnabled returns true if service have custom log

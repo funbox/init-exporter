@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                       Copyright (c) 2006-2020 FB GROUP LLC                         //
+//                           Copyright (c) 2006-2021 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"pkg.re/essentialkaos/ek.v12/strutil"
 	"pkg.re/essentialkaos/ek.v12/system/exec"
 	"pkg.re/essentialkaos/ek.v12/timeutil"
 
@@ -87,6 +88,7 @@ TimeoutStopSec={{.Service.Options.KillTimeout}}
 {{ if .Service.Options.IsRespawnEnabled }}Restart=on-failure{{ end }}
 {{ if .Service.Options.IsRespawnLimitSet }}StartLimitInterval={{.Service.Options.RespawnInterval}}{{ end }}
 {{ if .Service.Options.IsRespawnLimitSet }}StartLimitBurst={{.Service.Options.RespawnCount}}{{ end }}
+{{ if and .Service.Options.IsRespawnLimitSet (gt .Service.Options.RespawnDelay 0) }}RestartSec={{.Service.Options.RespawnDelay}}{{ end }}
 
 {{ if .Service.Options.IsFileLimitSet }}LimitNOFILE={{.Service.Options.LimitFile}}{{ end }}
 {{ if .Service.Options.IsProcLimitSet }}LimitNPROC={{.Service.Options.LimitProc}}{{ end }}
@@ -390,7 +392,13 @@ func (sp *SystemdProvider) depsToServiceList(deps []string) []string {
 	var result []string
 
 	for _, dep := range deps {
-		result = append(result, dep+".service")
+		if strutil.HasSuffixAny(dep,
+			".socket", ".device", ".mount", ".automount", ".swap",
+			".service", ".target", ".path", ".timer", ".slice", ".scope") {
+			result = append(result, dep)
+		} else {
+			result = append(result, dep+".service")
+		}
 	}
 
 	return result
