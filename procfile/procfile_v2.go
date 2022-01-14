@@ -216,7 +216,9 @@ func parseV2Options(options *ServiceOptions, yaml *simpleyaml.Yaml) error {
 		options.EnvFile = yamlGetSafe(yaml, "env_file")
 	}
 
-	if yaml.IsPathExist("respawn", "count") || yaml.IsPathExist("respawn", "interval") {
+	if yaml.IsPathExist("respawn", "count") ||
+		yaml.IsPathExist("respawn", "interval") ||
+		yaml.IsPathExist("respawn", "delay") {
 		if yaml.IsPathExist("respawn", "count") {
 			options.RespawnCount, err = yaml.Get("respawn").Get("count").Int()
 
