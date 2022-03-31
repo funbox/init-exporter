@@ -42,7 +42,7 @@
 
 Summary:         Utility for exporting services described by Procfile to init system
 Name:            init-exporter
-Version:         0.24.0
+Version:         0.24.1
 Release:         0%{?dist}
 Group:           Development/Tools
 License:         MIT
@@ -52,7 +52,7 @@ Source0:         %{name}-%{version}.tar.gz
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.16
+BuildRequires:   golang >= 1.17
 
 Provides:        upstart-exporter = %{version}-%{release}
 Provides:        systemd-exporter = %{version}-%{release}
@@ -71,10 +71,8 @@ Utility for exporting services described by Procfile to init system.
 
 %build
 export GOPATH=$(pwd)
-export GO111MODULE=auto
-
 pushd src/github.com/funbox/%{name}
-  %{__make} %{?_smp_mflags} all
+  go build -mod vendor -o $GOPATH/%{name} %{name}.go
 popd
 
 %install
@@ -112,6 +110,11 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Fri Apr 01 2022 Anton Novojilov <andyone@fun-box.ru> - 0.24.1-0
+- Removed pkg.re usage
+- Added module info
+- Added Dependabot configuration
+
 * Mon Jan 10 2022 Anton Novojilov <andyone@fun-box.ru> - 0.24.0-0
 - Added respawn delay configuration
 - Improved systemd dependencies configuration

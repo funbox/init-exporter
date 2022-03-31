@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v12/strutil"
-	"pkg.re/essentialkaos/ek.v12/system/exec"
-	"pkg.re/essentialkaos/ek.v12/timeutil"
+	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v12/system/exec"
+	"github.com/essentialkaos/ek/v12/timeutil"
 
 	"github.com/funbox/init-exporter/procfile"
 )

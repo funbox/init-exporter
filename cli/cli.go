@@ -15,19 +15,19 @@ import (
 	"runtime"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v12/env"
-	"pkg.re/essentialkaos/ek.v12/fmtc"
-	"pkg.re/essentialkaos/ek.v12/fsutil"
-	"pkg.re/essentialkaos/ek.v12/knf"
-	"pkg.re/essentialkaos/ek.v12/log"
-	"pkg.re/essentialkaos/ek.v12/options"
-	"pkg.re/essentialkaos/ek.v12/system"
-	"pkg.re/essentialkaos/ek.v12/usage"
-	"pkg.re/essentialkaos/ek.v12/usage/update"
+	"github.com/essentialkaos/ek/v12/env"
+	"github.com/essentialkaos/ek/v12/fmtc"
+	"github.com/essentialkaos/ek/v12/fsutil"
+	"github.com/essentialkaos/ek/v12/knf"
+	"github.com/essentialkaos/ek/v12/log"
+	"github.com/essentialkaos/ek/v12/options"
+	"github.com/essentialkaos/ek/v12/system"
+	"github.com/essentialkaos/ek/v12/usage"
+	"github.com/essentialkaos/ek/v12/usage/update"
 
-	knfv "pkg.re/essentialkaos/ek.v12/knf/validators"
-	knff "pkg.re/essentialkaos/ek.v12/knf/validators/fs"
-	knfs "pkg.re/essentialkaos/ek.v12/knf/validators/system"
+	knfv "github.com/essentialkaos/ek/v12/knf/validators"
+	knff "github.com/essentialkaos/ek/v12/knf/validators/fs"
+	knfs "github.com/essentialkaos/ek/v12/knf/validators/system"
 
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
@@ -38,7 +38,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.24.0"
+	VER  = "0.24.1"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
