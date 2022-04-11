@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"strings"
 
-	"pkg.re/essentialkaos/ek.v12/log"
-	"pkg.re/essentialkaos/ek.v12/strutil"
+	"github.com/essentialkaos/ek/v12/log"
+	"github.com/essentialkaos/ek/v12/strutil"
 
-	"pkg.re/essentialkaos/go-simpleyaml.v2"
+	"github.com/essentialkaos/go-simpleyaml/v2"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
