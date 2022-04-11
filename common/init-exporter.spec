@@ -72,7 +72,7 @@ Utility for exporting services described by Procfile to init system.
 %build
 export GOPATH=$(pwd)
 pushd src/github.com/funbox/%{name}
-  go build -mod vendor -o $GOPATH/%{name} %{name}.go
+  go build -mod vendor %{name}.go
 popd
 
 %install
