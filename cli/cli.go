@@ -23,12 +23,17 @@ import (
 	"github.com/essentialkaos/ek/v12/options"
 	"github.com/essentialkaos/ek/v12/system"
 	"github.com/essentialkaos/ek/v12/usage"
+	"github.com/essentialkaos/ek/v12/usage/completion/bash"
+	"github.com/essentialkaos/ek/v12/usage/completion/fish"
+	"github.com/essentialkaos/ek/v12/usage/completion/zsh"
+	"github.com/essentialkaos/ek/v12/usage/man"
 	"github.com/essentialkaos/ek/v12/usage/update"
 
 	knfv "github.com/essentialkaos/ek/v12/knf/validators"
 	knff "github.com/essentialkaos/ek/v12/knf/validators/fs"
 	knfs "github.com/essentialkaos/ek/v12/knf/validators/system"
 
+	"github.com/funbox/init-exporter/cli/support"
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -38,7 +43,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.24.1"
+	VER  = "0.25.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -52,7 +57,11 @@ const (
 	OPT_FORMAT             = "f:format"
 	OPT_NO_COLOR           = "nc:no-color"
 	OPT_HELP               = "h:help"
-	OPT_VERSION            = "v:version"
+	OPT_VER                = "v:version"
+
+	OPT_VERB_VER     = "vv:verbose-version"
+	OPT_COMPLETION   = "completion"
+	OPT_GENERATE_MAN = "generate-man"
 )
 
 // Config properies
@@ -100,7 +109,11 @@ var optMap = options.Map{
 	OPT_FORMAT:             {},
 	OPT_NO_COLOR:           {Type: options.BOOL},
 	OPT_HELP:               {Type: options.BOOL},
-	OPT_VERSION:            {Type: options.BOOL},
+	OPT_VER:                {Type: options.BOOL},
+
+	OPT_VERB_VER:     {Type: options.BOOL},
+	OPT_COMPLETION:   {},
+	OPT_GENERATE_MAN: {Type: options.BOOL},
 }
 
 var colorTagApp string
@@ -110,36 +123,36 @@ var user *system.User
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-func Init() {
+func Run(gitRev string, gomod []byte) {
 	runtime.GOMAXPROCS(1)
+
+	preConfigureUI()
 
 	args, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
-		fmt.Println("Error while options parsing:")
-
-		for _, err := range errs {
-			fmt.Printf("  %v\n", err)
-		}
-
+		printError(errs[0].Error())
 		os.Exit(1)
 	}
 
 	configureUI()
 
-	if options.GetB(OPT_VERSION) {
-		showAbout()
-		return
-	}
-
-	if options.GetB(OPT_HELP) {
-		showUsage()
-		return
-	}
-
-	if len(args) == 0 && !options.Has(OPT_APP_NAME) {
-		showUsage()
-		return
+	switch {
+	case options.Has(OPT_COMPLETION):
+		os.Exit(printCompletion())
+	case options.Has(OPT_GENERATE_MAN):
+		printMan()
+		os.Exit(0)
+	case options.GetB(OPT_VER):
+		genAbout(gitRev).Print()
+		os.Exit(0)
+	case options.GetB(OPT_VERB_VER):
+		support.Print(APP, VER, gitRev, gomod)
+		os.Exit(0)
+	case options.GetB(OPT_HELP),
+		len(args) == 0 && !options.Has(OPT_APP_NAME):
+		genUsage().Print()
+		os.Exit(0)
 	}
 
 	checkForRoot()
@@ -152,14 +165,15 @@ func Init() {
 	case len(args) == 0:
 		startProcessing(options.GetS(OPT_APP_NAME))
 	default:
-		startProcessing(args[0])
+		startProcessing(args.Get(0).String())
 	}
 }
 
-// configureUI configures user interface
-func configureUI() {
-	envVars := env.Get()
-	term := envVars.GetS("TERM")
+// preConfigureUI preconfigures UI based on information about user terminal
+func preConfigureUI() {
+	term := os.Getenv("TERM")
+
+	fmtc.DisableColors = true
 
 	if term != "" {
 		switch {
@@ -170,10 +184,17 @@ func configureUI() {
 		}
 	}
 
-	if !fsutil.IsCharacterDevice("/dev/stdout") && envVars.GetS("FAKETTY") == "" {
+	if !fsutil.IsCharacterDevice("/dev/stdout") && os.Getenv("FAKETTY") == "" {
 		fmtc.DisableColors = true
 	}
 
+	if os.Getenv("NO_COLOR") != "" {
+		fmtc.DisableColors = true
+	}
+}
+
+// configureUI configures user interface
+func configureUI() {
 	if options.GetB(OPT_NO_COLOR) {
 		fmtc.DisableColors = true
 	}
@@ -476,8 +497,36 @@ func printErrorAndExit(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// showUsage prints usage info to console
-func showUsage() {
+// printCompletion prints completion for given shell
+func printCompletion() int {
+	info := genUsage()
+
+	switch options.GetS(OPT_COMPLETION) {
+	case "bash":
+		fmt.Printf(bash.Generate(info, "init-exporter"))
+	case "fish":
+		fmt.Printf(fish.Generate(info, "init-exporter"))
+	case "zsh":
+		fmt.Printf(zsh.Generate(info, optMap, "init-exporter"))
+	default:
+		return 1
+	}
+
+	return 0
+}
+
+// printMan prints man page
+func printMan() {
+	fmt.Println(
+		man.Generate(
+			genUsage(),
+			genAbout(""),
+		),
+	)
+}
+
+// genUsage generates usage info
+func genUsage() *usage.Info {
 	info := usage.NewInfo("", "app-name")
 
 	info.AppNameColorTag = "{*}" + colorTagApp
@@ -489,7 +538,7 @@ func showUsage() {
 	info.AddOption(OPT_FORMAT, "Format of generated configs", "upstart|systemd")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
-	info.AddOption(OPT_VERSION, "Show version")
+	info.AddOption(OPT_VER, "Show version")
 
 	info.AddExample("-p ./myprocfile -f systemd myapp", "Export given procfile to systemd as myapp")
 	info.AddExample("-u -f systemd myapp", "Uninstall myapp from systemd")
@@ -497,11 +546,11 @@ func showUsage() {
 	info.AddExample("-p ./myprocfile -f upstart myapp", "Export given procfile to upstart as myapp")
 	info.AddExample("-u -f upstart myapp", "Uninstall myapp from upstart")
 
-	info.Render()
+	return info
 }
 
-// showAbout prints version info to console
-func showAbout() {
+// genAbout generates info about version
+func genAbout(gitRev string) *usage.About {
 	about := &usage.About{
 		App:           APP,
 		Version:       VER,
@@ -515,5 +564,9 @@ func showAbout() {
 		VersionColorTag: colorTagVer,
 	}
 
-	about.Render()
+	if gitRev != "" {
+		about.Build = "git:" + gitRev
+	}
+
+	return about
 }
