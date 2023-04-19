@@ -64,7 +64,7 @@ const (
 	OPT_GENERATE_MAN = "generate-man"
 )
 
-// Config properies
+// Config properties
 const (
 	MAIN_RUN_USER             = "main:run-user"
 	MAIN_RUN_GROUP            = "main:run-group"
@@ -489,7 +489,7 @@ func printWarn(f string, a ...interface{}) {
 	fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
 }
 
-// printErrorAndExit prints error mesage and exit with exit code 1
+// printErrorAndExit prints error message and exit with exit code 1
 func printErrorAndExit(f string, a ...interface{}) {
 	printError(f, a...)
 	os.Exit(1)
