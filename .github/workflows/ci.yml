@@ -22,9 +22,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  SRC_DIR: src/github.com/${{ github.repository }}
-
 jobs:
   Go:
     name: Go
@@ -32,26 +29,21 @@ jobs:
 
     strategy:
       matrix:
-        go: [ '1.19.x', '1.20.x' ]
+        go: [ '1.21.x', '1.22.x' ]
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
 
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          path: ${{env.SRC_DIR}}
-
       - name: Download dependencies
-        working-directory: ${{env.SRC_DIR}}
-        run: |
-          make deps
+        run: make deps
 
       - name: Run tests
-        working-directory: ${{env.SRC_DIR}}
         run: make test
 
   Aligo:
@@ -61,24 +53,20 @@ jobs:
     needs: Go
 
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.19.x'
-
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          path: ${{env.SRC_DIR}}
+          go-version: '1.21.x'
 
       - name: Download dependencies
-        working-directory: ${{env.SRC_DIR}}
         run: make deps
 
       - name: Check Golang sources with Aligo
-        uses: essentialkaos/aligo-action@v1
+        uses: essentialkaos/aligo-action@v2
         with:
-          path: ${{env.SRC_DIR}}
           files: ./...
 
   Perfecto:
@@ -89,10 +77,10 @@ jobs:
 
     steps:
       - name: Code checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -102,3 +90,16 @@ jobs:
         uses: essentialkaos/perfecto-action@v2
         with:
           files: common/init-exporter.spec
+
+  Typos:
+    name: Typos
+    runs-on: ubuntu-latest
+
+    needs: Go
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check spelling
+        uses: crate-ci/typos@master

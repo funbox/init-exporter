@@ -2,13 +2,13 @@ package procfile
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                           Copyright (c) 2006-2023 FUNBOX                           //
+//                           Copyright (c) 2006-2024 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -136,7 +136,7 @@ func Read(path string, config *Config) (*Application, error) {
 		return nil, fmt.Errorf("Procfile %s is not readable", path)
 	}
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 
 	if err != nil {
 		return nil, err
@@ -449,7 +449,7 @@ func parseCommand(command string) (string, string, map[string]string) {
 
 		if isEnv {
 			if strings.Contains(token, "=") {
-				env[strutil.ReadField(token, 0, false, "=")] = strutil.ReadField(token, 1, false, "=")
+				env[strutil.ReadField(token, 0, false, '=')] = strutil.ReadField(token, 1, false, '=')
 				continue
 			} else {
 				isEnv = false

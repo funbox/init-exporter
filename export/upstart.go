@@ -2,7 +2,7 @@ package export
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                           Copyright (c) 2006-2023 FUNBOX                           //
+//                           Copyright (c) 2006-2024 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -273,8 +273,8 @@ func getUpstartVersion() (version.Version, error) {
 
 // parseUpstartVersionData parses upstart version data
 func parseUpstartVersionData(data string) (version.Version, error) {
-	line := strutil.ReadField(data, 0, false, "\n")
-	verStr := strings.Trim(strutil.ReadField(line, 2, false, " "), "()")
+	line := strutil.ReadField(data, 0, false, '\n')
+	verStr := strings.Trim(strutil.ReadField(line, 2, false, ' '), "()")
 
 	return version.Parse(verStr)
 }

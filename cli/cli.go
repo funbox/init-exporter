@@ -5,7 +5,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                           Copyright (c) 2006-2021 FUNBOX                           //
+//                           Copyright (c) 2006-2024 FUNBOX                           //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strings"
 
 	"github.com/essentialkaos/ek/v12/env"
 	"github.com/essentialkaos/ek/v12/fmtc"
@@ -22,6 +21,7 @@ import (
 	"github.com/essentialkaos/ek/v12/log"
 	"github.com/essentialkaos/ek/v12/options"
 	"github.com/essentialkaos/ek/v12/system"
+	"github.com/essentialkaos/ek/v12/terminal/tty"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
 	"github.com/essentialkaos/ek/v12/usage/completion/fish"
@@ -43,7 +43,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.25.0"
+	VER  = "0.25.1"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -64,28 +64,32 @@ const (
 	OPT_GENERATE_MAN = "generate-man"
 )
 
-// Config properies
+// Config properties
 const (
-	MAIN_RUN_USER             = "main:run-user"
-	MAIN_RUN_GROUP            = "main:run-group"
-	MAIN_PREFIX               = "main:prefix"
-	PROCFILE_VERSION1         = "procfile:version1"
-	PROCFILE_VERSION2         = "procfile:version2"
-	PATHS_WORKING_DIR         = "paths:working-dir"
-	PATHS_HELPER_DIR          = "paths:helper-dir"
-	PATHS_SYSTEMD_DIR         = "paths:systemd-dir"
-	PATHS_UPSTART_DIR         = "paths:upstart-dir"
+	MAIN_RUN_USER  = "main:run-user"
+	MAIN_RUN_GROUP = "main:run-group"
+	MAIN_PREFIX    = "main:prefix"
+
+	PROCFILE_VERSION1 = "procfile:version1"
+	PROCFILE_VERSION2 = "procfile:version2"
+
+	PATHS_WORKING_DIR = "paths:working-dir"
+	PATHS_HELPER_DIR  = "paths:helper-dir"
+	PATHS_SYSTEMD_DIR = "paths:systemd-dir"
+	PATHS_UPSTART_DIR = "paths:upstart-dir"
+
 	DEFAULTS_NPROC            = "defaults:nproc"
 	DEFAULTS_NOFILE           = "defaults:nofile"
 	DEFAULTS_RESPAWN          = "defaults:respawn"
 	DEFAULTS_RESPAWN_COUNT    = "defaults:respawn-count"
 	DEFAULTS_RESPAWN_INTERVAL = "defaults:respawn-interval"
 	DEFAULTS_KILL_TIMEOUT     = "defaults:kill-timeout"
-	LOG_ENABLED               = "log:enabled"
-	LOG_DIR                   = "log:dir"
-	LOG_FILE                  = "log:file"
-	LOG_PERMS                 = "log:perms"
-	LOG_LEVEL                 = "log:level"
+
+	LOG_ENABLED = "log:enabled"
+	LOG_DIR     = "log:dir"
+	LOG_FILE    = "log:file"
+	LOG_PERMS   = "log:perms"
+	LOG_LEVEL   = "log:level"
 )
 
 const (
@@ -171,24 +175,7 @@ func Run(gitRev string, gomod []byte) {
 
 // preConfigureUI preconfigures UI based on information about user terminal
 func preConfigureUI() {
-	term := os.Getenv("TERM")
-
-	fmtc.DisableColors = true
-
-	if term != "" {
-		switch {
-		case strings.Contains(term, "xterm"),
-			strings.Contains(term, "color"),
-			term == "screen":
-			fmtc.DisableColors = false
-		}
-	}
-
-	if !fsutil.IsCharacterDevice("/dev/stdout") && os.Getenv("FAKETTY") == "" {
-		fmtc.DisableColors = true
-	}
-
-	if os.Getenv("NO_COLOR") != "" {
+	if !tty.IsTTY() {
 		fmtc.DisableColors = true
 	}
 }
@@ -489,7 +476,7 @@ func printWarn(f string, a ...interface{}) {
 	fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
 }
 
-// printErrorAndExit prints error mesage and exit with exit code 1
+// printErrorAndExit prints error message and exit with exit code 1
 func printErrorAndExit(f string, a ...interface{}) {
 	printError(f, a...)
 	os.Exit(1)
@@ -503,11 +490,11 @@ func printCompletion() int {
 
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
-		fmt.Printf(bash.Generate(info, "init-exporter"))
+		fmt.Print(bash.Generate(info, "init-exporter"))
 	case "fish":
-		fmt.Printf(fish.Generate(info, "init-exporter"))
+		fmt.Print(fish.Generate(info, "init-exporter"))
 	case "zsh":
-		fmt.Printf(zsh.Generate(info, optMap, "init-exporter"))
+		fmt.Print(zsh.Generate(info, optMap, "init-exporter"))
 	default:
 		return 1
 	}
