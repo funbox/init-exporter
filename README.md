@@ -10,14 +10,15 @@ Supported init systems: upstart and systemd
   * [Procfile v.2](#procfile-v2)
 * [Exporting](#exporting)
 * [Command options](#command-options)
-* [Build status](#build-status)
+* [CLI usage](#cli-usage)
+* [CI status](#ci-status)
 * [License](#license)
 
 ### Installation
 
 #### From source
 
-To build the init-exporter from scratch, make sure you have a working Go 1.18+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the init-exporter from scratch, make sure you have a working Go 1.19+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```bash
 go get -d github.com/funbox/init-exporter
@@ -29,7 +30,7 @@ sudo make install
 #### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
 
 ```bash
-sudo yum install -y https://yum.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
+sudo yum install -y https://pkgs.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
 sudo yum install init-exporter
 ```
 
@@ -282,39 +283,11 @@ sudo init-exporter -u -f upstart myapp
 
 The logs are not cleared in this case. Also, all old application scripts are cleared before each export.
 
-### Command options
+### CLI usage
 
-```
-Usage: init-exporter {options} app-name
+<img src=".github/images/usage.svg" />
 
-Options
-
-  --procfile, -p file             Path to procfile
-  --dry-start, -d                 Dry start (don't export anything, just parse and test procfile)
-  --disable-validation, -D        Disable application validation
-  --unistall, -u                  Remove scripts and helpers for a particular application
-  --format, -f upstart|systemd    Format of generated configs
-  --no-colors, -nc                Disable colors in output
-  --help, -h                      Show this help message
-  --version, -v                   Show version
-
-Examples
-
-  init-exporter -p ./myprocfile -f systemd myapp
-  Export given procfile to systemd as myapp
-
-  init-exporter -u -f systemd myapp
-  Uninstall myapp from systemd
-
-  init-exporter -p ./myprocfile -f upstart myapp
-  Export given procfile to upstart as myapp
-
-  init-exporter -u -f upstart myapp
-  Uninstall myapp from upstart
-
-```
-
-### Build status
+### CI status
 
 | Branch | Status |
 |--------|--------|
@@ -325,4 +298,4 @@ Examples
 
 `init-exporter` is released under the MIT license (see [LICENSE](LICENSE))
 
-[![Sponsored by FunBox](https://funbox.ru/badges/sponsored_by_funbox_grayscale.svg)](https://funbox.ru)
+[![Sponsored by FunBox](.github/images/sponsored.svg)](https://funbox.ru)
