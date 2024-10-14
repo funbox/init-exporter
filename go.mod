@@ -3,7 +3,7 @@ module github.com/funbox/init-exporter
 go 1.18
 
 require (
-	github.com/essentialkaos/check v1.4.0
+	github.com/essentialkaos/check v1.4.1
 	github.com/essentialkaos/depsy v1.3.1
 	github.com/essentialkaos/ek/v12 v12.130.0
 	github.com/essentialkaos/go-simpleyaml/v2 v2.1.5
