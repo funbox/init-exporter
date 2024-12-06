@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/essentialkaos/ek/v12/log"
-	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v13/log"
+	"github.com/essentialkaos/ek/v13/strutil"
 
 	"github.com/essentialkaos/go-simpleyaml/v2"
 )

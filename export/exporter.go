@@ -8,13 +8,12 @@ package export
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 
-	"github.com/essentialkaos/ek/v12/fsutil"
-	"github.com/essentialkaos/ek/v12/log"
-	"github.com/essentialkaos/ek/v12/path"
+	"github.com/essentialkaos/ek/v13/fsutil"
+	"github.com/essentialkaos/ek/v13/log"
+	"github.com/essentialkaos/ek/v13/path"
 
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -170,7 +169,7 @@ func (e *Exporter) writeAppUnit(app *procfile.Application) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(unitPath, []byte(data), 0644)
+	err = os.WriteFile(unitPath, []byte(data), 0644)
 
 	if err != nil {
 		return err
@@ -189,7 +188,7 @@ func (e *Exporter) writeAppUnit(app *procfile.Application) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(helperPath, []byte(helperData), 0644)
+	err = os.WriteFile(helperPath, []byte(helperData), 0644)
 
 	if err != nil {
 		return err
@@ -249,7 +248,7 @@ func (e *Exporter) writeServiceUnit(service *procfile.Service, appName, index st
 
 	unitPath := e.unitPath(fullServiceName)
 
-	err = ioutil.WriteFile(unitPath, []byte(unitData), 0644)
+	err = os.WriteFile(unitPath, []byte(unitData), 0644)
 
 	if err != nil {
 		return err
@@ -261,7 +260,7 @@ func (e *Exporter) writeServiceUnit(service *procfile.Service, appName, index st
 		log.Debug("Unit for %s (%s) saved as %s", service.Name, index, unitPath)
 	}
 
-	err = ioutil.WriteFile(service.HelperPath, []byte(helperData), 0644)
+	err = os.WriteFile(service.HelperPath, []byte(helperData), 0644)
 
 	if err != nil {
 		return err

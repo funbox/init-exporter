@@ -1,6 +1,3 @@
-//go:build linux
-// +build linux
-
 package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -14,26 +11,30 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/essentialkaos/ek/v12/env"
-	"github.com/essentialkaos/ek/v12/fmtc"
-	"github.com/essentialkaos/ek/v12/fsutil"
-	"github.com/essentialkaos/ek/v12/knf"
-	"github.com/essentialkaos/ek/v12/log"
-	"github.com/essentialkaos/ek/v12/options"
-	"github.com/essentialkaos/ek/v12/system"
-	"github.com/essentialkaos/ek/v12/terminal/tty"
-	"github.com/essentialkaos/ek/v12/usage"
-	"github.com/essentialkaos/ek/v12/usage/completion/bash"
-	"github.com/essentialkaos/ek/v12/usage/completion/fish"
-	"github.com/essentialkaos/ek/v12/usage/completion/zsh"
-	"github.com/essentialkaos/ek/v12/usage/man"
-	"github.com/essentialkaos/ek/v12/usage/update"
+	"github.com/essentialkaos/ek/v13/env"
+	"github.com/essentialkaos/ek/v13/errors"
+	"github.com/essentialkaos/ek/v13/fmtc"
+	"github.com/essentialkaos/ek/v13/fsutil"
+	"github.com/essentialkaos/ek/v13/knf"
+	"github.com/essentialkaos/ek/v13/log"
+	"github.com/essentialkaos/ek/v13/options"
+	"github.com/essentialkaos/ek/v13/support"
+	"github.com/essentialkaos/ek/v13/support/deps"
+	"github.com/essentialkaos/ek/v13/support/pkgs"
+	"github.com/essentialkaos/ek/v13/system"
+	"github.com/essentialkaos/ek/v13/terminal"
+	"github.com/essentialkaos/ek/v13/terminal/tty"
+	"github.com/essentialkaos/ek/v13/usage"
+	"github.com/essentialkaos/ek/v13/usage/completion/bash"
+	"github.com/essentialkaos/ek/v13/usage/completion/fish"
+	"github.com/essentialkaos/ek/v13/usage/completion/zsh"
+	"github.com/essentialkaos/ek/v13/usage/man"
+	"github.com/essentialkaos/ek/v13/usage/update"
 
-	knfv "github.com/essentialkaos/ek/v12/knf/validators"
-	knff "github.com/essentialkaos/ek/v12/knf/validators/fs"
-	knfs "github.com/essentialkaos/ek/v12/knf/validators/system"
+	knfv "github.com/essentialkaos/ek/v13/knf/validators"
+	knff "github.com/essentialkaos/ek/v13/knf/validators/fs"
+	knfs "github.com/essentialkaos/ek/v13/knf/validators/system"
 
-	"github.com/funbox/init-exporter/cli/support"
 	"github.com/funbox/init-exporter/export"
 	"github.com/funbox/init-exporter/procfile"
 )
@@ -43,7 +44,7 @@ import (
 // App props
 const (
 	APP  = "init-exporter"
-	VER  = "0.25.1"
+	VER  = "0.26.0"
 	DESC = "Utility for exporting services described by Procfile to init system"
 )
 
@@ -134,8 +135,9 @@ func Run(gitRev string, gomod []byte) {
 
 	args, errs := options.Parse(optMap)
 
-	if len(errs) != 0 {
-		printError(errs[0].Error())
+	if !errs.IsEmpty() {
+		terminal.Error("Options validation errors:")
+		terminal.Error(errs.Error(" - "))
 		os.Exit(1)
 	}
 
@@ -151,7 +153,11 @@ func Run(gitRev string, gomod []byte) {
 		genAbout(gitRev).Print()
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
-		support.Print(APP, VER, gitRev, gomod)
+		support.Collect(APP, VER).
+			WithRevision(gitRev).
+			WithDeps(deps.Extract(gomod)).
+			WithPackages(pkgs.Collect("systemd", "upstart")).
+			Print()
 		os.Exit(0)
 	case options.GetB(OPT_HELP),
 		len(args) == 0 && !options.Has(OPT_APP_NAME):
@@ -159,11 +165,17 @@ func Run(gitRev string, gomod []byte) {
 		os.Exit(0)
 	}
 
-	checkForRoot()
-	checkOptions()
-	loadConfig()
-	validateConfig()
-	setupLogger()
+	err := errors.Chain(
+		checkForRoot,
+		checkOptions,
+		loadConfig,
+		validateConfig,
+		setupLogger,
+	)
+
+	if err != nil {
+		printErrorAndExit(err.Error())
+	}
 
 	switch {
 	case len(args) == 0:
@@ -197,83 +209,67 @@ func configureUI() {
 }
 
 // checkForRoot checks superuser privileges
-func checkForRoot() {
+func checkForRoot() error {
 	var err error
 
 	user, err = system.CurrentUser()
 
 	if err != nil {
-		printErrorAndExit(err.Error())
+		return fmt.Errorf("Can't get current user info: %v", err)
 	}
 
 	if !user.IsRoot() {
-		printErrorAndExit("This utility requires superuser privileges (root)")
+		return fmt.Errorf("This utility requires superuser privileges (root)")
 	}
+
+	return nil
 }
 
 // checkOptions checks given arguments
-func checkOptions() {
+func checkOptions() error {
 	if !options.GetB(OPT_UNINSTALL) {
 		proc := options.GetS(OPT_PROCFILE)
+		err := fsutil.ValidatePerms("FRS", proc)
 
-		switch {
-		case proc == "":
-			printErrorAndExit("You should define path to procfile", proc)
-
-		case fsutil.IsExist(proc) == false:
-			printErrorAndExit("Procfile %s does not exist", proc)
-
-		case fsutil.IsReadable(proc) == false:
-			printErrorAndExit("Procfile %s is not readable", proc)
-
-		case fsutil.IsNonEmpty(proc) == false:
-			printErrorAndExit("Procfile %s is empty", proc)
+		if err != nil {
+			return fmt.Errorf("Can't use procfile %q: %v", proc, err)
 		}
 	}
+
+	return nil
 }
 
 // loadConfig checks configuration file path and loads it
-func loadConfig() {
-	var err error
-
-	switch {
-	case !fsutil.IsExist(CONFIG_FILE):
-		printErrorAndExit("Configuration file %s does not exist", CONFIG_FILE)
-
-	case !fsutil.IsReadable(CONFIG_FILE):
-		printErrorAndExit("Configuration file %s is not readable", CONFIG_FILE)
-
-	case !fsutil.IsNonEmpty(CONFIG_FILE):
-		printErrorAndExit("Configuration file %s is empty", CONFIG_FILE)
-	}
-
-	err = knf.Global(CONFIG_FILE)
+func loadConfig() error {
+	err := knf.Global(CONFIG_FILE)
 
 	if err != nil {
-		printErrorAndExit(err.Error())
+		return fmt.Errorf("Can't load configuration: %v", err)
 	}
+
+	return nil
 }
 
 // validateConfig validates configuration file values
-func validateConfig() {
-	validators := []*knf.Validator{
-		{MAIN_RUN_USER, knfv.Empty, nil},
-		{MAIN_RUN_GROUP, knfv.Empty, nil},
-		{PATHS_WORKING_DIR, knfv.Empty, nil},
-		{PATHS_HELPER_DIR, knfv.Empty, nil},
-		{PATHS_SYSTEMD_DIR, knfv.Empty, nil},
-		{PATHS_UPSTART_DIR, knfv.Empty, nil},
-		{DEFAULTS_NPROC, knfv.Empty, nil},
-		{DEFAULTS_NOFILE, knfv.Empty, nil},
-		{DEFAULTS_RESPAWN_COUNT, knfv.Empty, nil},
-		{DEFAULTS_RESPAWN_INTERVAL, knfv.Empty, nil},
-		{DEFAULTS_KILL_TIMEOUT, knfv.Empty, nil},
+func validateConfig() error {
+	validators := knf.Validators{
+		{MAIN_RUN_USER, knfv.Set, nil},
+		{MAIN_RUN_GROUP, knfv.Set, nil},
+		{PATHS_WORKING_DIR, knfv.Set, nil},
+		{PATHS_HELPER_DIR, knfv.Set, nil},
+		{PATHS_SYSTEMD_DIR, knfv.Set, nil},
+		{PATHS_UPSTART_DIR, knfv.Set, nil},
+		{DEFAULTS_NPROC, knfv.Set, nil},
+		{DEFAULTS_NOFILE, knfv.Set, nil},
+		{DEFAULTS_RESPAWN_COUNT, knfv.Set, nil},
+		{DEFAULTS_RESPAWN_INTERVAL, knfv.Set, nil},
+		{DEFAULTS_KILL_TIMEOUT, knfv.Set, nil},
 
-		{DEFAULTS_NPROC, knfv.Less, 0},
-		{DEFAULTS_NOFILE, knfv.Less, 0},
-		{DEFAULTS_RESPAWN_COUNT, knfv.Less, 0},
-		{DEFAULTS_RESPAWN_INTERVAL, knfv.Less, 0},
-		{DEFAULTS_KILL_TIMEOUT, knfv.Less, 0},
+		{DEFAULTS_NPROC, knfv.Greater, 0},
+		{DEFAULTS_NOFILE, knfv.Greater, 0},
+		{DEFAULTS_RESPAWN_COUNT, knfv.Greater, 0},
+		{DEFAULTS_RESPAWN_INTERVAL, knfv.Greater, 0},
+		{DEFAULTS_KILL_TIMEOUT, knfv.Greater, 0},
 
 		{MAIN_RUN_USER, knfs.User, nil},
 		{MAIN_RUN_GROUP, knfs.Group, nil},
@@ -282,36 +278,37 @@ func validateConfig() {
 		{PATHS_HELPER_DIR, knff.Perms, "DRWX"},
 	}
 
-	if knf.GetB(LOG_ENABLED, true) {
-		validators = append(validators,
-			&knf.Validator{LOG_DIR, knfv.Empty, nil},
-			&knf.Validator{LOG_FILE, knfv.Empty, nil},
-			&knf.Validator{LOG_DIR, knff.Perms, "DWX"},
-		)
-	}
+	validators.AddIf(knf.GetB(LOG_ENABLED, true), knf.Validators{
+		{LOG_DIR, knfv.Set, nil},
+		{LOG_FILE, knfv.Set, nil},
+		{LOG_DIR, knff.Perms, "DWX"},
+	})
 
 	errs := knf.Validate(validators)
 
-	if len(errs) != 0 {
-		printError("Errors while configuration validation:")
-
-		for _, err := range errs {
-			printError("  - %v", err)
-		}
-
-		os.Exit(1)
+	if !errs.IsEmpty() {
+		return errs.First()
 	}
+
+	return nil
 }
 
 // setupLogger configures logging subsystem
-func setupLogger() {
+func setupLogger() error {
 	if !knf.GetB(LOG_ENABLED, true) {
 		log.Set(os.DevNull, 0)
-		return
+		return nil
 	}
 
-	log.Set(knf.GetS(LOG_FILE), knf.GetM(LOG_PERMS, 0644))
+	err := log.Set(knf.GetS(LOG_FILE), knf.GetM(LOG_PERMS, 0644))
+
+	if err != nil {
+		return fmt.Errorf("Can't set log output to %q: %v", knf.GetS(LOG_FILE), err)
+	}
+
 	log.MinLevel(knf.GetS(LOG_LEVEL, "info"))
+
+	return nil
 }
 
 // startProcessing start processing
@@ -398,10 +395,10 @@ func validateApplication(app *procfile.Application) {
 		return
 	}
 
-	printError("Errors while application validation:")
+	terminal.Error("Errors while application validation:")
 
 	for _, err := range errs {
-		printError("  - %v", err)
+		terminal.Error(" - %v", err)
 	}
 
 	os.Exit(1)
@@ -466,19 +463,9 @@ func detectProvider(format string) (string, error) {
 	}
 }
 
-// printError prints error message to console
-func printError(f string, a ...interface{}) {
-	fmtc.Fprintf(os.Stderr, "{r}"+f+"{!}\n", a...)
-}
-
-// printError prints warning message to console
-func printWarn(f string, a ...interface{}) {
-	fmtc.Fprintf(os.Stderr, "{y}"+f+"{!}\n", a...)
-}
-
 // printErrorAndExit prints error message and exit with exit code 1
 func printErrorAndExit(f string, a ...interface{}) {
-	printError(f, a...)
+	terminal.Error(f, a...)
 	os.Exit(1)
 }
 
@@ -490,11 +477,11 @@ func printCompletion() int {
 
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
-		fmt.Print(bash.Generate(info, "init-exporter"))
+		fmt.Print(bash.Generate(info, APP))
 	case "fish":
-		fmt.Print(fish.Generate(info, "init-exporter"))
+		fmt.Print(fish.Generate(info, APP))
 	case "zsh":
-		fmt.Print(zsh.Generate(info, optMap, "init-exporter"))
+		fmt.Print(zsh.Generate(info, optMap, APP))
 	default:
 		return 1
 	}
@@ -504,12 +491,7 @@ func printCompletion() int {
 
 // printMan prints man page
 func printMan() {
-	fmt.Println(
-		man.Generate(
-			genUsage(),
-			genAbout(""),
-		),
-	)
+	fmt.Println(man.Generate(genUsage(), genAbout("")))
 }
 
 // genUsage generates usage info

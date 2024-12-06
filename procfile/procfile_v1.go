@@ -13,7 +13,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/essentialkaos/ek/v12/log"
+	"github.com/essentialkaos/ek/v13/log"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -103,7 +103,7 @@ func parseV1Command(name, command string) (*Service, error) {
 			return nil, fmt.Errorf("Procfile v1 command misformatted: %s", command)
 		}
 
-		service.Options.WorkingDir = strings.Replace(cmdSlice[0], "cd ", "", -1)
+		service.Options.WorkingDir = strings.TrimPrefix(cmdSlice[0], "cd ")
 		cmdSlice = cmdSlice[1:]
 	}
 
