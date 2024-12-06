@@ -16,22 +16,11 @@ Supported init systems: upstart and systemd
 
 ### Installation
 
-#### From source
-
-To build the init-exporter from scratch, make sure you have a working Go 1.19+ workspace ([instructions](https://golang.org/doc/install)), then:
+#### From [ESSENTIAL KAOS Public Repository](https://pkgs.kaos.st)
 
 ```bash
-go get -d github.com/funbox/init-exporter
-cd $GOPATH/src/github.com/funbox/init-exporter
-make deps all
-sudo make install
-```
-
-#### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
-
-```bash
-sudo yum install -y https://pkgs.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
-sudo yum install init-exporter
+sudo dnf install -y https://pkgs.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
+sudo dnf install init-exporter
 ```
 
 ### Configuration
