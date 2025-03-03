@@ -156,7 +156,7 @@ func Run(gitRev string, gomod []byte) {
 		support.Collect(APP, VER).
 			WithRevision(gitRev).
 			WithDeps(deps.Extract(gomod)).
-			WithPackages(pkgs.Collect("systemd", "upstart")).
+			WithPackages(pkgs.Collect("systemd", "upstart", "init-exporter")).
 			Print()
 		os.Exit(0)
 	case options.GetB(OPT_HELP),
