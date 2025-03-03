@@ -1,9 +1,10 @@
 module github.com/funbox/init-exporter
 
-go 1.22.8
+go 1.23.6
+
 require (
 	github.com/essentialkaos/check v1.4.1
-	github.com/essentialkaos/ek/v13 v13.18.0
+	github.com/essentialkaos/ek/v13 v13.19.0
 	github.com/essentialkaos/go-simpleyaml/v2 v2.1.5
 )
 
