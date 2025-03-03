@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/essentialkaos/ek/v12/strutil"
-	"github.com/essentialkaos/ek/v12/timeutil"
-	"github.com/essentialkaos/ek/v12/version"
+	"github.com/essentialkaos/ek/v13/strutil"
+	"github.com/essentialkaos/ek/v13/timeutil"
+	"github.com/essentialkaos/ek/v13/version"
 
 	"github.com/funbox/init-exporter/procfile"
 )

@@ -10,15 +10,15 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
-	"github.com/essentialkaos/ek/v12/errutil"
-	"github.com/essentialkaos/ek/v12/fsutil"
-	"github.com/essentialkaos/ek/v12/log"
-	"github.com/essentialkaos/ek/v12/path"
-	"github.com/essentialkaos/ek/v12/sliceutil"
-	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v13/errors"
+	"github.com/essentialkaos/ek/v13/fsutil"
+	"github.com/essentialkaos/ek/v13/log"
+	"github.com/essentialkaos/ek/v13/path"
+	"github.com/essentialkaos/ek/v13/strutil"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -120,20 +120,10 @@ type Application struct {
 func Read(path string, config *Config) (*Application, error) {
 	log.Debug("Processing file %s", path)
 
-	if !fsutil.IsExist(path) {
-		return nil, fmt.Errorf("Procfile %s is not exist", path)
-	}
+	err := fsutil.ValidatePerms("FRS", path)
 
-	if !fsutil.IsRegular(path) {
-		return nil, fmt.Errorf("%s is not a file", path)
-	}
-
-	if !fsutil.IsNonEmpty(path) {
-		return nil, fmt.Errorf("Procfile %s is empty", path)
-	}
-
-	if !fsutil.IsReadable(path) {
-		return nil, fmt.Errorf("Procfile %s is not readable", path)
+	if err != nil {
+		return nil, err
 	}
 
 	data, err := os.ReadFile(path)
@@ -159,7 +149,7 @@ func Read(path string, config *Config) (*Application, error) {
 
 // Validate validate all services in application
 func (a *Application) Validate() []error {
-	errs := errutil.NewErrors()
+	var errs errors.Bundle
 
 	errs.Add(checkRunLevel(a.StartLevel))
 	errs.Add(checkRunLevel(a.StopLevel))
@@ -192,8 +182,8 @@ func (a *Application) IsReloadSignalSet() bool {
 }
 
 // Validate validate service props and options
-func (s *Service) Validate() *errutil.Errors {
-	errs := errutil.NewErrors()
+func (s *Service) Validate() *errors.Bundle {
+	var errs errors.Bundle
 
 	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(s.Name) {
 		errs.Add(fmt.Errorf("Service name %s is misformatted and can't be accepted", s.Name))
@@ -201,12 +191,12 @@ func (s *Service) Validate() *errutil.Errors {
 
 	errs.Add(s.Options.Validate())
 
-	return errs
+	return &errs
 }
 
 // Validate validate service options
-func (so *ServiceOptions) Validate() *errutil.Errors {
-	errs := errutil.NewErrors()
+func (so *ServiceOptions) Validate() *errors.Bundle {
+	var errs errors.Bundle
 
 	errs.Add(checkPath(so.WorkingDir))
 
@@ -250,7 +240,7 @@ func (so *ServiceOptions) Validate() *errutil.Errors {
 		errs.Add(fmt.Errorf("Property \"respawn:delay\" must be greater or equal 0"))
 	}
 
-	if so.KillMode != "" && !sliceutil.Contains([]string{"control-group", "process", "mixed", "none"}, so.KillMode) {
+	if so.KillMode != "" && !slices.Contains([]string{"control-group", "process", "mixed", "none"}, so.KillMode) {
 		errs.Add(fmt.Errorf("Property \"kill_mode\" must contains 'control-group', 'process', 'mixed' or 'none'"))
 	}
 
@@ -280,7 +270,7 @@ func (so *ServiceOptions) Validate() *errutil.Errors {
 		}
 	}
 
-	return errs
+	return &errs
 }
 
 // HasPreCmd return true if pre command is defined
@@ -638,12 +628,12 @@ func checkRunLevel(value int) error {
 }
 
 // checkDependencies checks dependencies
-func checkDependencies(deps []string) *errutil.Errors {
+func checkDependencies(deps []string) *errors.Bundle {
 	if len(deps) == 0 {
 		return nil
 	}
 
-	errs := errutil.NewErrors()
+	var errs errors.Bundle
 
 	for _, dep := range deps {
 		if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(dep) {
@@ -651,7 +641,7 @@ func checkDependencies(deps []string) *errutil.Errors {
 		}
 	}
 
-	return nil
+	return &errs
 }
 
 // addCrossLink adds to all service structs pointer

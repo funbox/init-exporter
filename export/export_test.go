@@ -8,7 +8,6 @@ package export
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -16,9 +15,9 @@ import (
 
 	"github.com/funbox/init-exporter/procfile"
 
-	"github.com/essentialkaos/ek/v12/fsutil"
-	"github.com/essentialkaos/ek/v12/log"
-	"github.com/essentialkaos/ek/v12/version"
+	"github.com/essentialkaos/ek/v13/fsutil"
+	"github.com/essentialkaos/ek/v13/log"
+	"github.com/essentialkaos/ek/v13/version"
 
 	. "github.com/essentialkaos/check"
 )
@@ -68,56 +67,56 @@ func (s *ExportSuite) TestUpstartExport(c *C) {
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application.conf"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application.conf"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application.conf"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application.conf"), Equals, false)
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA1.conf"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA1.conf"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA1.conf"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application-serviceA1.conf"), Equals, false)
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA2.conf"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA2.conf"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA2.conf"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application-serviceA2.conf"), Equals, false)
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.conf"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceB.conf"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceB.conf"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application-serviceB.conf"), Equals, false)
 
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA1.sh"), Equals, true)
 	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA1.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsEmpty(helperDir+"/test_application-serviceA1.sh"), Equals, false)
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA2.sh"), Equals, true)
 	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA2.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA2.sh"), Equals, true)
+	c.Assert(fsutil.IsEmpty(helperDir+"/test_application-serviceA2.sh"), Equals, false)
 
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, true)
 	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceB.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceB.sh"), Equals, true)
+	c.Assert(fsutil.IsEmpty(helperDir+"/test_application-serviceB.sh"), Equals, false)
 
-	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.conf")
+	appUnitData, err := os.ReadFile(targetDir + "/test_application.conf")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
 
-	serviceA1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA1.conf")
+	serviceA1UnitData, err := os.ReadFile(targetDir + "/test_application-serviceA1.conf")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceA1UnitData, NotNil)
 
-	serviceA2UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA2.conf")
+	serviceA2UnitData, err := os.ReadFile(targetDir + "/test_application-serviceA2.conf")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceA2UnitData, NotNil)
 
-	serviceBUnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceB.conf")
+	serviceBUnitData, err := os.ReadFile(targetDir + "/test_application-serviceB.conf")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceBUnitData, NotNil)
 
-	serviceAHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceA1.sh")
+	serviceAHelperData, err := os.ReadFile(helperDir + "/test_application-serviceA1.sh")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceAHelperData, NotNil)
 
-	serviceBHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceB.sh")
+	serviceBHelperData, err := os.ReadFile(helperDir + "/test_application-serviceB.sh")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceBHelperData, NotNil)
@@ -270,7 +269,7 @@ func (s *ExportSuite) TestUpstartExportWithNet(c *C) {
 	err := exporter.Install(app)
 	c.Assert(err, IsNil)
 
-	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.conf")
+	appUnitData, err := os.ReadFile(targetDir + "/test_application.conf")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
@@ -306,7 +305,7 @@ func (s *ExportSuite) TestUpstartExportWithDependencies(c *C) {
 	err := exporter.Install(app)
 	c.Assert(err, IsNil)
 
-	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.conf")
+	appUnitData, err := os.ReadFile(targetDir + "/test_application.conf")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
@@ -366,61 +365,61 @@ func (s *ExportSuite) TestSystemdExport(c *C) {
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application.service"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application.service"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application.service"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application.service"), Equals, false)
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA1.service"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA1.service"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA1.service"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application-serviceA1.service"), Equals, false)
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceA2.service"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceA2.service"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceA2.service"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application-serviceA2.service"), Equals, false)
 
 	c.Assert(fsutil.IsExist(targetDir+"/test_application-serviceB.service"), Equals, true)
 	c.Assert(fsutil.IsRegular(targetDir+"/test_application-serviceB.service"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(targetDir+"/test_application-serviceB.service"), Equals, true)
+	c.Assert(fsutil.IsEmpty(targetDir+"/test_application-serviceB.service"), Equals, false)
 
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA1.sh"), Equals, true)
 	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA1.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA1.sh"), Equals, true)
+	c.Assert(fsutil.IsEmpty(helperDir+"/test_application-serviceA1.sh"), Equals, false)
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceA2.sh"), Equals, true)
 	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceA2.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceA2.sh"), Equals, true)
+	c.Assert(fsutil.IsEmpty(helperDir+"/test_application-serviceA2.sh"), Equals, false)
 
 	c.Assert(fsutil.IsExist(helperDir+"/test_application-serviceB.sh"), Equals, true)
 	c.Assert(fsutil.IsRegular(helperDir+"/test_application-serviceB.sh"), Equals, true)
-	c.Assert(fsutil.IsNonEmpty(helperDir+"/test_application-serviceB.sh"), Equals, true)
+	c.Assert(fsutil.IsEmpty(helperDir+"/test_application-serviceB.sh"), Equals, false)
 
-	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.service")
-
-	c.Assert(err, IsNil)
-	c.Assert(appUnitData, NotNil)
-
-	appReloadHelperData, err := ioutil.ReadFile(helperDir + "/test_application.sh")
+	appUnitData, err := os.ReadFile(targetDir + "/test_application.service")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
 
-	serviceA1UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA1.service")
+	appReloadHelperData, err := os.ReadFile(helperDir + "/test_application.sh")
+
+	c.Assert(err, IsNil)
+	c.Assert(appUnitData, NotNil)
+
+	serviceA1UnitData, err := os.ReadFile(targetDir + "/test_application-serviceA1.service")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceA1UnitData, NotNil)
 
-	serviceA2UnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceA2.service")
+	serviceA2UnitData, err := os.ReadFile(targetDir + "/test_application-serviceA2.service")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceA2UnitData, NotNil)
 
-	serviceBUnitData, err := ioutil.ReadFile(targetDir + "/test_application-serviceB.service")
+	serviceBUnitData, err := os.ReadFile(targetDir + "/test_application-serviceB.service")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceBUnitData, NotNil)
 
-	serviceAHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceA1.sh")
+	serviceAHelperData, err := os.ReadFile(helperDir + "/test_application-serviceA1.sh")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceAHelperData, NotNil)
 
-	serviceBHelperData, err := ioutil.ReadFile(helperDir + "/test_application-serviceB.sh")
+	serviceBHelperData, err := os.ReadFile(helperDir + "/test_application-serviceB.sh")
 
 	c.Assert(err, IsNil)
 	c.Assert(serviceBHelperData, NotNil)
@@ -636,7 +635,7 @@ func (s *ExportSuite) TestSystemdExportWithNet(c *C) {
 
 	c.Assert(err, IsNil)
 
-	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.service")
+	appUnitData, err := os.ReadFile(targetDir + "/test_application.service")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
@@ -677,7 +676,7 @@ func (s *ExportSuite) TestSystemdExportWithDependencies(c *C) {
 
 	c.Assert(err, IsNil)
 
-	appUnitData, err := ioutil.ReadFile(targetDir + "/test_application.service")
+	appUnitData, err := os.ReadFile(targetDir + "/test_application.service")
 
 	c.Assert(err, IsNil)
 	c.Assert(appUnitData, NotNil)
