@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/essentialkaos/check v1.4.1
-	github.com/essentialkaos/ek/v13 v13.27.2
+	github.com/essentialkaos/ek/v13 v13.28.0
 	github.com/essentialkaos/go-simpleyaml/v2 v2.2.0
 )
 
