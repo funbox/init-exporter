@@ -3,8 +3,8 @@ github.com/essentialkaos/check v1.4.1 h1:SuxXzrbokPGTPWxGRnzy0hXvtb44mtVrdNxgPa1
 github.com/essentialkaos/check v1.4.1/go.mod h1:xQOYwFvnxfVZyt5Qvjoa1SxcRqu5VyP77pgALr3iu+M=
 github.com/essentialkaos/depsy v1.3.1 h1:00k9QcMsdPM4IzDaEFHsTHBD/zoM0oxtB5+dMUwbQa8=
 github.com/essentialkaos/depsy v1.3.1/go.mod h1:B5+7Jhv2a2RacOAxIKU2OeJp9QfZjwIpEEPI5X7auWM=
-github.com/essentialkaos/ek/v13 v13.32.0 h1:Bk4sCqTyxNOgh+/823L2h4W1ku25+maMY12PvjedHD4=
-github.com/essentialkaos/ek/v13 v13.32.0/go.mod h1:J6lRensG8sozVzqtxpLYA4nIeOrdn/YBUkL4KvcxYo0=
+github.com/essentialkaos/ek/v13 v13.33.0 h1:XK61hR8DDxLBaWNL+ktDqXMatcSaTfW0riR9GrMrZOg=
+github.com/essentialkaos/ek/v13 v13.33.0/go.mod h1:J6lRensG8sozVzqtxpLYA4nIeOrdn/YBUkL4KvcxYo0=
 github.com/essentialkaos/go-simpleyaml/v2 v2.2.0 h1:MtTJMjRYeba3AoSald0oVF6/aiShTHHwlLl7pfs29pQ=
 github.com/essentialkaos/go-simpleyaml/v2 v2.2.0/go.mod h1:DggbDjR+uPz/En63o6HvoycYRZw+mSywrXc5ySvk8MU=
 github.com/essentialkaos/yaml/v2 v2.4.1 h1:smhmufQ6t+QYu1k3/rUPQ35qf3ymWoRUaQEOiBuTrIg=
