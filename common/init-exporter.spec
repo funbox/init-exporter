@@ -10,7 +10,7 @@
 
 Summary:        Utility for exporting services described by Procfile to init system
 Name:           init-exporter
-Version:        0.26.1
+Version:        0.27.0
 Release:        0%{?dist}
 Group:          Development/Tools
 License:        MIT
@@ -84,8 +84,10 @@ rm -rf %{buildroot}
 
 %changelog
 * Fri Oct 24 2025 Anton Novojilov <andy@essentialkaos.com> - 0.26.1-0
-- Dependencies update
+- Added suffix support for service dependencies
+- Improved service dependencies processing for the systemd provider
 - Code refactoring
+- Dependencies update
 
 * Tue Mar 04 2025 Anton Novojilov <andyone@fun-box.ru> - 0.26.0-0
 - Dependencies update

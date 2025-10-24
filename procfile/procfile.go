@@ -28,6 +28,7 @@ const (
 	REGEXP_V2_VERSION         = `(?m)^\s*version:\s*2\s*$`
 	REGEXP_PATH_CHECK         = `\A[A-Za-z0-9_\-./]+\z`
 	REGEXP_NAME_CHECK         = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_DEP_NAME           = `\A[A-Za-z0-9_\-\.]+\z`
 	REGEXP_NET_DEVICE_CHECK   = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
 	REGEXP_CPU_AFFINITY_CHECK = `^[\d\-, ]+$`
 )
@@ -572,11 +573,11 @@ func checkPath(value string) error {
 	}
 
 	if !regexp.MustCompile(REGEXP_PATH_CHECK).MatchString(value) {
-		return fmt.Errorf("Path %s is insecure and can't be accepted", value)
+		return fmt.Errorf("Path %q is insecure and can't be accepted", value)
 	}
 
 	if !path.IsSafe(value) {
-		return fmt.Errorf("Path %s is not safe and can't be accepted", value)
+		return fmt.Errorf("Path %q is not safe and can't be accepted", value)
 	}
 
 	return nil
@@ -589,23 +590,23 @@ func checkEnv(name, value string) error {
 	}
 
 	if strings.TrimSpace(value) == "" {
-		return fmt.Errorf("Environment variable %s has empty value", name)
+		return fmt.Errorf("Environment variable %q has empty value", name)
 	}
 
 	if strings.Contains(value, " ") {
 		if isUnquotedValue(value) {
-			return fmt.Errorf("Environment variable %s has unquoted value with spaces", name)
+			return fmt.Errorf("Environment variable %q has unquoted value with spaces", name)
 		}
 	}
 
 	if strings.Contains(value, "*") {
 		if isUnquotedValue(value) {
-			return fmt.Errorf("Environment variable %s has unquoted asterisk symbol", name)
+			return fmt.Errorf("Environment variable %q has unquoted asterisk symbol", name)
 		}
 	}
 
 	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(name) {
-		return fmt.Errorf("Environment variable name %s is misformatted and can't be accepted", name)
+		return fmt.Errorf("Environment variable name %q is invalid and can't be accepted", name)
 	}
 
 	return nil
@@ -630,11 +631,13 @@ func checkDependencies(deps []string) *errors.Bundle {
 		return nil
 	}
 
+	depRegex := regexp.MustCompile(REGEXP_DEP_NAME)
+
 	var errs errors.Bundle
 
 	for _, dep := range deps {
-		if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(dep) {
-			errs.Addf("Dependency name %s is misformatted and can't be accepted", dep)
+		if !depRegex.MatchString(dep) {
+			errs.Addf("Dependency name %q is invalid and can't be accepted", dep)
 		}
 	}
 
