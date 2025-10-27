@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/essentialkaos/check v1.4.1
-	github.com/essentialkaos/ek/v13 v13.35.4
+	github.com/essentialkaos/ek/v13 v13.36.0
 	github.com/essentialkaos/go-simpleyaml/v2 v2.2.0
 )
 
