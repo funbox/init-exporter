@@ -83,7 +83,7 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
-* Fri Oct 24 2025 Anton Novojilov <andy@essentialkaos.com> - 0.26.1-0
+* Fri Oct 24 2025 Anton Novojilov <andy@essentialkaos.com> - 0.27.0-0
 - Added suffix support for service dependencies
 - Improved service dependencies processing for the systemd provider
 - Code refactoring
