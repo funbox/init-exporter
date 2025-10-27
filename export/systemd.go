@@ -397,7 +397,16 @@ func (sp *SystemdProvider) depsToServiceList(deps []string) []string {
 			".service", ".target", ".path", ".timer", ".slice", ".scope") {
 			result = append(result, dep)
 		} else {
-			result = append(result, dep+".service")
+			switch dep {
+			case "basic", "cryptsetup", "getty", "integritysetup", "local-fs-pre",
+				"local-fs", "multi-user", "network-online", "network-pre", "network",
+				"nfs-client", "nss-user-lookup", "paths", "remote-fs-pre", "remote-fs",
+				"rpc_pipefs", "rpcbind", "slices", "sockets", "sshd-keygen", "swap",
+				"sysinit", "timers", "veritysetup":
+				result = append(result, dep+".target")
+			default:
+				result = append(result, dep+".service")
+			}
 		}
 	}
 

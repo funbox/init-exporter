@@ -10,7 +10,7 @@
 
 Summary:        Utility for exporting services described by Procfile to init system
 Name:           init-exporter
-Version:        0.26.0
+Version:        0.27.0
 Release:        0%{?dist}
 Group:          Development/Tools
 License:        MIT
@@ -20,7 +20,7 @@ Source0:        %{name}-%{version}.tar.gz
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  golang >= 1.23
+BuildRequires:  golang >= 1.24
 
 Provides:       upstart-exporter = %{version}-%{release}
 Provides:       systemd-exporter = %{version}-%{release}
@@ -83,6 +83,12 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Fri Oct 24 2025 Anton Novojilov <andy@essentialkaos.com> - 0.27.0-0
+- Added suffix support for service dependencies
+- Improved service dependencies processing for the systemd provider
+- Code refactoring
+- Dependencies update
+
 * Tue Mar 04 2025 Anton Novojilov <andyone@fun-box.ru> - 0.26.0-0
 - Dependencies update
 - Code refactoring

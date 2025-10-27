@@ -28,6 +28,7 @@ const (
 	REGEXP_V2_VERSION         = `(?m)^\s*version:\s*2\s*$`
 	REGEXP_PATH_CHECK         = `\A[A-Za-z0-9_\-./]+\z`
 	REGEXP_NAME_CHECK         = `\A[A-Za-z0-9_\-]+\z`
+	REGEXP_DEP_NAME           = `\A[A-Za-z0-9_\-\.]+\z`
 	REGEXP_NET_DEVICE_CHECK   = `eth[0-9]|e[nm][0-9]|p[0-9][ps][0-9]|wlan|wl[0-9]|wlp[0-9]|bond[0-9]`
 	REGEXP_CPU_AFFINITY_CHECK = `^[\d\-, ]+$`
 )
@@ -133,13 +134,10 @@ func Read(path string, config *Config) (*Application, error) {
 	}
 
 	switch determineProcVersion(data) {
-
 	case 1:
 		return parseV1Procfile(data, config)
-
 	case 2:
 		return parseV2Procfile(data, config)
-
 	}
 
 	return nil, fmt.Errorf("Can't determine version for procfile %s", path)
@@ -160,7 +158,7 @@ func (a *Application) Validate() []error {
 	}
 
 	if a.StartDevice != "" && !regexp.MustCompile(REGEXP_NET_DEVICE_CHECK).MatchString(a.StartDevice) {
-		errs.Add(fmt.Errorf("Name of device (%s) is not a valid", a.StartDevice))
+		errs.Addf("Name of device (%s) is not a valid", a.StartDevice)
 	}
 
 	for _, service := range a.Services {
@@ -186,7 +184,7 @@ func (s *Service) Validate() *errors.Bundle {
 	var errs errors.Bundle
 
 	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(s.Name) {
-		errs.Add(fmt.Errorf("Service name %s is misformatted and can't be accepted", s.Name))
+		errs.Addf("Service name %s is misformatted and can't be accepted", s.Name)
 	}
 
 	errs.Add(s.Options.Validate())
@@ -213,60 +211,60 @@ func (so *ServiceOptions) Validate() *errors.Bundle {
 	}
 
 	if so.Count < 0 {
-		errs.Add(fmt.Errorf("Property \"count\" must be greater or equal 0"))
+		errs.Add(`Property "count" must be greater or equal 0`)
 	}
 
 	if so.KillTimeout < 0 {
-		errs.Add(fmt.Errorf("Property \"kill_timeout\" must be greater or equal 0"))
+		errs.Add(`Property "kill_timeout" must be greater or equal 0`)
 	}
 
 	if so.LimitFile < 0 {
-		errs.Add(fmt.Errorf("Property \"nofile\" must be greater or equal 0"))
+		errs.Add(`Property "nofile" must be greater or equal 0`)
 	}
 
 	if so.LimitProc < 0 {
-		errs.Add(fmt.Errorf("Property \"nproc\" must be greater or equal 0"))
+		errs.Add(`Property "nproc" must be greater or equal 0`)
 	}
 
 	if so.RespawnCount < 0 {
-		errs.Add(fmt.Errorf("Property \"respawn:count\" must be greater or equal 0"))
+		errs.Add(`Property "respawn:count" must be greater or equal 0`)
 	}
 
 	if so.RespawnInterval < 0 {
-		errs.Add(fmt.Errorf("Property \"respawn:interval\" must be greater or equal 0"))
+		errs.Add(`Property "respawn:interval" must be greater or equal 0`)
 	}
 
 	if so.RespawnDelay < 0 {
-		errs.Add(fmt.Errorf("Property \"respawn:delay\" must be greater or equal 0"))
+		errs.Add(`Property "respawn:delay" must be greater or equal 0`)
 	}
 
 	if so.KillMode != "" && !slices.Contains([]string{"control-group", "process", "mixed", "none"}, so.KillMode) {
-		errs.Add(fmt.Errorf("Property \"kill_mode\" must contains 'control-group', 'process', 'mixed' or 'none'"))
+		errs.Add(`Property "kill_mode" must contains "control-group", "process", "mixed" or "none"`)
 	}
 
 	if so.Resources != nil {
 		if so.Resources.CPUWeight < 0 || so.Resources.CPUWeight > 10000 {
-			errs.Add(fmt.Errorf("Property \"resources:cpu_weight\" must be greater or equal 0 and less or equal 10000"))
+			errs.Add(`Property "resources:cpu_weight" must be greater or equal 0 and less or equal 10000`)
 		}
 
 		if so.Resources.CPUAffinity != "" && !regexp.MustCompile(REGEXP_CPU_AFFINITY_CHECK).MatchString(so.Resources.CPUAffinity) {
-			errs.Add(fmt.Errorf("Property \"resources:cpu_affinity\" contains misformatted value"))
+			errs.Add(`Property "resources:cpu_affinity" contains misformatted value`)
 		}
 
 		if so.Resources.StartupCPUWeight < 0 || so.Resources.StartupCPUWeight > 10000 {
-			errs.Add(fmt.Errorf("Property \"resources:startup_cpu_weight\" must be greater or equal 0 and less or equal 10000"))
+			errs.Add(`Property "resources:startup_cpu_weight" must be greater or equal 0 and less or equal 10000`)
 		}
 
 		if so.Resources.CPUQuota < 0 {
-			errs.Add(fmt.Errorf("Property \"resources:cpu_quota\" must be greater than 0"))
+			errs.Add(`Property "resources:cpu_quota" must be greater than 0`)
 		}
 
 		if so.Resources.IOWeight < 0 || so.Resources.IOWeight > 10000 {
-			errs.Add(fmt.Errorf("Property \"resources:io_weight\" must be greater or equal 0 and less or equal 10000"))
+			errs.Add(`Property "resources:io_weight" must be greater or equal 0 and less or equal 10000`)
 		}
 
 		if so.Resources.StartupIOWeight < 0 || so.Resources.StartupIOWeight > 10000 {
-			errs.Add(fmt.Errorf("Property \"resources:startup_io_weight\" must be greater or equal 0 and less or equal 10000"))
+			errs.Add(`Property "resources:startup_io_weight" must be greater or equal 0 and less or equal 10000`)
 		}
 	}
 
@@ -575,11 +573,11 @@ func checkPath(value string) error {
 	}
 
 	if !regexp.MustCompile(REGEXP_PATH_CHECK).MatchString(value) {
-		return fmt.Errorf("Path %s is insecure and can't be accepted", value)
+		return fmt.Errorf("Path %q is insecure and can't be accepted", value)
 	}
 
 	if !path.IsSafe(value) {
-		return fmt.Errorf("Path %s is not safe and can't be accepted", value)
+		return fmt.Errorf("Path %q is not safe and can't be accepted", value)
 	}
 
 	return nil
@@ -592,23 +590,23 @@ func checkEnv(name, value string) error {
 	}
 
 	if strings.TrimSpace(value) == "" {
-		return fmt.Errorf("Environment variable %s has empty value", name)
+		return fmt.Errorf("Environment variable %q has empty value", name)
 	}
 
 	if strings.Contains(value, " ") {
 		if isUnquotedValue(value) {
-			return fmt.Errorf("Environment variable %s has unquoted value with spaces", name)
+			return fmt.Errorf("Environment variable %q has unquoted value with spaces", name)
 		}
 	}
 
 	if strings.Contains(value, "*") {
 		if isUnquotedValue(value) {
-			return fmt.Errorf("Environment variable %s has unquoted asterisk symbol", name)
+			return fmt.Errorf("Environment variable %q has unquoted asterisk symbol", name)
 		}
 	}
 
 	if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(name) {
-		return fmt.Errorf("Environment variable name %s is misformatted and can't be accepted", name)
+		return fmt.Errorf("Environment variable name %q is invalid and can't be accepted", name)
 	}
 
 	return nil
@@ -633,11 +631,13 @@ func checkDependencies(deps []string) *errors.Bundle {
 		return nil
 	}
 
+	depRegex := regexp.MustCompile(REGEXP_DEP_NAME)
+
 	var errs errors.Bundle
 
 	for _, dep := range deps {
-		if !regexp.MustCompile(REGEXP_NAME_CHECK).MatchString(dep) {
-			errs.Add(fmt.Errorf("Dependency name %s is misformatted and can't be accepted", dep))
+		if !depRegex.MatchString(dep) {
+			errs.Addf("Dependency name %q is invalid and can't be accepted", dep)
 		}
 	}
 
